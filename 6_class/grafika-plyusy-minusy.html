@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Растровая и векторная графика: достоинства и недостатки</title>
+<style>
+:root{
+  --bg:#f6f5fc; --card:#ffffff; --ink:#1f2d4d; --muted:#4a5a7a;
+  --blue:#4b4fc4; --blue-l:#ebeafd; --line:#d3d0ef;
+  --ok:#23914a; --ok-l:#e2f5e7; --warn:#d07400; --warn-l:#fff0d9;
+  --rast:#16807f; --rast-l:#dff3f2; --vect:#7448c4; --vect-l:#efe7fb;
+  --rgb:#2f6fd6; --rgb-l:#e3eefc; --cmyk:#c2307f; --cmyk-l:#fbe6f1;
+  --pl:#23914a; --pl-l:#e2f5e7; --mi:#b05a00; --mi-l:#fff0d9;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Times New Roman",Times,serif;font-size:20px;line-height:1.45}
+header{background:linear-gradient(135deg,#e6e3ff,#f3f0ff 50%,#ddf5ec);border-bottom:2px solid var(--line);padding:14px 18px}
+header h1{margin:0;font-size:32px;color:#3b3fa6;line-height:1.15}
+.student{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;align-items:flex-end}
+.student label{display:flex;flex-direction:column;font-size:17px;color:var(--muted);font-weight:bold}
+.student input{font:inherit;font-size:21px;padding:6px 10px;border:2px solid #9fb8de;border-radius:8px;width:320px;max-width:100%;background:#fff;color:var(--ink)}
+.student select{font:inherit;font-size:21px;padding:6px 10px;border:2px solid #9fb8de;border-radius:8px;background:#fff;color:var(--ink);width:120px}
+
+nav{position:sticky;top:0;z-index:20;background:#faf9ff;border-bottom:2px solid var(--line);padding:8px 10px;display:flex;gap:8px;overflow-x:auto}
+nav button{flex:0 0 auto;font:inherit;font-size:18px;display:flex;align-items:center;gap:7px;padding:7px 12px;border:2px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);cursor:pointer}
+nav button .num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--blue-l);font-weight:bold}
+nav button .st{font-size:16px;font-weight:bold;color:var(--muted)}
+nav button.active{border-color:var(--blue);background:var(--blue-l);font-weight:bold}
+nav button.done .num{background:var(--ok);color:#fff}
+nav button.done .st{color:var(--ok)}
+nav button.prog .num{background:#ffd98a}
+nav button.prog .st{color:var(--warn)}
+
+main{max-width:1000px;margin:0 auto;padding:16px 14px 60px}
+.view{display:none}
+.view.active{display:block}
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:18px}
+.card h2{margin:0 0 10px;font-size:27px;color:#3b3fa6;line-height:1.2}
+.card h3{margin:14px 0 6px;font-size:22px}
+.card p{margin:8px 0}
+.def{background:var(--blue-l);border-left:6px solid var(--blue);padding:10px 14px;border-radius:8px;margin:10px 0;font-size:21px}
+.def.r{background:var(--rast-l);border-color:var(--rast)}
+.def.v{background:var(--vect-l);border-color:var(--vect)}
+.def.y{background:#fff7d6;border-color:#e0b000}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.box{border:2px solid var(--line);border-radius:10px;padding:10px 14px;background:#fbfdff}
+.box.plus{border-color:#9fd7b0;background:#f3fbf5}
+.box.minus{border-color:#f2c88d;background:#fffaf1}
+.box h4{margin:0 0 4px;font-size:20px}
+.box ul{margin:4px 0;padding-left:22px}
+.box li{margin:3px 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.chip{font-size:21px;font-weight:bold;padding:4px 14px;border-radius:999px;border:2px solid}
+.chip.r{color:var(--rast);border-color:var(--rast);background:var(--rast-l)}
+.chip.v{color:var(--vect);border-color:var(--vect);background:var(--vect-l)}
+.chip.f{color:#1d4ea3;border-color:#7ea6e6;background:#eef4fd}
+.demo{border:2px dashed #9fb8de;border-radius:12px;padding:12px;background:#f9fbff;margin:12px 0;text-align:center}
+.demo .cap{font-weight:bold;font-size:21px;margin-bottom:6px}
+.demo canvas,.demo svg{max-width:100%;height:auto;border:2px solid var(--line);border-radius:8px;background:#fff}
+.demo input[type=range]{width:min(420px,100%);height:30px;accent-color:var(--blue)}
+.demo .info{font-size:20px;margin-top:4px}
+.pgrid{display:inline-grid;grid-template-columns:repeat(9,32px);gap:2px;background:var(--line);padding:2px;border-radius:6px}
+.pgrid button{width:32px;height:32px;border:none;background:#fff;padding:0;cursor:pointer}
+.pgrid button.on{background:#e0484f}
+.szb{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0}
+.szb button{font:inherit;font-size:19px;padding:6px 12px;border-radius:8px;border:2px solid #9fb8de;background:#fff;cursor:pointer;color:var(--ink)}
+.szb button.on{font-weight:bold;background:#fff7d6;border-color:#e0b000}
+.barw{text-align:left;max-width:520px;margin:8px auto 0;font-size:19px}
+.bar{height:22px;background:#e1e9f6;border-radius:8px;overflow:hidden;margin:2px 0 8px}
+.bar i{display:block;height:100%;min-width:6px;border-radius:8px;transition:width .3s}
+.pair{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.pair figure{margin:0}
+.pair figcaption{font-weight:bold;font-size:21px;margin-bottom:4px}
+.pair .r figcaption{color:var(--rast)}
+.pair .v figcaption{color:var(--vect)}
+.tog{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.tog button{font:inherit;font-size:19px;padding:6px 12px;border-radius:8px;border:2px solid #9fb8de;background:#fff;cursor:pointer;color:var(--ink)}
+.tog button.on{font-weight:bold;background:#fff7d6;border-color:#e0b000}
+table.cmp{width:100%;border-collapse:collapse;font-size:20px}
+table.cmp th,table.cmp td{border:2px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+table.cmp th{background:var(--blue-l)}
+table.cmp th.r{background:var(--rast-l);color:var(--rast)}
+table.cmp th.v{background:var(--vect-l);color:var(--vect)}
+table.cmp td:first-child{font-weight:bold;background:#f6f9fe;width:24%}
+.p{color:var(--pl);font-weight:bold} .m{color:var(--mi);font-weight:bold}
+.rule{font-size:26px;font-weight:bold;text-align:center;padding:12px;border-radius:12px;background:linear-gradient(90deg,var(--rgb-l),var(--cmyk-l));margin:12px 0}
+.rule .a{color:var(--rgb)} .rule .b{color:var(--cmyk)}
+.frame{border:3px solid #e0b000;background:#fffbea;border-radius:12px;padding:12px 16px;margin:10px 0;font-size:21px}
+.frame .blank{display:inline-block;min-width:90px;border-bottom:2px solid var(--ink)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+.steps li{counter-increment:s;position:relative;padding:8px 10px 8px 52px;margin:8px 0;border:2px solid var(--line);border-radius:10px;background:#fbfdff}
+.steps li::before{content:counter(s);position:absolute;left:10px;top:8px;width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center}
+.ppt{list-style:none;padding:0;margin:8px 0}
+.ppt li{padding:8px 12px;margin:6px 0;border-left:5px solid var(--vect);background:#faf7ff;border-radius:8px}
+.big-btn{font:inherit;font-size:22px;font-weight:bold;padding:12px 22px;border-radius:12px;border:none;background:var(--blue);color:#fff;cursor:pointer}
+.big-btn.sec{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.big-btn:disabled{opacity:.45;cursor:default}
+.center{text-align:center}
+
+/* задания */
+.tbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:20px}
+.progress{height:14px;background:#e1e9f6;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.progress div{height:100%;background:var(--blue);transition:width .3s}
+.qcard{background:#fff;border:3px solid var(--line);border-radius:16px;padding:18px;text-align:center}
+.qcard .emo{font-size:58px;line-height:1.1}
+.qcard .qt{font-size:27px;font-weight:bold;margin:8px 0 6px}
+.qcard .qp{font-size:21px;color:var(--muted)}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.ans.list{grid-template-columns:1fr}
+.ans button{font:inherit;font-size:24px;font-weight:bold;padding:16px 10px;border-radius:12px;border:3px solid;background:#fff;cursor:pointer}
+.ans .r{color:var(--rast);border-color:var(--rast)} .ans .r:hover:not(:disabled){background:var(--rast-l)}
+.ans .v{color:var(--vect);border-color:var(--vect)} .ans .v:hover:not(:disabled){background:var(--vect-l)}
+.ans .rgb{color:var(--rgb);border-color:var(--rgb)} .ans .rgb:hover:not(:disabled){background:var(--rgb-l)}
+.ans .cmyk{color:var(--cmyk);border-color:var(--cmyk)} .ans .cmyk:hover:not(:disabled){background:var(--cmyk-l)}
+.ans .pl{color:var(--pl);border-color:var(--pl)} .ans .pl:hover:not(:disabled){background:var(--pl-l)}
+.ans .mi{color:var(--mi);border-color:var(--mi)} .ans .mi:hover:not(:disabled){background:var(--mi-l)}
+.ans .ty{color:#1d4ea3;border-color:var(--blue)} .ans .ty:hover:not(:disabled){background:var(--blue-l)}
+.ans .tn{color:#6a4a00;border-color:#d4a400} .ans .tn:hover:not(:disabled){background:#fff7d6}
+.ans .rs{color:var(--ink);border-color:#9fb8de;font-weight:normal;font-size:21px;text-align:left;padding:12px 16px}
+.ans .rs:hover:not(:disabled){background:#f4f8ff}
+.ans button.sel{box-shadow:0 0 0 4px #ffd24d}
+.ans .rs.sel{background:var(--blue-l);font-weight:bold}
+.ans button:disabled{cursor:default}
+.ans button.right{background:var(--ok-l);border-color:var(--ok);color:var(--ok)}
+.ans button.wrong{background:var(--warn-l);border-color:var(--warn);color:var(--warn)}
+.grp{margin-top:12px}
+.grp .gl{font-weight:bold;font-size:21px;margin-bottom:4px}
+.fb{margin-top:14px;padding:12px 16px;border-radius:12px;font-size:21px;text-align:left}
+.fb.ok{background:var(--ok-l);border:2px solid var(--ok)}
+.fb.no{background:var(--warn-l);border:2px solid var(--warn)}
+.fb b{font-size:22px}
+.next{margin-top:14px}
+.sum{text-align:center}
+.sum .score{font-size:52px;font-weight:bold;color:#3b3fa6}
+.score.good,.pct.good{color:var(--ok)} .score.mid,.pct.mid{color:#a07800} .score.low,.pct.low{color:var(--warn)}
+.pct{font-size:26px;font-weight:bold}
+tr.row-good td{background:#f1faf3} tr.row-mid td{background:#fffbe6} tr.row-low td{background:#fff3e3} tr.row-none td{background:#f7f7fb}
+.big-btn.sm{font-size:18px;padding:6px 12px}
+nav button.done.good .num{background:var(--ok)} nav button.done.good .st{color:var(--ok)}
+nav button.done.mid .num{background:#d4a400} nav button.done.mid .st{color:#a07800}
+nav button.done.low .num{background:var(--warn)} nav button.done.low .st{color:var(--warn)}
+.log{text-align:left;margin:12px auto;max-width:720px;padding-left:0;list-style:none}
+.log li{padding:6px 10px;border-radius:8px;margin:4px 0;font-size:19px}
+.log li.ok{background:var(--ok-l)} .log li.no{background:var(--warn-l)}
+
+table.res{width:100%;border-collapse:collapse;font-size:21px;margin:10px 0}
+table.res td,table.res th{border:2px solid var(--line);padding:8px 10px;text-align:left}
+table.res th{background:var(--blue-l)}
+.grade{font-size:56px;font-weight:bold;color:var(--ok);text-align:center;margin:8px 0}
+.alert{background:var(--warn-l);border:2px solid var(--warn);border-radius:10px;padding:10px 14px;margin:10px 0}
+.send-box{margin:18px auto 0;max-width:640px;text-align:center;border:3px solid #9fd7b0;background:#f3fbf5;border-radius:14px;padding:14px}
+.big-btn.send{background:var(--ok);font-size:24px;padding:14px 26px}
+.send-msg{margin-top:8px;font-size:19px;color:var(--muted)}
+.send-msg.good{color:var(--ok);font-weight:bold} .send-msg.bad{color:var(--warn);font-weight:bold}
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+@media (max-width:640px){
+  body{font-size:19px}
+  header h1{font-size:26px}
+  .two{grid-template-columns:1fr}
+  .ans{grid-template-columns:1fr}
+  .qcard .qt{font-size:24px}
+  table.cmp{font-size:17px}
+  table.cmp th,table.cmp td{padding:6px}
+  .student input{width:100%}
+  .student label{flex:1 1 100%}
+  .student label.c{flex:0 0 auto}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Растровая и векторная графика: достоинства и недостатки</h1>
+  <div class="student">
+    <label>Фамилия и имя
+      <input id="fio" type="text" autocomplete="off" spellcheck="false">
+    </label>
+    <label class="c">Класс
+      <select id="cls" class="cls"><option value="">—</option><option>6А</option><option>6Б</option><option>6В</option></select>
+    </label>
+  </div>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+<!-- ===================== ТЕОРИЯ ===================== -->
+<section class="view" id="v-theory">
+
+  <div class="card">
+    <h2>1. Что такое компьютерная графика</h2>
+    <div class="def"><b>Компьютерная графика</b> — это изображения, которые создают или обрабатывают с помощью компьютера.</div>
+    <p>Фотографии в телефоне, рисунки в Paint, значки приложений, схемы и диаграммы в презентации — всё это компьютерная графика.</p>
+    <p>Компьютер может хранить изображение двумя основными способами. Поэтому различают два главных вида графики:</p>
+    <div class="chips"><span class="chip r">растровая графика</span><span class="chip v">векторная графика</span></div>
+    <p>У каждого вида есть <b>достоинства</b> (плюсы) и <b>недостатки</b> (минусы). Умение их оценить помогает выбрать правильный вид графики для задачи.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Растровая графика</h2>
+    <div class="def r"><b>Растровое изображение</b> состоит из множества маленьких квадратиков — <b>пикселей</b>. Каждый пиксель закрашен одним цветом.</div>
+    <p><b>Пиксель</b> — самый маленький элемент растрового изображения. Растровая картинка похожа на мозаику: из множества разноцветных кусочков складывается рисунок.</p>
+
+    <div class="demo">
+      <div class="cap">🧩 Пиксельная загадка</div>
+      <p style="margin:2px 0 8px">Попробуйте угадать, что нарисовано. Затем двигайте ползунок вправо — пикселей станет больше.</p>
+      <canvas id="pixCanvas" width="384" height="384"></canvas><br>
+      <input id="pixRange" type="range" min="0" max="8" value="0" step="1">
+      <div class="info" id="pixInfo"></div>
+    </div>
+    <p>Чем больше пикселей, тем подробнее и чётче изображение.</p>
+    <p><b>Пикселизация</b> — это когда при увеличении растровой картинки становятся видны отдельные пиксели-квадратики.</p>
+
+    <div class="demo">
+      <div class="cap">✏️ Попробуйте сами: рисунок из пикселей</div>
+      <p style="margin:2px 0 8px">Нажимайте на квадратики — каждый закрашивается одним цветом.</p>
+      <div class="pgrid" id="pgrid"></div>
+      <div class="tog"><button id="pgHeart">Сердечко</button><button id="pgClear">Очистить</button></div>
+    </div>
+
+    <div class="two">
+      <div class="box plus"><h4>👍 Достоинства</h4><ul>
+        <li>передаёт фотографии реалистично, с плавными переходами цвета, тенями и бликами</li>
+        <li>получается сразу при съёмке фотоаппаратом, телефоном и при сканировании</li>
+        <li>можно изменить цвет любой точки: точно подправить фото, рисовать кистью свободно, как на бумаге</li>
+        <li>форматы JPG и PNG открываются почти на любом устройстве</li>
+      </ul></div>
+      <div class="box minus"><h4>👎 Недостатки</h4><ul>
+        <li>при увеличении появляется <b>пикселизация</b></li>
+        <li>при сильном уменьшении теряются мелкие детали, и вернуть их уже нельзя</li>
+        <li>файлы обычно большие: компьютер хранит цвет <b>каждого</b> пикселя, и чем больше пикселей, тем больше файл</li>
+        <li>трудно передвинуть или изменить один предмет: он «слит» с фоном в общие пиксели</li>
+      </ul></div>
+    </div>
+    <h3>Где применяют</h3>
+    <p>Фотографии, скриншоты, отсканированные документы, кадры видео, рисунки в Paint.</p>
+    <h3>Форматы файлов</h3>
+    <div class="chips"><span class="chip f">JPG</span><span class="chip f">PNG</span><span class="chip f">BMP</span></div>
+    <h3>Растровые редакторы</h3>
+    <div class="chips"><span class="chip r">Paint</span><span class="chip r">Photoshop</span></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Векторная графика</h2>
+    <div class="def v"><b>Векторное изображение</b> состоит из фигур (объектов): линий, кругов, прямоугольников, многоугольников, кривых.</div>
+    <p>Компьютер запоминает не каждую точку, а <b>описание каждой фигуры</b>: где она находится, какого она размера, какого цвета контур и заливка.</p>
+
+    <div class="demo">
+      <div class="cap">Домик из фигур</div>
+      <svg viewBox="0 0 600 250" width="600" height="250">
+        <rect x="0" y="0" width="600" height="250" fill="#ffffff"/>
+        <rect x="40" y="110" width="140" height="110" fill="#f2b36b" stroke="#8a5a2b" stroke-width="3"/>
+        <polygon points="25,112 110,40 195,112" fill="#e2574c" stroke="#8a3a2b" stroke-width="3"/>
+        <rect x="65" y="135" width="40" height="40" fill="#8ec9ff" stroke="#2f6fd6" stroke-width="3"/>
+        <g font-size="20" fill="#7448c4" font-family="Times New Roman">
+          <text x="225" y="62">▲ треугольник: 3 вершины,</text>
+          <text x="245" y="86">красная заливка</text>
+          <text x="225" y="140">■ прямоугольник: место, размер,</text>
+          <text x="245" y="164">оранжевая заливка</text>
+          <text x="225" y="210">■ окно: квадрат, голубая заливка</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="two">
+      <div class="box plus"><h4>👍 Достоинства</h4><ul>
+        <li>увеличивается <b>без потери качества</b> — остаётся чётким при любом размере</li>
+        <li>файл простого рисунка небольшой</li>
+        <li>каждую фигуру можно отдельно переместить, растянуть, повернуть, перекрасить</li>
+        <li>надписи и линии всегда остаются чёткими</li>
+        <li>векторный рисунок легко сохранить как обычную картинку PNG</li>
+      </ul></div>
+      <div class="box minus"><h4>👎 Недостатки</h4><ul>
+        <li>трудно передать фотографию с плавными переходами цвета</li>
+        <li>нельзя получить сразу фотоаппаратом или сканером — рисунок нужно составить из фигур</li>
+        <li>рисунок из фигур часто выглядит упрощённым, «плоским»</li>
+        <li>сложный рисунок из тысяч фигур — это большой файл, и компьютер дольше его рисует</li>
+        <li>сложный рисунок долго составлять из фигур — нужны время и умение</li>
+      </ul></div>
+    </div>
+    <h3>Где применяют</h3>
+    <p>Логотипы, эмблемы, значки, схемы, чертежи, диаграммы, шрифты (буквы).</p>
+    <h3>Формат файлов</h3>
+    <div class="chips"><span class="chip f">SVG</span></div>
+    <h3>Где создают векторные изображения</h3>
+    <div class="chips"><span class="chip v">PowerPoint (фигуры)</span><span class="chip v">Inkscape</span><span class="chip v">CorelDRAW</span></div>
+  </div>
+
+  <div class="card">
+    <h2>4. Растр и вектор при увеличении</h2>
+    <p>Слева — растровая картинка, справа — точно такая же векторная. Двигайте ползунок: обе картинки увеличиваются, приближаясь к правому глазу смайлика.</p>
+    <div class="demo">
+      <div class="pair">
+        <figure class="r"><figcaption>Растровая</figcaption><canvas id="zoomR" width="250" height="250"></canvas></figure>
+        <figure class="v"><figcaption>Векторная</figcaption>
+          <svg id="zoomV" width="250" height="250" viewBox="0 0 40 40">
+            <rect x="-5" y="-5" width="50" height="50" fill="#ffffff"/>
+            <circle cx="20" cy="20" r="16" fill="#ffd23f" stroke="#d07400" stroke-width="2"/>
+            <circle cx="14" cy="16" r="2.2" fill="#1f2d4d"/>
+            <circle cx="26" cy="16" r="2.2" fill="#1f2d4d"/>
+            <path d="M28.02 25.09 A9 9 0 0 1 11.98 25.09" fill="none" stroke="#1f2d4d" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </figure>
+      </div>
+      <input id="zoomRange" type="range" min="1" max="8" value="1" step="1">
+      <div class="info" id="zoomInfo"></div>
+    </div>
+    <p>Растровая картинка «рассыпается» на квадратики: пиксели просто становятся больше. Это и есть <b>пикселизация</b>. Векторная остаётся гладкой: компьютер заново рисует фигуры по их описанию в любом размере.</p>
+  </div>
+
+  <div class="card">
+    <h2>5. Попробуйте изменить рисунок</h2>
+    <p>Слева — рисунок в растровом редакторе (как в Paint), справа — такой же рисунок из фигур. Нажимайте кнопки и сравнивайте.</p>
+    <div class="demo">
+      <div class="pair">
+        <figure class="r"><figcaption>Растровый</figcaption><canvas id="edR" width="256" height="256"></canvas></figure>
+        <figure class="v"><figcaption>Векторный</figcaption>
+          <svg id="edV" width="256" height="256" viewBox="0 0 64 64">
+            <rect x="0" y="0" width="64" height="64" fill="#8fd3ff"/>
+            <rect x="0" y="50" width="64" height="14" fill="#5cb85c"/>
+            <rect x="6" y="32" width="22" height="18" fill="#f2b36b"/>
+            <polygon points="3,33 17,20 31,33" fill="#e2574c"/>
+            <rect x="9" y="36" width="8" height="7" fill="#ffffff"/>
+            <rect x="10" y="37" width="6" height="5" fill="#2f6fd6"/>
+            <rect x="20" y="39" width="5" height="11" fill="#8a5a2b"/>
+            <rect x="46" y="38" width="4" height="12" fill="#7a4a1f"/>
+            <circle cx="48" cy="34" r="8" fill="#2e8b3e"/>
+            <circle id="edSun" cx="52" cy="12" r="7" fill="#ffd23f"/>
+          </svg>
+        </figure>
+      </div>
+      <div class="tog" id="edTog"><button data-m="move">Сдвинуть солнце</button><button data-m="big">Увеличить солнце</button><button data-m="base">Как было</button></div>
+      <div class="info" id="edInfo"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>6. Размер файла</h2>
+    <p>Растровый файл хранит цвет <b>каждого</b> пикселя, поэтому чем больше пикселей, тем больше файл. Векторный файл хранит только описание фигур, и его размер почти не зависит от того, насколько большой будет картинка.</p>
+    <div class="demo">
+      <div class="cap">Выберите размер картинки в пикселях</div>
+      <div class="szb" id="szB"></div>
+      <div class="info" id="szOut"></div>
+      <div class="barw">Растровый файл<div class="bar"><i id="bR" style="background:var(--rast)"></i></div>Векторный файл (простой логотип)<div class="bar"><i id="bV" style="background:var(--vect);width:1%"></i></div></div>
+      <p style="font-size:17px;color:var(--muted);margin:4px 0 0">Размер растра посчитан без сжатия. Форматы JPG и PNG сжимают файл, но правило то же: больше пикселей — больше файл.</p>
+    </div>
+    <p>Но будьте внимательны: размер векторного файла зависит от <b>количества фигур</b>. Сложная векторная иллюстрация из тысяч фигур может весить больше, чем маленькая фотография. Поэтому говорят «<b>обычно</b> небольшой», а не «всегда».</p>
+  </div>
+
+  <div class="card">
+    <h2>7. Векторный редактор: что умеет PowerPoint</h2>
+    <p>В PowerPoint каждая фигура — отдельный <b>объект</b>. Её можно менять сколько угодно раз, и она не теряет качества.</p>
+    <ul class="ppt">
+      <li><b>Вставка → Фигуры</b> — прямоугольники, овалы, треугольники, стрелки, звёзды и другие фигуры.</li>
+      <li><b>Маркеры</b> по углам и сторонам фигуры — изменить её размер.</li>
+      <li><b>Копировать и вставить</b> (Ctrl+C, Ctrl+V) — получить ещё одну такую же фигуру.</li>
+      <li><b>Формат фигуры → Заливка фигуры</b> — цвет внутри фигуры.</li>
+      <li><b>Формат фигуры → Контур фигуры</b> — цвет и толщина линии вокруг фигуры.</li>
+      <li><b>Сохранить как рисунок</b> (правой кнопкой) — превратить фигуры в обычную картинку PNG, то есть в растр. Этот шаг покажет учитель.</li>
+    </ul>
+    <div class="def y">В Paint тоже есть инструмент «Фигуры», но после рисования фигура превращается в пиксели — передвинуть или перекрасить её отдельно уже нельзя. В PowerPoint фигура остаётся объектом. В этом и есть главное достоинство векторного редактора.</div>
+  </div>
+
+  <div class="card">
+    <h2>8. Оцениваем: сравнение растровой и векторной графики</h2>
+    <div style="overflow-x:auto">
+    <table class="cmp">
+      <tr><th>Признак</th><th class="r">Растровая</th><th class="v">Векторная</th></tr>
+      <tr><td>Из чего состоит</td><td>из пикселей</td><td>из фигур (линий, кругов, многоугольников)</td></tr>
+      <tr><td>Что хранит компьютер</td><td>цвет каждого пикселя</td><td>описание каждой фигуры</td></tr>
+      <tr><td>Фотографии</td><td><span class="p">+</span> реалистично, плавные переходы цвета</td><td><span class="m">−</span> передать трудно, выглядит упрощённо</td></tr>
+      <tr><td>При увеличении</td><td><span class="m">−</span> пикселизация</td><td><span class="p">+</span> остаётся чётким</td></tr>
+      <tr><td>Размер файла</td><td><span class="m">−</span> обычно большой, растёт с числом пикселей</td><td><span class="p">+</span> у простого рисунка небольшой</td></tr>
+      <tr><td>Изменение рисунка</td><td><span class="p">+</span> можно изменить любой пиксель<br><span class="m">−</span> трудно передвинуть отдельный предмет</td><td><span class="p">+</span> каждую фигуру можно изменить отдельно</td></tr>
+      <tr><td>Как получить</td><td><span class="p">+</span> сразу: фотоаппарат, сканер, скриншот</td><td><span class="m">−</span> нужно нарисовать из фигур</td></tr>
+      <tr><td>Превращение</td><td><span class="m">−</span> точно превратить в вектор трудно</td><td><span class="p">+</span> легко сохранить как растровую картинку</td></tr>
+      <tr><td>Лучше всего подходит</td><td>для фотографий, сложных рисунков с оттенками</td><td>для логотипов, значков, схем, чертежей, надписей</td></tr>
+      <tr><td>Форматы</td><td>JPG, PNG, BMP</td><td>SVG</td></tr>
+      <tr><td>Программы</td><td>Paint, Photoshop</td><td>PowerPoint, Inkscape, CorelDRAW</td></tr>
+    </table>
+    </div>
+    <div class="def">Идеальной графики нет. Выбирают ту, у которой есть <b>достоинство, важное для задачи</b>, а её недостаток в этой задаче <b>не мешает</b>.</div>
+    <h3>Как обосновать выбор</h3>
+    <div class="frame">Я выбираю <span class="blank"></span> графику, потому что <span class="blank"></span> (достоинство). Её недостаток — <span class="blank"></span>, но здесь он не мешает, потому что <span class="blank"></span>.</div>
+    <p><b>Пример.</b> Логотип школы напечатают и на ручке, и на баннере. Я выбираю <b style="color:var(--vect)">векторную</b> графику, потому что она увеличивается без потери качества. Её недостаток — трудно передать фотографию, но здесь он не мешает, потому что логотип — это не фотография, а простые фигуры.</p>
+  </div>
+
+  <div class="card">
+    <h2>9. Цветовые модели RGB и CMYK</h2>
+    <p><b>Цветовая модель</b> — это способ получить нужные цвета, смешивая несколько основных цветов. Какую модель выбрать, зависит от того, <b>где будет изображение</b>: на экране или на бумаге.</p>
+
+    <h3 style="color:var(--rgb)">RGB — для экранов</h3>
+    <p>Экран телефона, монитора, телевизора, интерактивной панели <b>светится</b>. Цвета на нём получаются смешиванием трёх цветов <b>света</b>:</p>
+    <div class="chips"><span class="chip" style="color:#d42020;border-color:#e06060;background:#fdeaea">R — Red, красный</span><span class="chip" style="color:#178a2e;border-color:#5cb85c;background:#e8f7ea">G — Green, зелёный</span><span class="chip" style="color:#1f4fd0;border-color:#6a8fe8;background:#e8eefc">B — Blue, синий</span></div>
+    <div class="demo">
+      <div class="cap">Три прожектора в тёмной комнате</div>
+      <canvas id="rgbCanvas" width="320" height="270"></canvas>
+      <div class="tog" id="rgbTog"></div>
+      <div class="info">Свет складывается: чем больше света, тем светлее. Все три цвета вместе дают <b>белый</b>.</div>
+    </div>
+
+    <h3 style="color:var(--cmyk)">CMYK — для печати</h3>
+    <p>Бумага сама не светится. Принтер или типография наносит на неё <b>краски</b>:</p>
+    <div class="chips"><span class="chip" style="color:#0a7fa8;border-color:#3fb6dd;background:#e4f6fc">C — Cyan, голубой</span><span class="chip" style="color:#b0206e;border-color:#e060a8;background:#fbe6f1">M — Magenta, пурпурный</span><span class="chip" style="color:#8a7200;border-color:#e0c200;background:#fff9d6">Y — Yellow, жёлтый</span><span class="chip" style="color:#3b4660;border-color:#8892a8;background:#eef0f4">K — Key, чёрный</span></div>
+    <div class="demo">
+      <div class="cap">Три краски на белой бумаге</div>
+      <canvas id="cmykCanvas" width="320" height="270"></canvas>
+      <div class="tog" id="cmykTog"></div>
+      <div class="info">Краски смешиваются: чем больше краски, тем темнее. Три краски вместе дают тёмно-коричневый, а не чистый чёрный — поэтому добавляют отдельную чёрную краску <b>K</b>.</div>
+    </div>
+    <p>Поэтому одно и то же изображение на экране и на бумаге может выглядеть немного по-разному.</p>
+    <div class="rule"><span class="a">Светится — RGB</span> &nbsp;•&nbsp; <span class="b">Печатается — CMYK</span></div>
+  </div>
+
+  <div class="card">
+    <h2>10. Памятка: как выбрать</h2>
+    <ol class="steps">
+      <li><b>Что важно в задаче?</b> Будут ли изображение сильно увеличивать? Это фотография? Будут ли его часто менять? Важен ли маленький размер файла?</li>
+      <li><b>У какого вида графики есть это достоинство?</b> Реалистичное фото, снимок, рисунок кистью — <b style="color:var(--rast)">растровая</b>. Чёткость при любом размере, лёгкое изменение фигур — <b style="color:var(--vect)">векторная</b>.</li>
+      <li><b>Мешает ли недостаток?</b> Проверьте, что минус выбранного вида не важен для этой задачи.</li>
+      <li><b>Где будет изображение?</b> На экране — <b style="color:var(--rgb)">RGB</b>. На бумаге — <b style="color:var(--cmyk)">CMYK</b>.</li>
+    </ol>
+    <p class="center" style="margin-top:16px"><button class="big-btn" id="theoryDoneBtn">Теория изучена — к модулю 1 →</button></p>
+  </div>
+</section>
+
+<!-- ===================== ЗАДАНИЯ ===================== -->
+<!-- Модули 1–5 -->
+<section class="view" id="v-t1"></section>
+<section class="view" id="v-t2"></section>
+<section class="view" id="v-t3"></section>
+<section class="view" id="v-t4"></section>
+<section class="view" id="v-t5"></section>
+
+<!-- ===================== РЕЗУЛЬТАТ ===================== -->
+<section class="view" id="v-result"></section>
+</main>
+
+<script>
+/* ===================== БАНКИ ЗАДАНИЙ ===================== */
+// Задание 1: растровая или векторная
+const BANK1 = [
+ {a:'r',e:'📷',t:'Фотография кота, снятая на телефон',x:'Камера записывает изображение по точкам — пикселям. Фотография — растровая графика.'},
+ {a:'r',e:'🖥️',t:'Снимок экрана (скриншот)',x:'Скриншот сохраняет цвет каждой точки экрана, то есть пиксели.'},
+ {a:'r',e:'🖌️',t:'Рисунок, нарисованный кистью в Paint',x:'Paint — растровый редактор: кисть закрашивает пиксели.'},
+ {a:'r',e:'📄',t:'Отсканированная страница учебника',x:'Сканер, как фотоаппарат, разбивает страницу на пиксели.'},
+ {a:'r',e:'🎬',t:'Кадр, вырезанный из видео',x:'Каждый кадр видео состоит из пикселей.'},
+ {a:'r',e:'🏞️',t:'Фотография пейзажа с экскурсии',x:'Фотография с плавными переходами цвета — растровая графика.'},
+ {a:'r',e:'🔷',t:'Круг, нарисованный инструментом «Фигуры» в Paint',x:'В Paint фигура после рисования превращается в пиксели — это растр.'},
+ {a:'r',e:'👨‍👩‍👧',t:'Фотография класса на школьной линейке',x:'Это фотография, она состоит из пикселей.'},
+ {a:'r',e:'🗂️',t:'Файл «рисунок.bmp»',x:'BMP — формат растровых изображений.'},
+ {a:'r',e:'🖼️',t:'Файл «экскурсия.jpg»',x:'JPG — формат растровых изображений, в нём обычно хранят фотографии.'},
+ {a:'v',e:'🔷',t:'Схема из кругов и стрелок, нарисованная фигурами в PowerPoint',x:'Фигуры PowerPoint компьютер хранит как описания фигур — это векторная графика.'},
+ {a:'v',e:'⭐',t:'Эмблема класса, собранная из фигур в PowerPoint',x:'Эмблема из фигур — векторное изображение, её можно увеличивать без потерь.'},
+ {a:'v',e:'🔤',t:'Буквы шрифта, которые остаются гладкими при любом размере',x:'Буквы шрифта описаны контурами — это векторная графика.'},
+ {a:'v',e:'📐',t:'Чертёж из линий и окружностей',x:'Чертёж состоит из простых фигур — линий и окружностей.'},
+ {a:'v',e:'🚇',t:'Схема метро из цветных линий и кружков',x:'Схема собрана из линий и кругов — векторная графика.'},
+ {a:'v',e:'🧩',t:'Файл «логотип.svg»',x:'SVG — формат векторных изображений.'},
+ {a:'v',e:'🔎',t:'Значок, который остаётся чётким при любом увеличении',x:'Без потери качества увеличивается векторное изображение.'},
+ {a:'v',e:'🚸',t:'Дорожный знак, нарисованный из фигур в редакторе Inkscape',x:'Inkscape — векторный редактор, знак собран из фигур.'},
+ {a:'v',e:'📊',t:'Диаграмма, построенная в PowerPoint',x:'Столбики и линии диаграммы — фигуры, это векторная графика.'},
+ {a:'v',e:'🏷️',t:'Логотип, который печатают и на маленькой ручке, и на огромном баннере',x:'Чтобы логотип был чётким при любом размере, его делают векторным.'}
+];
+
+// Задание 2: чьё свойство и это достоинство или недостаток
+const BANK2 = [
+ {g:'r',p:'plus',e:'🌅',t:'Передаёт фотографию реалистично, с плавными переходами цвета',x:'Каждый пиксель может быть своего цвета, поэтому фото выглядит как настоящее.'},
+ {g:'r',p:'plus',e:'📷',t:'Получается сразу при съёмке фотоаппаратом или при сканировании',x:'Ничего рисовать не нужно — снимок сразу готов.'},
+ {g:'r',p:'plus',e:'🖌️',t:'Можно рисовать кистью свободно, как на бумаге, и менять цвет любой точки',x:'Кисть закрашивает пиксели — это удобно для рисунков от руки.'},
+ {g:'r',p:'plus',e:'🪄',t:'Можно точно подправить фотографию: убрать пятнышко, осветлить лицо',x:'Пиксели можно менять по одному — так подправляют фото.'},
+ {g:'r',p:'plus',e:'🌍',t:'Файлы JPG и PNG открываются почти на любом устройстве',x:'Растровые форматы понимают почти все телефоны, компьютеры и программы.'},
+ {g:'r',p:'plus',e:'🎨',t:'Подходит для сложных рисунков с тенями, бликами и множеством оттенков',x:'Миллионы пикселей разного цвета передают тончайшие оттенки.'},
+ {g:'r',p:'minus',e:'🔍',t:'При сильном увеличении появляется пикселизация',x:'Пиксели становятся крупнее, и видны квадратики.'},
+ {g:'r',p:'minus',e:'📦',t:'Файл большой, потому что хранится цвет каждого пикселя',x:'Миллионы пикселей — это много информации.'},
+ {g:'r',p:'minus',e:'✂️',t:'Трудно передвинуть один предмет на картинке: вместе с ним вырезается кусок фона',x:'Предмет и фон состоят из общих пикселей, отдельного объекта нет.'},
+ {g:'r',p:'minus',e:'🔬',t:'Если картинку сильно уменьшить, мелкие детали теряются, и вернуть их нельзя',x:'При уменьшении часть пикселей пропадает навсегда.'},
+ {g:'r',p:'minus',e:'📈',t:'Чем больше пикселей, тем больше файл',x:'Размер растрового файла растёт вместе с количеством пикселей.'},
+ {g:'r',p:'minus',e:'🧩',t:'Трудно точно превратить в рисунок из фигур: компьютер обводит контуры неточно',x:'Из пикселей сложно получить аккуратные фигуры.'},
+ {g:'v',p:'plus',e:'🔎',t:'Увеличивается без потери качества',x:'Компьютер заново рисует фигуры по описанию в любом размере.'},
+ {g:'v',p:'plus',e:'🪶',t:'Файл простого рисунка небольшой',x:'Описание нескольких фигур занимает мало места.'},
+ {g:'v',p:'plus',e:'↔️',t:'Каждую фигуру можно отдельно передвинуть, растянуть, перекрасить',x:'Каждая фигура — отдельный объект.'},
+ {g:'v',p:'plus',e:'🔤',t:'Надписи и линии остаются чёткими при любом размере',x:'Буквы и линии описаны контурами, а не пикселями.'},
+ {g:'v',p:'plus',e:'🖨️',t:'Один и тот же рисунок можно напечатать и на значке, и на огромном баннере',x:'Размер не влияет на качество векторного рисунка.'},
+ {g:'v',p:'plus',e:'🔁',t:'Рисунок легко сохранить как обычную картинку PNG',x:'Превратить фигуры в пиксели просто, например, в PowerPoint командой «Сохранить как рисунок».'},
+ {g:'v',p:'minus',e:'🚫',t:'Трудно передать фотографию с плавными переходами цвета',x:'Фото состоит из миллионов оттенков — фигурами их не передать.'},
+ {g:'v',p:'minus',e:'📸',t:'Нельзя получить сразу фотоаппаратом или сканером',x:'Векторный рисунок нужно составить из фигур.'},
+ {g:'v',p:'minus',e:'🧱',t:'Рисунок часто выглядит упрощённым, «плоским», как значок',x:'Фигуры с ровной заливкой не передают все тени и оттенки.'},
+ {g:'v',p:'minus',e:'🐢',t:'Сложный рисунок из тысяч фигур — большой файл, и компьютер дольше его рисует',x:'Чем больше фигур, тем больше описаний нужно хранить и рисовать.'},
+ {g:'v',p:'minus',e:'✏️',t:'Сложный рисунок долго составлять из фигур — нужны время и умение',x:'Нарисовать кистью быстрее, а в векторе каждую деталь нужно собрать из фигур.'},
+ {g:'v',p:'minus',e:'🧰',t:'Не каждая программа умеет изменять такие рисунки по фигурам',x:'Например, в Paint нельзя изменять отдельные фигуры — там всё становится пикселями.'}
+];
+
+// Задание 3: что выбрать и почему (r[0] — верная причина)
+const BANK3 = [
+ {g:'v',e:'🏷️',t:'Логотип школы напечатают и на ручке, и на большом баннере у входа',
+  r:['Увеличивается без потери качества','Реалистично передаёт плавные переходы цвета','Получается сразу при съёмке на телефон'],
+  x:'Логотип должен быть чётким при любом размере. Недостаток вектора — плохо передаёт фото — здесь не мешает: логотип состоит из простых фигур.'},
+ {g:'r',e:'🏞️',t:'Фото пейзажа с экскурсии для презентации',
+  r:['Реалистично передаёт фото с плавными переходами цвета','Увеличивается без потери качества','Каждую фигуру можно отдельно перекрасить'],
+  x:'Это фотография, важна реалистичность. Пикселизация не мешает: фото не будут сильно увеличивать.'},
+ {g:'v',e:'📱',t:'Значок кнопки для приложения: его покажут и на маленьком телефоне, и на большом планшете',
+  r:['Остаётся чётким при любом размере','Хранит цвет каждого пикселя','Получается при сканировании'],
+  x:'Один значок нужен в разных размерах. Недостаток вектора не мешает: значок — простые фигуры.'},
+ {g:'v',e:'🗺️',t:'Схему расстановки парт в классе нужно часто менять: передвигать парты, добавлять новые',
+  r:['Каждую фигуру можно отдельно передвинуть','Реалистично передаёт фотографию','При увеличении видны пиксели'],
+  x:'Парты-фигуры легко двигать по одной. В растре пришлось бы перерисовывать.'},
+ {g:'r',e:'📄',t:'Нужно быстро сохранить в компьютере копию бумажной грамоты',
+  r:['Получается сразу при сканировании или съёмке','Увеличивается без потери качества','Файл всегда очень маленький'],
+  x:'Сканер или телефон сразу дают растровую копию. Большой размер файла здесь не мешает.'},
+ {g:'r',e:'🤳',t:'Ученица хочет убрать со своего селфи случайное пятнышко',
+  r:['Можно изменить цвет любой точки — пикселя','Каждая фигура — отдельный объект','Файл простого рисунка небольшой'],
+  x:'Селфи — растровое фото. Пятнышко убирают, перекрашивая нужные пиксели.'},
+ {g:'v',e:'📊',t:'Диаграмма для презентации, её покажут на большой интерактивной панели',
+  r:['Линии и надписи останутся чёткими при увеличении','Реалистично передаёт плавные переходы цвета','Получается сразу фотоаппаратом'],
+  x:'На большом экране растровая диаграмма может стать нечёткой. Вектор останется чётким.'},
+ {g:'r',e:'🍂',t:'Рисунок осеннего леса с тенями, бликами и множеством оттенков',
+  r:['Подходит для сложных рисунков со множеством оттенков','Файл простого рисунка небольшой','Увеличивается без потери качества'],
+  x:'Множество оттенков лучше передаёт растр. Вектор выглядел бы упрощённым.'},
+ {g:'v',e:'🌐',t:'На школьный сайт нужно загрузить 50 простых эмблем кружков, а место на сайте ограничено',
+  r:['Файл простого рисунка из фигур небольшой','Реалистично передаёт фотографию','Получается при сканировании'],
+  x:'Простые эмблемы в векторе занимают мало места, поэтому их много поместится.'},
+ {g:'r',e:'🎤',t:'Фото с концерта нужно отправить родителям в чат сразу после выступления',
+  r:['Получается сразу при съёмке на телефон','Увеличивается без потери качества','Каждую фигуру можно перекрасить'],
+  x:'Нужно быстро — снимок с телефона сразу готов. Векторный рисунок пришлось бы долго рисовать.'},
+ {g:'v',e:'🔤',t:'Название школы для маленькой визитки и для большой таблички на здании',
+  r:['Надпись останется чёткой при любом размере','Хорошо передаёт фотографию','Хранит цвет каждого пикселя'],
+  x:'Надпись нужна в очень разных размерах. Буквы-контуры не теряют чёткости.'},
+ {g:'r',e:'🖼️',t:'Портрет бабушки для печати в рамку',
+  r:['Реалистично передаёт лицо и плавные переходы цвета','Фигуры можно двигать по отдельности','Файл не растёт при увеличении'],
+  x:'Портрет — фотография, важна реалистичность. В векторе лицо выглядело бы «плоским».'},
+ {g:'v',e:'⭐',t:'Эмблему класса нужно быстро сделать в трёх вариантах цвета: синем, зелёном и красном',
+  r:['Каждую фигуру легко перекрасить отдельно','Получается сразу при съёмке','Передаёт плавные переходы цвета'],
+  x:'Фигуры эмблемы перекрашиваются за пару щелчков.'},
+ {g:'r',e:'🎬',t:'Для стенгазеты нужен кадр из видео с соревнований',
+  r:['Кадр сразу получается из видео, рисовать ничего не нужно','Увеличивается без потери качества','Каждая фигура — отдельный объект'],
+  x:'Кадр видео уже растровый — его просто сохраняют.'},
+ {g:'v',e:'📐',t:'Чертёж детали для урока технологии: его будут увеличивать, чтобы рассмотреть размеры',
+  r:['При увеличении линии не рассыпаются на пиксели','Реалистично передаёт фотографию','Получается при сканировании'],
+  x:'Тонкие линии чертежа должны оставаться чёткими при увеличении.'},
+ {g:'v',e:'🚌',t:'Схему маршрутов автобусов добавят на сайт и напечатают в большом размере на остановках',
+  r:['Одну схему можно увеличить до любого размера без потерь','Хорошо передаёт плавные переходы цвета','Можно изменить цвет любого пикселя'],
+  x:'Одна и та же схема нужна в разных размерах — это задача для вектора.'},
+ {g:'r',e:'🐱',t:'Фото своего кота для аватарки в мессенджере',
+  r:['Реалистично передаёт фото','Увеличивается без потери качества','Каждую фигуру можно перекрасить'],
+  x:'Аватарка — маленькая фотография, пикселизация не мешает.'},
+ {g:'v',e:'🚪',t:'План эвакуации, в котором позже поменяют номера кабинетов',
+  r:['Надписи и фигуры можно отдельно изменить','Реалистично передаёт фотографию','Получается сразу фотоаппаратом'],
+  x:'В векторе надпись — отдельный объект, её легко исправить.'}
+];
+
+// Задание 4: прав ли ученик
+const BANK4 = [
+ {a:'t',e:'🙋‍♀️',t:'Айгерим: «Фото с телефона лучше хранить в растровом виде — так оно выглядит реалистично».',x:'Растр передаёт плавные переходы цвета фотографии.'},
+ {a:'t',e:'🙋‍♂️',t:'Данияр: «Логотип для огромного баннера лучше делать векторным».',x:'Векторный логотип увеличивается без потери качества.'},
+ {a:'t',e:'🙋‍♂️',t:'Арман: «Растровый файл 3000 × 3000 пикселей больше, чем 300 × 300».',x:'Больше пикселей — больше файл.'},
+ {a:'t',e:'🙋‍♀️',t:'Милана: «В векторном рисунке можно перекрасить одну фигуру, не трогая остальные».',x:'Каждая фигура — отдельный объект.'},
+ {a:'t',e:'🙋‍♂️',t:'Тимур: «Если фото сильно уменьшить и сохранить, а потом снова увеличить, оно станет нечётким».',x:'При уменьшении детали теряются навсегда — это недостаток растра.'},
+ {a:'t',e:'🙋‍♀️',t:'Аружан: «Векторный рисунок легко сохранить как PNG, а вот сделать из фото точный векторный рисунок трудно».',x:'Вектор → растр — легко, растр → вектор — трудно.'},
+ {a:'t',e:'🙋‍♂️',t:'Ерлан: «Сложный векторный рисунок из тысяч фигур может иметь большой файл».',x:'Размер векторного файла зависит от количества фигур.'},
+ {a:'t',e:'🙋‍♀️',t:'Софья: «У каждого вида графики есть и плюсы, и минусы. Выбирают тот, чьи плюсы важны для задачи».',x:'Идеальной графики нет — выбор зависит от задачи.'},
+ {a:'t',e:'🙋‍♂️',t:'Алихан: «Если в Paint нарисовать круг инструментом „Фигуры“, потом его уже не перекрасить как отдельный объект».',x:'В Paint фигура после рисования превращается в пиксели.'},
+ {a:'t',e:'🙋‍♀️',t:'Дана: «Надписи шрифтом остаются чёткими при увеличении, потому что буквы описаны контурами».',x:'Шрифты — это векторная графика.'},
+ {a:'f',e:'🙋‍♂️',t:'Нурлан: «Векторная графика во всём лучше растровой».',x:'Не прав: вектор плохо передаёт фотографии и выглядит упрощённо.'},
+ {a:'f',e:'🙋‍♀️',t:'Камила: «Если фото увеличить в 10 раз, оно станет чётче».',x:'Не прав: появится пикселизация, новых деталей не появится.'},
+ {a:'f',e:'🙋‍♂️',t:'Руслан: «Фотографию лучше сделать векторной, чтобы она не теряла качество».',x:'Не прав: фото с плавными переходами трудно передать фигурами, оно станет упрощённым.'},
+ {a:'f',e:'🙋‍♀️',t:'Алина: «Размер растрового файла не зависит от количества пикселей».',x:'Не прав: чем больше пикселей, тем больше файл.'},
+ {a:'f',e:'🙋‍♂️',t:'Максим: «Логотип, нарисованный кистью в Paint, можно растянуть на баннер без потерь».',x:'Не прав: рисунок в Paint растровый, при увеличении появится пикселизация.'},
+ {a:'f',e:'🙋‍♀️',t:'Асель: «На растровой фотографии легко передвинуть одного человека, и фон останется целым».',x:'Не прав: человек и фон — общие пиксели, на месте человека останется «дыра».'},
+ {a:'f',e:'🙋‍♂️',t:'Бекзат: «Векторный рисунок нельзя изменить после создания».',x:'Не прав: наоборот, каждую фигуру можно менять сколько угодно раз.'},
+ {a:'f',e:'🙋‍♀️',t:'Жанель: «Векторный файл всегда меньше растрового».',x:'Не прав: «обычно», а не «всегда» — сложный вектор из тысяч фигур может быть больше маленькой картинки.'},
+ {a:'f',e:'🙋‍♂️',t:'Олжас: «Пикселизация бывает у векторных рисунков».',x:'Не прав: пикселизация — недостаток растровой графики.'},
+ {a:'f',e:'🙋‍♀️',t:'Вика: «Схему, которую часто меняют, удобнее хранить как фотографию».',x:'Не прав: фото придётся переснимать или перерисовывать, а в векторе фигуры просто передвигают.'}
+];
+
+// Задание 5: экран или печать
+const BANK5 = [
+ {a:'rgb',e:'📱',t:'Обои для экрана телефона'},
+ {a:'rgb',e:'🌐',t:'Картинка для сайта школы'},
+ {a:'rgb',e:'🖥️',t:'Презентация для показа на интерактивной панели'},
+ {a:'rgb',e:'📺',t:'Мультфильм для просмотра по телевизору'},
+ {a:'rgb',e:'💬',t:'Аватарка в мессенджере'},
+ {a:'rgb',e:'🎮',t:'Картинка для игры на планшете'},
+ {a:'rgb',e:'✉️',t:'Фото, которое отправят другу в сообщении'},
+ {a:'rgb',e:'💻',t:'Заставка для монитора компьютера'},
+ {a:'rgb',e:'📽️',t:'Изображение, которое покажут через проектор'},
+ {a:'rgb',e:'📘',t:'Иллюстрация в электронном учебнике'},
+ {a:'cmyk',e:'🎉',t:'Плакат к празднику, который напечатают в типографии'},
+ {a:'cmyk',e:'💌',t:'Открытка для печати на принтере'},
+ {a:'cmyk',e:'📰',t:'Школьная газета на бумаге'},
+ {a:'cmyk',e:'📕',t:'Обложка печатной книги'},
+ {a:'cmyk',e:'🖨️',t:'Фото для печати в фотоальбом'},
+ {a:'cmyk',e:'📃',t:'Листовка-приглашение, которую напечатают и раздадут гостям'},
+ {a:'cmyk',e:'📅',t:'Календарь, напечатанный на бумаге'},
+ {a:'cmyk',e:'🏅',t:'Грамота, которую распечатают для награждения'},
+ {a:'cmyk',e:'🏷️',t:'Наклейка, которую напечатают на принтере'},
+ {a:'cmyk',e:'🍬',t:'Рисунок на коробке конфет (коробку печатают на фабрике)'}
+];
+BANK5.forEach(q=>{q.x = q.a==='rgb'
+  ? 'Изображение будет на экране, а экран светится — выбираем RGB.'
+  : 'Изображение будет напечатано красками на бумаге — выбираем CMYK.';});
+
+/* ===================== НАСТРОЙКА ЗАДАНИЙ ===================== */
+/* ===== АДРЕС ВЕБ-ПРИЛОЖЕНИЯ GOOGLE APPS SCRIPT =====
+   Вставьте сюда ссылку, которую выдаст Google при развёртывании скрипта
+   (заканчивается на /exec). Пока ссылки нет — кнопка «Отправить» подскажет сохранить .txt. */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw--fhCqYNG24K1SoMBkguLafuwAot-E9UJb7FIFLn2BxJji9meAwN2zZAv7G-A6FG2/exec';
+const WORK_NAME = 'Растровая и векторная графика (6 класс)';
+
+const GNAME = {r:'растровая',v:'векторная'};
+const PNAME = {plus:'достоинство',minus:'недостаток'};
+const OPT_RV = [{v:'r',l:'Растровая',c:'r'},{v:'v',l:'Векторная',c:'v'}];
+const OPT_PM = [{v:'plus',l:'👍 Достоинство',c:'pl'},{v:'minus',l:'👎 Недостаток',c:'mi'}];
+const OPT_TF = [{v:'t',l:'Прав',c:'ty'},{v:'f',l:'Не прав',c:'tn'}];
+const OPT_CM = [{v:'rgb',l:'RGB (экран)',c:'rgb'},{v:'cmyk',l:'CMYK (печать)',c:'cmyk'}];
+const TASKS = [
+ {id:'t1',nav:'Модуль 1',title:'Модуль 1. Растровая или векторная?',bank:BANK1,n:8,type:'one',key:q=>q.a,opts:OPT_RV,prompt:'Какая это графика?',ans:{r:'растровая',v:'векторная'}},
+ {id:'t2',nav:'Модуль 2',title:'Модуль 2. Достоинство или недостаток?',bank:BANK2,n:8,type:'two',key:q=>q.g+q.p,
+  prompt:'Это свойство какой графики? Это её достоинство или недостаток?',
+  groups:q=>[{k:'g',label:'Вид графики',opts:OPT_RV},{k:'p',label:'Это…',opts:OPT_PM}],
+  right:q=>GNAME[q.g]+' графика, '+PNAME[q.p]},
+ {id:'t3',nav:'Модуль 3',title:'Модуль 3. Что выбрать и почему?',bank:BANK3,n:8,type:'two',key:q=>q.g,
+  prompt:'Выберите вид графики и главную причину выбора.',
+  groups:q=>[{k:'g',label:'Вид графики',opts:OPT_RV},{k:'rk',label:'Почему? Какое достоинство здесь важно?',list:true,opts:q.ro.map(i=>({v:String(i),l:q.r[i],c:'rs'}))}],
+  right:q=>GNAME[q.g]+' — '+q.r[0].charAt(0).toLowerCase()+q.r[0].slice(1)},
+ {id:'t4',nav:'Модуль 4',title:'Модуль 4. Прав ли ученик?',bank:BANK4,n:10,type:'one',key:q=>q.a,opts:OPT_TF,prompt:'Оцените высказывание: прав ученик или нет?',ans:{t:'прав',f:'не прав'}},
+ {id:'t5',nav:'Модуль 5',title:'Модуль 5. Экран или печать?',bank:BANK5,n:8,type:'one',key:q=>q.a,opts:OPT_CM,prompt:'Какую цветовую модель выбрать?',ans:{rgb:'RGB',cmyk:'CMYK'}}
+];
+TASKS.forEach(t=>{ t.pts = t.type==='two' ? 2 : 1; });
+const VIEWS = [{id:'theory',nav:'Теория'}].concat(TASKS.map(t=>({id:t.id,nav:t.nav}))).concat([{id:'result',nav:'Результат'}]);
+
+let state, theoryDone, current;
+// Для каждого модуля: текущая попытка (active, qs, i, pts, log) и сохранённые результаты (best — лучший, last — последний)
+function freshState(){
+  state = {};
+  TASKS.forEach(t=>{ state[t.id] = {active:false,qs:null,i:0,pts:0,max:t.n*t.pts,answered:false,log:[],sel:{},best:null,last:null,tries:0}; });
+  theoryDone = false;
+}
+function pctOf(pts,max){ return Math.round(100*pts/max); }
+function lvl(p){ return p>=80?'good':(p>=50?'mid':'low'); }
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pickBalanced(bank,n,keyf){
+  const groups={}; bank.forEach(q=>{const k=keyf(q);(groups[k]=groups[k]||[]).push(q);});
+  const keys=Object.keys(groups), per=Math.floor(n/keys.length);
+  let res=[], rest=[];
+  keys.forEach(k=>{const sh=shuffle(groups[k]); res=res.concat(sh.slice(0,per)); rest=rest.concat(sh.slice(per));});
+  res=res.concat(shuffle(rest).slice(0,n-res.length));
+  return shuffle(res);
+}
+function genQs(t){
+  return pickBalanced(t.bank,t.n,t.key).map(q=>{
+    const c=Object.assign({},q);
+    if(c.r){ c.ro=shuffle([0,1,2]); c.rk='0'; }
+    return c;
+  });
+}
+function startTask(id){
+  const t=TASKS.find(x=>x.id===id), s=state[id];
+  s.qs=genQs(t); s.i=0; s.pts=0; s.answered=false; s.active=true; s.log=[]; s.sel={}; s.fb=null;
+}
+
+/* ===================== НАВИГАЦИЯ ===================== */
+function renderNav(){
+  const nav=document.getElementById('nav'); nav.innerHTML='';
+  VIEWS.forEach((v,k)=>{
+    const b=document.createElement('button');
+    let cls='', st='';
+    if(v.id==='theory'){ if(theoryDone){cls='done';st='✓';} }
+    else if(v.id!=='result'){
+      const s=state[v.id];
+      if(s.active && (s.i>0||s.answered)){ cls='prog'; st=(s.i+(s.answered?1:0))+'/'+s.qs.length; }
+      if(s.best){ const p=pctOf(s.best.pts,s.max); cls=(cls?cls+' ':'')+'done '+lvl(p); st=(st?st+' · ':'')+p+'%'; }
+    }
+    if(current===v.id) cls+=' active';
+    b.className=cls;
+    const num = v.id==='result' ? '★' : (v.id==='theory' ? '📖' : String(k));
+    b.innerHTML='<span class="num">'+num+'</span>'+v.nav+(st?' <span class="st">'+st+'</span>':'');
+    b.onclick=()=>show(v.id);
+    nav.appendChild(b);
+  });
+}
+function show(id){
+  current=id;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('v-'+id).classList.add('active');
+  if(id==='result') renderResult();
+  else if(id!=='theory'){ const s=state[id]; if(!s.active && !s.last) startTask(id); renderTask(id); }
+  renderNav();
+  window.scrollTo(0,0);
+}
+
+/* ===================== ОТРИСОВКА МОДУЛЯ ===================== */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function renderSummary(id){
+  const t=TASKS.find(x=>x.id===id), s=state[id], el=document.getElementById('v-'+id), idx=TASKS.indexOf(t);
+  const lp=pctOf(s.last.pts,s.max), bp=pctOf(s.best.pts,s.max);
+  const next = idx<TASKS.length-1 ? '<button class="big-btn" data-go="'+TASKS[idx+1].id+'">К модулю '+(idx+2)+' →</button>' : '';
+  const advice = lp>=80 ? 'Хороший результат!' : (lp>=50 ? 'Неплохо, но можно лучше. Повторите теорию и пройдите модуль ещё раз.' : 'Результат пока низкий. Перечитайте теорию и обязательно пройдите модуль ещё раз.');
+  el.innerHTML='<div class="card sum"><h2>'+t.title+'</h2>'+
+    '<p style="font-size:24px">Модуль выполнен!</p>'+
+    '<div class="score '+lvl(lp)+'">'+lp+'%</div>'+
+    '<p style="font-size:21px">'+s.last.pts+' из '+s.max+' '+plural(s.max,'балла','баллов','баллов')+(s.tries>1?' · попытка '+s.tries:'')+'</p>'+
+    (s.tries>1?'<p style="font-size:21px">Лучший результат за модуль: <b>'+bp+'%</b> — он идёт в оценку.</p>':'')+
+    '<p style="font-size:21px">'+advice+'</p>'+
+    '<ul class="log">'+s.last.log.map(l=>'<li class="'+(l.ok?'ok':'no')+'">'+(l.ok?'✅ ':'🔸 ')+esc(l.t)+' — <b>'+esc(l.right)+'</b></li>').join('')+'</ul>'+
+    '<div class="btns">'+next+'<button class="big-btn sec" data-redo="1">Пройти модуль ещё раз</button><button class="big-btn sec" data-go="result">Мой результат</button></div>'+
+    '<p style="font-size:17px;color:var(--muted)">При повторном прохождении задания будут новыми. Лучший результат сохраняется.</p></div>';
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
+  el.querySelector('[data-redo]').onclick=()=>{ startTask(id); renderTask(id); renderNav(); window.scrollTo(0,0); };
+}
+function renderTask(id){
+  const t=TASKS.find(x=>x.id===id), s=state[id], el=document.getElementById('v-'+id);
+  if(!s.active){ renderSummary(id); return; }
+  const q=s.qs[s.i], n=s.qs.length;
+  let h='<div class="card"><h2>'+t.title+'</h2>'+
+    (s.best?'<p style="font-size:18px;color:var(--muted);margin-top:-4px">Повторное прохождение. Лучший результат: '+pctOf(s.best.pts,s.max)+'%</p>':'')+
+    '<p style="text-align:right;margin:0 0 6px"><button class="big-btn sec sm" id="restartBtn">↺ Начать модуль заново</button></p>'+
+    '<div class="tbar"><span>Задание <b>'+(s.i+1)+'</b> из '+n+'</span><span>Баллы: <b>'+s.pts+'</b></span></div>'+
+    '<div class="progress"><div style="width:'+(100*s.i/n)+'%"></div></div>'+
+    '<div class="qcard"><div class="emo">'+q.e+'</div><div class="qt">'+esc(q.t)+'</div><div class="qp">'+t.prompt+'</div>';
+  if(t.type==='one'){
+    h+='<div class="ans">'+t.opts.map(o=>'<button class="'+o.c+'" data-v="'+o.v+'">'+o.l+'</button>').join('')+'</div>';
+  } else {
+    t.groups(q).forEach(g=>{
+      h+='<div class="grp"><div class="gl">'+g.label+'</div><div class="ans'+(g.list?' list':'')+'" data-grp="'+g.k+'">'+
+        g.opts.map(o=>'<button class="'+o.c+'" data-v="'+o.v+'">'+esc(o.l)+'</button>').join('')+'</div></div>';
+    });
+    h+='<p class="next"><button class="big-btn" id="checkBtn" disabled>Проверить</button></p>';
+  }
+  h+='<div id="fbBox"></div></div></div>';
+  el.innerHTML=h;
+
+  if(t.type==='one'){
+    el.querySelectorAll('.ans button').forEach(b=>b.onclick=()=>answerOne(id,b.dataset.v));
+  } else {
+    s.sel={};
+    const gs=t.groups(q);
+    el.querySelectorAll('.ans').forEach(g=>{
+      g.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+        if(s.answered) return;
+        s.sel[g.dataset.grp]=b.dataset.v;
+        g.querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));
+        document.getElementById('checkBtn').disabled=!gs.every(x=>s.sel[x.k]);
+      });
+    });
+    document.getElementById('checkBtn').onclick=()=>answerTwo(id);
+  }
+  document.getElementById('restartBtn').onclick=()=>{
+    if(s.i===0&&!s.answered){ startTask(id); renderTask(id); renderNav(); return; }
+    if(!confirm('Начать этот модуль заново? Ответы текущей попытки не сохранятся'+(s.best?', а лучший результат останется.':'.'))) return;
+    startTask(id); renderTask(id); renderNav(); window.scrollTo(0,0);
+  };
+  // Если ответ уже дан (ученик уходил в другой раздел и вернулся) — показать ответ и кнопку «Дальше»
+  if(s.answered && s.fb) restoreAnswered(id,t,q);
+}
+function restoreAnswered(id,t,q){
+  const s=state[id], f=s.fb, root='#v-'+id;
+  if(t.type==='one'){
+    document.querySelectorAll(root+' .ans button').forEach(b=>{
+      b.disabled=true;
+      if(b.dataset.v===q.a) b.classList.add('right');
+      else if(b.dataset.v===f.picks._) b.classList.add('wrong');
+    });
+  } else {
+    t.groups(q).forEach(g=>{
+      document.querySelectorAll(root+' .ans[data-grp="'+g.k+'"] button').forEach(b=>{
+        b.disabled=true;
+        if(b.dataset.v===q[g.k]) b.classList.add('right');
+        else if(b.dataset.v===f.picks[g.k]) b.classList.add('wrong');
+      });
+    });
+    const cb=document.getElementById('checkBtn'); if(cb) cb.style.display='none';
+  }
+  showFeedback(id,f.ok,f.partial,f.text,true);
+}
+function showFeedback(id,ok,partial,text,noScroll){
+  const s=state[id], last=s.i===s.qs.length-1;
+  const box=document.getElementById('fbBox');
+  const head = ok ? 'Верно! 👍' : (partial ? 'Почти! Одна часть ответа верная.' : 'Не совсем так.');
+  box.innerHTML='<div class="fb '+(ok?'ok':'no')+'"><b>'+head+'</b><br>'+esc(text)+'</div>'+
+    '<p class="next"><button class="big-btn" id="nextBtn">'+(last?'Завершить модуль ✓':'Следующее задание →')+'</button></p>';
+  const nb=document.getElementById('nextBtn');
+  nb.onclick=()=>nextQ(id);
+  if(!noScroll) nb.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function answerOne(id,v){
+  const t=TASKS.find(x=>x.id===id), s=state[id];
+  if(s.answered||!s.active) return;
+  s.answered=true;
+  const q=s.qs[s.i], ok=v===q.a;
+  if(ok) s.pts++;
+  s.log.push({t:q.t,ok:ok,right:t.ans[q.a]});
+  document.querySelectorAll('#v-'+id+' .ans button').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.v===q.a) b.classList.add('right');
+    else if(b.dataset.v===v) b.classList.add('wrong');
+  });
+  s.fb={ok:ok,partial:false,text:'Правильный ответ: '+t.ans[q.a]+'. '+q.x,picks:{_:v}};
+  showFeedback(id,ok,false,s.fb.text);
+  renderNav();
+}
+function answerTwo(id){
+  const t=TASKS.find(x=>x.id===id), s=state[id];
+  const q=s.qs[s.i], gs=t.groups(q);
+  if(s.answered||!s.active||!gs.every(g=>s.sel[g.k])) return;
+  s.answered=true;
+  let got=0;
+  gs.forEach(g=>{
+    const okk=s.sel[g.k]===q[g.k]; if(okk) got++;
+    document.querySelectorAll('#v-'+id+' .ans[data-grp="'+g.k+'"] button').forEach(b=>{
+      b.disabled=true; b.classList.remove('sel');
+      if(b.dataset.v===q[g.k]) b.classList.add('right');
+      else if(b.dataset.v===s.sel[g.k]) b.classList.add('wrong');
+    });
+  });
+  s.pts+=got;
+  const all=got===gs.length;
+  s.log.push({t:q.t,ok:all,right:t.right(q)});
+  document.getElementById('checkBtn').style.display='none';
+  s.fb={ok:all,partial:got>0&&!all,text:'Правильный ответ: '+t.right(q)+'. '+q.x,picks:Object.assign({},s.sel)};
+  showFeedback(id,s.fb.ok,s.fb.partial,s.fb.text);
+  renderNav();
+}
+function nextQ(id){
+  const s=state[id];
+  if(!s.answered) return;
+  s.answered=false; s.fb=null;
+  s.i++;
+  if(s.i>=s.qs.length){
+    s.active=false; s.tries++;
+    s.last={pts:s.pts,log:s.log.slice()};
+    if(!s.best || s.pts>s.best.pts) s.best={pts:s.pts,log:s.log.slice()};
+  }
+  renderTask(id); renderNav();
+  window.scrollTo(0,0);
+}
+
+/* ===================== РЕЗУЛЬТАТ ===================== */
+function plural(n,a,b,c){n=Math.abs(n)%100;const d=n%10;if(n>10&&n<20)return c;if(d>1&&d<5)return b;if(d===1)return a;return c;}
+// Оценка — по выполненному объёму: только по пройденным модулям (лучший результат каждого)
+function totals(){
+  let tot=0,max=0,done=0;
+  TASKS.forEach(t=>{const s=state[t.id]; if(s.best){ tot+=s.best.pts; max+=s.max; done++; }});
+  const pct = max ? Math.round(100*tot/max) : 0, grade = max ? Math.max(1,Math.round(pct/10)) : 0;
+  return {tot,max,done,pct,grade};
+}
+function stateText(s){
+  if(s.active && (s.i>0||s.answered)) return (s.best?'идёт повторное прохождение':'начат, не закончен');
+  if(s.best) return 'выполнен'+(s.tries>1?' ('+s.tries+' '+plural(s.tries,'попытка','попытки','попыток')+')':'');
+  return 'не выполнен';
+}
+function renderResult(){
+  const el=document.getElementById('v-result');
+  const fio=document.getElementById('fio').value.trim(), cls=document.getElementById('cls').value.trim();
+  const r=totals();
+  let rows='';
+  TASKS.forEach(t=>{
+    const s=state[t.id];
+    if(s.best){
+      const p=pctOf(s.best.pts,s.max), L=lvl(p);
+      rows+='<tr class="row-'+L+'"><td>'+t.title+'</td><td>'+stateText(s)+'</td><td><span class="pct '+L+'">'+p+'%</span><br><span style="font-size:17px">'+s.best.pts+' из '+s.max+'</span></td>'+
+        '<td><button class="big-btn sec sm" data-go="'+t.id+'">'+(p<80?'Переделать':'Открыть')+'</button></td></tr>';
+    } else {
+      rows+='<tr class="row-none"><td>'+t.title+'</td><td>'+stateText(s)+'</td><td>—</td><td><button class="big-btn sec sm" data-go="'+t.id+'">Перейти</button></td></tr>';
+    }
+  });
+  let h='<div class="card"><h2>Мой результат</h2>';
+  h+='<p style="font-size:22px">Ученик: <b>'+(fio?esc(fio):'—')+'</b>, класс: <b>'+(cls?esc(cls):'—')+'</b></p>';
+  h+='<div style="overflow-x:auto"><table class="res"><tr><th>Модуль</th><th>Состояние</th><th>Результат</th><th></th></tr>'+rows+'</table></div>';
+  h+='<p class="center" style="font-size:17px;color:var(--muted)">🟢 80% и выше — хорошо &nbsp; 🟡 50–79% — стоит повторить &nbsp; 🟠 ниже 50% — нужно переделать</p>';
+  if(r.done){
+    h+='<p style="font-size:22px;text-align:center">Выполнено модулей: <b>'+r.done+' из '+TASKS.length+'</b><br>Баллы за выполненные модули: <b>'+r.tot+'</b> из '+r.max+' ('+r.pct+'%)</p>';
+    h+='<div class="grade score '+lvl(r.pct)+'">Оценка: '+r.grade+' из 10</div>';
+    h+='<p class="center" style="font-size:19px;color:var(--muted)">Оценка считается по выполненным модулям'+(r.done<TASKS.length?'. Выполните остальные модули, чтобы она учитывала всю работу.':'.')+'</p>';
+  } else {
+    h+='<div class="alert">Пока не выполнен ни один модуль. Оценка появится после первого выполненного модуля.</div>';
+  }
+  if(r.done){
+    h+='<div class="send-box"><button class="big-btn send" id="sendBtn">📨 Отправить результат учителю</button>'+
+       '<div id="sendMsg" class="send-msg">'+(sentInfo?'Последняя отправка: '+sentInfo+'. Если вы переделали модули, отправьте результат ещё раз.':'Перед отправкой проверьте фамилию, имя и класс вверху страницы.')+'</div></div>';
+  }
+  h+='<div class="btns">'+(r.done?'<button class="big-btn sec" id="txtBtn">Сохранить результат (.txt)</button>':'')+'<button class="big-btn sec" id="resetAll">Начать всё заново</button></div></div>';
+  el.innerHTML=h;
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
+  if(r.done){ document.getElementById('txtBtn').onclick=saveTxt; document.getElementById('sendBtn').onclick=sendResult; }
+  document.getElementById('resetAll').onclick=()=>{
+    if(confirm('Начать всё заново? Все результаты и фамилия будут стёрты.')){
+      freshState(); sentInfo=''; document.getElementById('fio').value=''; document.getElementById('cls').value=''; show('theory');
+    }
+  };
+}
+let sentInfo='';
+function sendResult(){
+  const fioEl=document.getElementById('fio'), clsEl=document.getElementById('cls'), msg=document.getElementById('sendMsg'), btn=document.getElementById('sendBtn');
+  const fio=fioEl.value.trim().replace(/\s+/g,' '), cls=clsEl.value;
+  const showMsg=(t,cl)=>{ msg.className='send-msg'+(cl?' '+cl:''); msg.innerHTML=t; };
+  if(fio.split(' ').length<2){ showMsg('Впишите <b>фамилию и имя</b> вверху страницы.','bad'); fioEl.focus(); window.scrollTo(0,0); return; }
+  if(!cls){ showMsg('Выберите <b>класс</b> вверху страницы.','bad'); clsEl.focus(); window.scrollTo(0,0); return; }
+  const r=totals();
+  if(r.done<TASKS.length && !confirm('Выполнено модулей: '+r.done+' из '+TASKS.length+'. Оценка будет только за выполненные модули. Отправить сейчас?')) return;
+  if(!/^https:\/\/script\.google\.com\//.test(SCRIPT_URL)){ showMsg('Отправка пока не настроена учителем. Нажмите «Сохранить результат (.txt)» и сдайте файл.','bad'); return; }
+  const d=new Date();
+  const data={work:WORK_NAME, fio:fio, cls:cls,
+    date:d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}),
+    modules:TASKS.map(t=>{const s=state[t.id]; return {name:t.nav, pct: s.best?pctOf(s.best.pts,s.max):'', tries:s.tries};}),
+    done:r.done, total:TASKS.length, pts:r.tot, max:r.max, pct:r.pct, grade:r.grade};
+  btn.disabled=true; showMsg('Отправляю…');
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)})
+    .then(()=>{ sentInfo=data.date+' ('+r.pct+'%, оценка '+r.grade+')'; showMsg('✅ Результат отправлен учителю: '+sentInfo+'.','good'); })
+    .catch(()=>{ showMsg('Не удалось отправить — проверьте интернет и попробуйте ещё раз. Если не получается, сохраните результат в .txt.','bad'); })
+    .finally(()=>{ btn.disabled=false; });
+}
+function saveTxt(){
+  const r=totals(), fio=document.getElementById('fio').value.trim(), cls=document.getElementById('cls').value, d=new Date();
+  const dt=d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  let t='Растровая и векторная графика: достоинства и недостатки\r\nУченик: '+(fio||'—')+'\r\nКласс: '+(cls||'—')+'\r\nДата: '+dt+'\r\n\r\n';
+  TASKS.forEach(tk=>{const s=state[tk.id];
+    t+=tk.title+': '+(s.best? pctOf(s.best.pts,s.max)+'% ('+s.best.pts+' из '+s.max+', попыток: '+s.tries+')' : 'не выполнен')+'\r\n';});
+  t+='\r\nВыполнено модулей: '+r.done+' из '+TASKS.length+'\r\nБаллы за выполненные модули: '+r.tot+' из '+r.max+' ('+r.pct+'%)\r\nОценка (по выполненному объёму): '+r.grade+' из 10\r\n';
+  const blob=new Blob(['﻿'+t],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='Графика_'+(fio||'ученик').replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_')+'.txt';
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
+/* ===================== ДЕМОНСТРАЦИИ ===================== */
+// Пиксельная загадка
+const scene=document.createElement('canvas'); scene.width=scene.height=256;
+(function(){
+  const x=scene.getContext('2d');
+  x.fillStyle='#8fd3ff';x.fillRect(0,0,256,256);
+  x.fillStyle='#ffd23f';x.beginPath();x.arc(208,50,28,0,Math.PI*2);x.fill();
+  x.fillStyle='#5cb85c';x.fillRect(0,195,256,61);
+  x.fillStyle='#f2b36b';x.fillRect(46,118,116,84);
+  x.fillStyle='#e2574c';x.beginPath();x.moveTo(30,122);x.lineTo(104,58);x.lineTo(178,122);x.closePath();x.fill();
+  x.fillStyle='#ffffff';x.fillRect(64,136,36,32);x.fillStyle='#2f6fd6';x.fillRect(69,141,26,22);
+  x.fillStyle='#8a5a2b';x.fillRect(118,146,28,56);
+  x.fillStyle='#7a4a1f';x.fillRect(204,138,14,64);
+  x.fillStyle='#2e8b3e';x.beginPath();x.arc(211,124,30,0,Math.PI*2);x.fill();
+})();
+const PIX_LEVELS=[6,8,12,16,24,32,64,128,256];
+function drawPix(){
+  const N=PIX_LEVELS[+document.getElementById('pixRange').value];
+  const c=document.getElementById('pixCanvas'), x=c.getContext('2d'), W=c.width;
+  const tmp=document.createElement('canvas'); tmp.width=tmp.height=N;
+  const tx=tmp.getContext('2d'); tx.imageSmoothingEnabled=true; tx.drawImage(scene,0,0,N,N);
+  x.imageSmoothingEnabled=false; x.clearRect(0,0,W,W); x.drawImage(tmp,0,0,W,W);
+  if(N<=24){ x.strokeStyle='rgba(255,255,255,.55)'; x.lineWidth=1; const st=W/N;
+    for(let i=1;i<N;i++){ x.beginPath();x.moveTo(i*st,0);x.lineTo(i*st,W);x.stroke(); x.beginPath();x.moveTo(0,i*st);x.lineTo(W,i*st);x.stroke(); } }
+  const M=N*N;
+  document.getElementById('pixInfo').innerHTML='Изображение из <b>'+N+' × '+N+' = '+M.toLocaleString('ru-RU')+'</b> '+plural(M,'пикселя','пикселей','пикселей')+(N>=64?' — теперь хорошо видно: это домик, дерево и солнце.':'');
+}
+document.getElementById('pixRange').oninput=drawPix;
+
+// Растр и вектор при увеличении
+const RS=125, zsrc=document.createElement('canvas'); zsrc.width=zsrc.height=RS;
+(function(){
+  const x=zsrc.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,RS,RS); x.scale(RS/40,RS/40);
+  x.fillStyle='#ffd23f';x.strokeStyle='#d07400';x.lineWidth=2;
+  x.beginPath();x.arc(20,20,16,0,Math.PI*2);x.fill();x.stroke();
+  x.fillStyle='#1f2d4d';x.beginPath();x.arc(14,16,2.2,0,Math.PI*2);x.fill();x.beginPath();x.arc(26,16,2.2,0,Math.PI*2);x.fill();
+  x.strokeStyle='#1f2d4d';x.lineWidth=2;x.lineCap='round';x.beginPath();x.arc(20,21,9,0.15*Math.PI,0.85*Math.PI);x.stroke();
+})();
+function drawZoom(){
+  const z=+document.getElementById('zoomRange').value;
+  const s=40/z, fx=26, fy=16;
+  const sx=Math.min(Math.max(fx-s/2,0),40-s), sy=Math.min(Math.max(fy-s/2,0),40-s);
+  const c=document.getElementById('zoomR'), x=c.getContext('2d'), k=RS/40;
+  x.imageSmoothingEnabled=false; x.clearRect(0,0,250,250);
+  x.drawImage(zsrc,sx*k,sy*k,s*k,s*k,0,0,250,250);
+  document.getElementById('zoomV').setAttribute('viewBox',sx+' '+sy+' '+s+' '+s);
+  document.getElementById('zoomInfo').innerHTML='Увеличение: <b>× '+z+'</b>';
+}
+document.getElementById('zoomRange').oninput=drawZoom;
+
+// Попробуйте изменить рисунок
+function edScene(){
+  const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d');
+  x.fillStyle='#8fd3ff';x.fillRect(0,0,64,64);
+  x.fillStyle='#5cb85c';x.fillRect(0,50,64,14);
+  x.fillStyle='#f2b36b';x.fillRect(6,32,22,18);
+  x.fillStyle='#e2574c';x.beginPath();x.moveTo(3,33);x.lineTo(17,20);x.lineTo(31,33);x.closePath();x.fill();
+  x.fillStyle='#ffffff';x.fillRect(9,36,8,7);x.fillStyle='#2f6fd6';x.fillRect(10,37,6,5);
+  x.fillStyle='#8a5a2b';x.fillRect(20,39,5,11);
+  x.fillStyle='#7a4a1f';x.fillRect(46,38,4,12);
+  x.fillStyle='#2e8b3e';x.beginPath();x.arc(48,34,8,0,Math.PI*2);x.fill();
+  x.fillStyle='#ffd23f';x.beginPath();x.arc(52,12,7,0,Math.PI*2);x.fill();
+  return c;
+}
+const ED_INFO={
+  base:'Нажмите «Сдвинуть солнце» или «Увеличить солнце».',
+  move:'<b style="color:var(--rast)">Растр:</b> солнце вырезали вместе с кусочком неба, а на старом месте осталась белая «дыра». <b style="color:var(--vect)">Вектор:</b> солнце — отдельная фигура, она просто переехала, фон цел.',
+  big:'<b style="color:var(--rast)">Растр:</b> увеличенное солнце стало «ступенчатым» — это пикселизация, и вместе с ним растянулся квадрат неба. <b style="color:var(--vect)">Вектор:</b> круг остался гладким.'
+};
+function drawEdit(mode){
+  const rc=edScene(), x=rc.getContext('2d');
+  if(mode==='move'){ const img=x.getImageData(44,4,16,16); x.fillStyle='#ffffff'; x.fillRect(44,4,16,16); x.putImageData(img,30,4); }
+  if(mode==='big'){ const t=document.createElement('canvas'); t.width=t.height=16; t.getContext('2d').drawImage(rc,44,4,16,16,0,0,16,16); x.imageSmoothingEnabled=false; x.drawImage(t,0,0,16,16,36,0,32,32); }
+  const d=document.getElementById('edR').getContext('2d'); d.imageSmoothingEnabled=false; d.clearRect(0,0,256,256); d.drawImage(rc,0,0,256,256);
+  const sun=document.getElementById('edSun');
+  const p = mode==='move'?[38,12,7] : mode==='big'?[52,16,14] : [52,12,7];
+  sun.setAttribute('cx',p[0]); sun.setAttribute('cy',p[1]); sun.setAttribute('r',p[2]);
+  document.querySelectorAll('#edTog button').forEach(b=>b.classList.toggle('on',b.dataset.m===mode&&mode!=='base'));
+  document.getElementById('edInfo').innerHTML=ED_INFO[mode];
+}
+document.querySelectorAll('#edTog button').forEach(b=>b.onclick=()=>drawEdit(b.dataset.m));
+
+// RGB и CMYK
+const rgbOn={R:true,G:true,B:true}, cmyOn={C:true,M:true,Y:true,K:false};
+const CIRC=[[115,100],[205,100],[160,175]];
+function drawRGB(){
+  const c=document.getElementById('rgbCanvas'), x=c.getContext('2d');
+  x.globalCompositeOperation='source-over'; x.fillStyle='#141c3c'; x.fillRect(0,0,320,270);
+  x.globalCompositeOperation='lighter';
+  [['R','#ff0000'],['G','#00ff00'],['B','#0000ff']].forEach((p,i)=>{
+    if(!rgbOn[p[0]]) return; x.fillStyle=p[1]; x.beginPath(); x.arc(CIRC[i][0],CIRC[i][1],72,0,Math.PI*2); x.fill(); });
+  x.globalCompositeOperation='source-over';
+}
+function drawCMYK(){
+  const c=document.getElementById('cmykCanvas'), x=c.getContext('2d');
+  x.globalCompositeOperation='source-over'; x.fillStyle='#ffffff'; x.fillRect(0,0,320,270);
+  x.globalCompositeOperation='multiply';
+  [['C','rgb(40,180,230)'],['M','rgb(225,40,140)'],['Y','rgb(250,230,40)']].forEach((p,i)=>{
+    if(!cmyOn[p[0]]) return; x.fillStyle=p[1]; x.beginPath(); x.arc(CIRC[i][0],CIRC[i][1],72,0,Math.PI*2); x.fill(); });
+  x.globalCompositeOperation='source-over';
+  if(cmyOn.K){ x.fillStyle='#1a1a1a'; x.beginPath(); x.arc(160,128,26,0,Math.PI*2); x.fill(); }
+}
+function makeTog(boxId,obj,labels,draw){
+  const box=document.getElementById(boxId); box.innerHTML='';
+  Object.keys(labels).forEach(k=>{
+    const b=document.createElement('button');
+    const upd=()=>{ b.classList.toggle('on',obj[k]); b.textContent=labels[k]+(obj[k]?' — вкл.':' — выкл.'); };
+    b.onclick=()=>{obj[k]=!obj[k];upd();draw();}; upd(); box.appendChild(b);
+  });
+}
+makeTog('rgbTog',rgbOn,{R:'R красный',G:'G зелёный',B:'B синий'},drawRGB);
+makeTog('cmykTog',cmyOn,{C:'C голубой',M:'M пурпурный',Y:'Y жёлтый',K:'K чёрный'},drawCMYK);
+
+// Рисунок из пикселей
+const HEART=["..XX.XX..",".XXXXXXX.","XXXXXXXXX","XXXXXXXXX",".XXXXXXX.","..XXXXX..","...XXX...","....X...."];
+(function(){
+  const g=document.getElementById('pgrid');
+  for(let i=0;i<72;i++){const b=document.createElement('button');b.setAttribute('aria-label','Пиксель '+(i+1));b.onclick=()=>b.classList.toggle('on');g.appendChild(b);}
+  const setG=f=>[...g.children].forEach((b,i)=>b.classList.toggle('on',f(i)));
+  document.getElementById('pgHeart').onclick=()=>setG(i=>HEART[Math.floor(i/9)][i%9]==='X');
+  document.getElementById('pgClear').onclick=()=>setG(()=>false);
+  setG(i=>HEART[Math.floor(i/9)][i%9]==='X');
+})();
+// Размер файла
+const SIDES=[10,100,500,1000,3000];
+function fmtB(b){return b<1024?b+' байт':b<1048576?(b/1024).toFixed(1).replace('.',',')+' КБ':(b/1048576).toFixed(1).replace('.',',')+' МБ';}
+function drawSize(k){
+  const sd=SIDES[k],p=sd*sd;
+  document.querySelectorAll('#szB button').forEach((b,j)=>b.classList.toggle('on',j===k));
+  document.getElementById('bR').style.width=Math.max(1,p*3/27e6*100)+'%';
+  document.getElementById('szOut').innerHTML='Растр <b>'+sd+' × '+sd+'</b> = '+p.toLocaleString('ru-RU')+' пикселей ≈ <b>'+fmtB(p*3)+'</b><br>Простой векторный логотип любого размера ≈ <b>1 КБ</b>';
+}
+SIDES.forEach((sd,k)=>{const b=document.createElement('button');b.textContent=sd+' × '+sd;b.onclick=()=>drawSize(k);document.getElementById('szB').appendChild(b);});
+drawSize(1);
+
+/* ===================== ЗАПУСК ===================== */
+['fio','cls'].forEach(i=>{const e=document.getElementById(i); const f=()=>{ if(current==='result') renderResult();}; e.addEventListener('input',f); e.addEventListener('change',f);});
+document.getElementById('theoryDoneBtn').onclick=()=>{theoryDone=true; show('t1');};
+
+window.addEventListener('pageshow',()=>{document.getElementById('fio').value='';});
+freshState();
+document.getElementById('fio').value=''; document.getElementById('cls').value='';
+drawPix(); drawZoom(); drawEdit('base'); drawRGB(); drawCMYK();
+show('theory');
+</script>
+</body>
+</html>
