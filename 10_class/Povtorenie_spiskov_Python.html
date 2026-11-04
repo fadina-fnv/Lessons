@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Повторяем списки в Python</title>
+<style>
+:root{
+  --bg:#f3f7fc; --card:#ffffff; --text:#1f2a3a; --muted:#56657a; --line:#cdd8e6;
+  --blue:#2459a8; --blue-soft:#e4eefc; --green:#1d8a57; --green-soft:#e2f6ec;
+  --orange:#d9771a; --orange-soft:#fff1e0; --violet:#6b4bb8; --violet-soft:#efeafc;
+  --code-bg:#f2f5fa; --kw:#2459a8; --fn:#7a3fb0; --str:#1d7a3e; --num:#b35a00; --com:#7a8799;
+}
+*{box-sizing:border-box}
+html{font-size:19px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Times New Roman",Times,serif;line-height:1.45}
+code,pre,.mono,kbd{font-family:"JetBrains Mono",Consolas,"Courier New",monospace}
+code{background:var(--code-bg);border:1px solid var(--line);border-radius:5px;padding:0 .25em;font-size:.88em}
+header{background:linear-gradient(120deg,#dceafe 0%,#e3f7ee 100%);border-bottom:2px solid var(--line);padding:18px 20px 14px}
+header h1{margin:0;font-size:1.75rem;color:var(--blue)}
+header p{margin:4px 0 0;color:var(--muted);font-size:1.02rem}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+.student{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:12px 14px;margin:16px 0 12px}
+.student label{font-weight:bold}
+.student input,.student select{font:inherit;font-size:1rem;padding:6px 10px;border:2px solid var(--line);border-radius:8px;background:#fff}
+.student input{min-width:250px}
+.student .grow{flex:1}
+.modes{display:inline-flex;border:2px solid var(--blue);border-radius:10px;overflow:hidden}
+.modes button{font:inherit;font-size:1rem;border:0;background:#fff;color:var(--blue);padding:7px 14px;cursor:pointer}
+.modes button.on{background:var(--blue);color:#fff}
+.modes button.on.ctrl{background:var(--violet)}
+nav.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+nav.tabs button{font:inherit;font-size:1rem;border:2px solid var(--line);background:#fff;border-radius:10px;padding:8px 13px;cursor:pointer;color:var(--text)}
+nav.tabs button .n{display:inline-block;min-width:1.5em;height:1.5em;border-radius:50%;background:var(--blue-soft);color:var(--blue);font-weight:bold;text-align:center;margin-right:6px;font-size:.9em;line-height:1.5em}
+nav.tabs button:disabled{opacity:.45;cursor:not-allowed}
+nav.tabs button.on{border-color:var(--blue);background:var(--blue-soft);font-weight:bold}
+nav.tabs button.py{border-color:#9cc9b2}
+nav.tabs button.py.on{background:var(--green-soft);border-color:var(--green)}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:22px}
+.subtabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.subtabs button{font:inherit;font-size:1.02rem;padding:7px 16px;border-radius:999px;border:2px solid var(--line);background:#fff;cursor:pointer}
+.subtabs button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.mode-banner{border-radius:10px;padding:8px 14px;margin-bottom:14px;font-size:1rem}
+.mode-banner.learn{background:var(--blue-soft);color:var(--blue)}
+.mode-banner.ctrl{background:var(--violet-soft);color:var(--violet)}
+h2{margin:.2em 0 .5em;font-size:1.45rem;color:var(--blue)}
+h3{margin:1.1em 0 .4em;font-size:1.18rem;color:var(--blue)}
+.theory p{margin:.45em 0}
+.theory table{border-collapse:collapse;margin:.5em 0 .8em;width:100%;max-width:760px}
+.theory td,.theory th{border:1.5px solid var(--line);padding:5px 9px;text-align:left;vertical-align:top}
+.theory th{background:var(--blue-soft)}
+.box{border-radius:10px;padding:10px 14px;margin:.7em 0}
+.box.rule{background:var(--blue-soft);border-left:6px solid var(--blue)}
+.box.warn{background:var(--orange-soft);border-left:6px solid var(--orange)}
+.box.link{background:var(--green-soft);border-left:6px solid var(--green)}
+pre.code{background:var(--code-bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;margin:.5em 0;font-size:.9rem;line-height:1.5;overflow-x:auto;white-space:pre}
+pre.code.nums{counter-reset:ln}
+pre.code.nums .ln{counter-increment:ln}
+pre.code.nums .ln::before{content:counter(ln);display:inline-block;width:1.6em;color:var(--com);margin-right:.6em;text-align:right;border-right:1px solid var(--line);padding-right:.4em}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .2em;font-size:.95em}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em}
+.math{font-style:italic;font-size:1.1em}
+.tk{color:var(--kw);font-weight:bold}.tf{color:var(--fn)}.ts{color:var(--str)}.tn{color:var(--num)}.tc{color:var(--com);font-style:italic}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two>div{min-width:0}
+.out{background:#fff;border:1.5px dashed var(--line);border-radius:10px;padding:8px 14px;font-family:"JetBrains Mono",Consolas,monospace;font-size:.9rem;white-space:pre;overflow-x:auto}
+.cap{font-size:.9rem;color:var(--muted);margin-top:.4em}
+details.try{background:#fbfcfe;border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;margin:.6em 0}
+details.try summary{cursor:pointer;color:var(--blue);font-weight:bold}
+.task{border:2px solid var(--line);border-radius:12px;padding:14px 16px;background:#fcfdff}
+.task .head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:.95rem;margin-bottom:6px}
+.task .q{font-size:1.1rem;font-weight:bold;margin:.2em 0 .4em}
+.task .given{margin:.4em 0}
+kbd{background:#fff;border:1.5px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:1px 7px;font-size:.9em}
+.answer{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.answer input{font-family:"JetBrains Mono",Consolas,monospace;font-size:1rem;padding:8px 12px;border:2px solid var(--line);border-radius:8px;min-width:260px;flex:1;max-width:520px}
+.opts{display:grid;gap:8px;margin-top:10px}
+.opts button{font:inherit;font-size:1.02rem;text-align:left;padding:9px 13px;border:2px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+.opts button.mono{font-family:"JetBrains Mono",Consolas,monospace;font-size:.92rem}
+.opts button:disabled{color:var(--text);opacity:1;cursor:default}
+.opts button.sel{border-color:var(--blue);background:var(--blue-soft)}
+.opts button.right{border-color:var(--green);background:var(--green-soft)}
+.opts button.wrong{border-color:var(--orange);background:var(--orange-soft)}
+.btn{font:inherit;font-size:1.02rem;padding:9px 18px;border-radius:10px;border:2px solid var(--blue);background:var(--blue);color:#fff;cursor:pointer}
+.btn.sec{background:#fff;color:var(--blue)}
+.btn.green{background:var(--green);border-color:var(--green)}
+.btn.violet{background:var(--violet);border-color:var(--violet)}
+.btn:disabled{opacity:.5;cursor:default}
+.fb{margin-top:12px;border-radius:10px;padding:10px 14px}
+.fb.ok{background:var(--green-soft);border-left:6px solid var(--green)}
+.fb.no{background:var(--orange-soft);border-left:6px solid var(--orange)}
+.fb b.t{font-size:1.08rem}
+.fb table{border-collapse:collapse;margin:.4em 0;font-size:.92rem}
+.fb td,.fb th{border:1px solid var(--line);padding:3px 8px;background:#fff}
+.progress{display:flex;gap:4px;margin:4px 0 12px;flex-wrap:wrap}
+.progress span{width:26px;height:10px;border-radius:5px;background:var(--line)}
+.progress span.ok{background:var(--green)}
+.progress span.no{background:var(--orange)}
+.progress span.cur{background:var(--blue)}
+.progress span.ans{background:var(--violet)}
+.cnav{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.cnav button{font-family:"JetBrains Mono",Consolas,monospace;font-size:.95rem;width:42px;height:38px;border-radius:8px;border:2px solid var(--line);background:#fff;cursor:pointer;color:var(--text)}
+.cnav button.done{background:var(--violet-soft);border-color:#b9a6e8;color:var(--violet);font-weight:bold}
+.cnav button.cur{border-color:var(--violet);box-shadow:0 0 0 2px var(--violet)}
+.cbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:6px}
+.confirm{background:var(--violet-soft);border:2px solid var(--violet);border-radius:12px;padding:12px 16px;margin:10px 0}
+.review td.skip{color:var(--muted)}
+.summary{text-align:center;padding:10px}
+.big{font-size:2.6rem;font-weight:bold;color:var(--violet)}
+.review{width:100%;border-collapse:collapse;margin-top:12px;font-size:.95rem}
+.review td,.review th{border:1.5px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.review th{background:var(--violet-soft)}
+.review td.ok{color:var(--green);font-weight:bold}
+.review td.no{color:var(--orange);font-weight:bold}
+.review pre{margin:0;font-size:.8rem;white-space:pre-wrap}
+.note{color:var(--muted);font-size:.95rem}
+.level{border:2px solid var(--line);border-radius:12px;padding:12px 16px;margin:12px 0;background:#fcfdff}
+.level h3{margin-top:.2em}
+.level .tag{display:inline-block;border-radius:999px;padding:1px 10px;font-size:.88rem;margin-left:6px;vertical-align:middle}
+.tagA{background:var(--green-soft);color:var(--green)}.tagB{background:var(--blue-soft);color:var(--blue)}.tagC{background:var(--violet-soft);color:var(--violet)}.tagS{background:var(--orange-soft);color:var(--orange)}
+.io{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:640px}
+.io div b{display:block;font-size:.9rem;color:var(--muted)}
+.check{background:var(--blue-soft);border-radius:10px;padding:10px 14px;margin-top:10px}
+.check input,.check select{font-family:"JetBrains Mono",Consolas,monospace;font-size:1rem;padding:6px 10px;border:2px solid var(--line);border-radius:8px;width:150px}
+.check .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:6px 0}
+.res-table{width:100%;border-collapse:collapse}
+.res-table td,.res-table th{border:1.5px solid var(--line);padding:7px 10px;text-align:left}
+.res-table th{background:var(--blue-soft)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--blue);color:#fff;padding:10px 18px;border-radius:10px;font-size:1rem;display:none;z-index:9;max-width:90vw}
+@media (max-width:760px){
+  html{font-size:17px}
+  header h1{font-size:1.4rem}
+  .two,.io{grid-template-columns:1fr}
+  .student input{min-width:0;width:100%}
+  .student .grow{flex-basis:100%}
+  .panel{padding:14px 12px}
+  .answer input{min-width:0;width:100%}
+  pre.code{font-size:.82rem}
+  .theory table,.review{display:block;overflow-x:auto}
+}
+.idx td,.idx th{text-align:center!important;min-width:2.4em}
+.idx th{background:var(--blue-soft)}
+.idx tr.neg td{color:var(--muted);font-size:.9em}
+.plist{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--green-soft);border:2px solid #9cc9b2;border-radius:12px;padding:10px 14px;margin:10px 0 14px}
+.plist input{font-family:"JetBrains Mono",Consolas,monospace;font-size:1.05rem;padding:7px 10px;border:2px solid #9cc9b2;border-radius:8px;background:#fff;flex:1;min-width:0}
+.check .row label{min-width:13em}
+@media (max-width:760px){.check .row label{min-width:0;flex-basis:100%}.check input{width:100%!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>📋 Повторяем списки в Python</h1>
+    <p>Учебник-тренажёр: создание списка и индексы · append() · перебор списка циклом · поиск минимума и суммы — база для сортировок</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="student">
+    <label for="fio">Фамилия, имя:</label>
+    <input id="fio" type="text" autocomplete="off" name="fio_nosave">
+    <label for="cls">Класс:</label>
+    <select id="cls"><option value="">— выбери —</option><option>10А</option><option>10Б</option></select>
+    <span class="grow"></span>
+    <span id="saveState" class="note"></span>
+  </div>
+
+  <nav class="tabs" id="tabs"></nav>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============ утилиты ============ */
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const L=(...l)=>l.join('\n');
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const pf=v=>Number.isInteger(v)?v+'.0':String(v); // как Python печатает float
+const rl=(n,a,b)=>Array.from({length:n},()=>R(a,b));                                // n случайных чисел
+const ru=(n,a,b)=>shuffle(Array.from({length:b-a+1},(_,i)=>a+i)).slice(0,n);        // n разных чисел
+const PL=a=>'['+a.map(v=>typeof v==='string'?`'${v}'`:String(v)).join(', ')+']';   // как Python печатает список
+function rng(a,b,s){const r=[];if(s>0)for(let i=a;i<b;i+=s)r.push(i);else for(let i=a;i>b;i+=s)r.push(i);return r;}
+function hl(code){
+  const re=/(#.*$)|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|\b(if|elif|else|for|in|while|and|or|not|True|False|from|import|None)\b|\b(print|input|int|float|str|range|map|len|list|sum|min|max|randint|append|index|count|split|insert|pop|remove|extend|copy|clear|sort|abs)\b|(\b\d+(?:\.\d+)?\b)/g;
+  return code.split('\n').map(line=>{
+    let out='',last=0;
+    line.replace(re,(m,c,s,k,f,n,off)=>{
+      out+=esc(line.slice(last,off));last=off+m.length;
+      const cls=c?'tc':s?'ts':k?'tk':f?'tf':'tn';
+      out+=`<span class="${cls}">${esc(m)}</span>`;return m;});
+    out+=esc(line.slice(last));
+    return out;
+  });
+}
+function codeBlock(code,nums){
+  const lines=hl(code);
+  if(nums) return `<pre class="code nums">${lines.map(l=>`<span class="ln">${l}</span>`).join('\n')}</pre>`;
+  return `<pre class="code">${lines.join('\n')}</pre>`;
+}
+function trace(head,rows){
+  return `<table><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
+}
+/* таблица «индекс — элемент» */
+function IT(a,name,neg){name=name||'a';
+  return `<table class="idx"><tr><th>i</th>${a.map((_,i)=>`<td>${i}</td>`).join('')}</tr><tr><th>${name}[i]</th>${a.map(v=>`<td><b>${esc(typeof v==='string'?"'"+v+"'":v)}</b></td>`).join('')}</tr>${neg?`<tr class="neg"><th>i с конца</th>${a.map((_,i)=>`<td>${i-a.length}</td>`).join('')}</tr>`:''}</table>`;}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',2600);}
+
+/* ============ генераторы заданий ============
+   kind:'input' — ответ вводится; kind:'choice' — выбор варианта (ans — индекс)
+   seq:true — последовательность через пробел; lst:true — ответ в виде списка Python
+*/
+const G={make:[],app:[],loop:[],min:[]};
+const OUT='Что появится на экране? Впиши вывод программы.';
+const OUTL='Что появится на экране? Впиши вывод программы — вместе с квадратными скобками и запятыми.';
+
+/* ---------- 1. Создание списка и индексы ---------- */
+G.make.push(function(){ // положительный индекс
+  const n=R(5,8),a=rl(n,-9,50),k=R(1,n-1);
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,`print(a[${k}])`),ans:String(a[k]),
+    explain:`Индексы начинаются с <b>нуля</b>: первый элемент — a[0], поэтому a[${k}] — это ${k+1}-й по счёту элемент.${IT(a)}a[${k}] = ${a[k]}.`};
+});
+G.make.push(function(){ // отрицательный индекс
+  const n=R(5,8),a=rl(n,-9,50),k=R(1,3);
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,`print(a[-${k}])`),ans:String(a[n-k]),
+    explain:`Отрицательный индекс считает с конца: a[-1] — последний элемент, a[-2] — предпоследний. a[-${k}] = a[${n} − ${k}] = a[${n-k}] = ${a[n-k]}.${IT(a,'a',true)}`};
+});
+G.make.push(function(){ // выражение из элементов
+  const n=R(5,7),a=rl(n,1,30),i=R(0,n-2);
+  if(Math.random()<.5)return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,`print(a[${i}] + a[-1])`),ans:String(a[i]+a[n-1]),
+    explain:`a[${i}] = ${a[i]}, a[-1] — последний элемент, ${a[n-1]}. Сумма: ${a[i]} + ${a[n-1]} = ${a[i]+a[n-1]}.${IT(a)}`};
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'print(a[len(a) - 1] - a[0])'),ans:String(a[n-1]-a[0]),
+    explain:`len(a) = ${n}, значит a[len(a) − 1] = a[${n-1}] — <b>последний</b> элемент (${a[n-1]}). a[0] = ${a[0]}. Разность: ${a[n-1]} − ${a[0]} = ${a[n-1]-a[0]}.`};
+});
+G.make.push(function(){ // len
+  const v=R(1,4);
+  if(v===1){const a=rl(R(4,9),0,20);return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'print(len(a))'),ans:String(a.length),
+    explain:`<code>len()</code> — количество элементов списка, здесь их ${a.length}. Обрати внимание: последний индекс на 1 меньше — ${a.length-1}.`};}
+  if(v===2){const x=R(0,9),n=R(3,8);return {kind:'input',text:OUT,code:L(`t = [${x}] * ${n}`,'print(len(t))'),ans:String(n),
+    explain:`<code>[${x}] * ${n}</code> — список из ${n} одинаковых элементов: ${PL(Array(n).fill(x))}. Длина — ${n}.`};}
+  if(v===3){const p=R(1,10),q=p+R(3,9);return {kind:'input',text:OUT,code:L(`b = [i for i in range(${p}, ${q})]`,'print(len(b))'),ans:String(q-p),
+    explain:`range(${p}, ${q}) даёт числа от ${p} до ${q-1} (правая граница не входит) — всего ${q} − ${p} = ${q-p} чисел.`};}
+  const p=R(0,5),s=R(2,4),q=p+s*R(3,6)+R(0,1),arr=rng(p,q,s);
+  return {kind:'input',text:OUT,code:L(`c = [i for i in range(${p}, ${q}, ${s})]`,'print(len(c))'),ans:String(arr.length),
+    explain:`range(${p}, ${q}, ${s}) даёт числа ${arr.join(', ')} — всего ${arr.length}.`};
+});
+G.make.push(function(){ // генератор списка
+  const v=R(1,4);let code,arr,ex;
+  if(v===1){const k=R(2,5),n=R(4,6);arr=rng(0,n,1).map(i=>i*k);code=`a = [i * ${k} for i in range(${n})]`;ex=`i принимает значения ${rng(0,n,1).join(', ')}, каждое умножается на ${k}.`;}
+  else if(v===2){const n=R(4,6);arr=rng(1,n+1,1).map(i=>i*i);code=`a = [i ** 2 for i in range(1, ${n+1})]`;ex=`i = ${rng(1,n+1,1).join(', ')}; в список попадают их квадраты.`;}
+  else if(v===3){const m=pick([3,4,5]),p=R(1,5),q=p+R(10,16);arr=rng(p,q,1).filter(i=>i%m===0);code=`a = [i for i in range(${p}, ${q}) if i % ${m} == 0]`;ex=`Перебираются числа от ${p} до ${q-1}, в список попадают только делящиеся на ${m}.`;}
+  else{const c=R(1,9),n=R(3,5);arr=rng(0,n,1).map(i=>i+c);code=`a = [i + ${c} for i in range(${n})]`;ex=`i = ${rng(0,n,1).join(', ')}; к каждому прибавляется ${c}.`;}
+  return {kind:'input',lst:true,text:OUTL,code:L(code,'print(a)'),ans:PL(arr),
+    explain:`Генератор списка: <code>[выражение for i in …]</code>. ${ex} <code>print(a)</code> выводит список в квадратных скобках через запятую.`};
+});
+G.make.push(function(){ // повторение и print(*)
+  if(Math.random()<.5){const x=R(0,9),n=R(3,6);return {kind:'input',text:OUT,code:L(`t = [${x}] * ${n}`,'print(*t)'),ans:Array(n).fill(x).join(' '),
+    explain:`t = ${PL(Array(n).fill(x))}. Звёздочка в <code>print(*t)</code> выводит элементы <b>без скобок, через пробел</b>.`};}
+  const a=rl(4,1,9),s=pick(['-',':','+']);
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,`print(*a, sep='${s}')`),ans:a.join(s),
+    explain:`<code>*a</code> «распаковывает» список — элементы передаются в print по отдельности, а <code>sep='${s}'</code> ставит между ними знак ${s}.`};
+});
+G.make.push(function(){ // выбор команды вывода
+  const a=rl(3,1,9),right='print(*a)';const opts=shuffle([right,'print(a)',"print(*a, sep='\\n')",'print(a[0], a[-1])']);
+  return {kind:'choice',mono:true,text:`a = ${PL(a)}. Какая команда выведет на экран <code>${a.join(' ')}</code>?`,opts,ans:opts.indexOf(right),
+    explain:`<code>print(a)</code> → <code>${PL(a)}</code> (со скобками); <code>print(*a)</code> → <code>${a.join(' ')}</code>; <code>print(*a, sep='\\n')</code> — каждый элемент с новой строки; <code>print(a[0], a[-1])</code> — только первый и последний.`};
+});
+G.make.push(function(){ // IndexError
+  const n=R(4,6),a=ru(n,1,40);const opts=shuffle(['Ошибка IndexError',String(a[n-1]),String(a[0]),'0']);
+  return {kind:'choice',text:'Что произойдёт при запуске программы?',code:L(`a = ${PL(a)}`,`print(a[${n}])`),opts,ans:opts.indexOf('Ошибка IndexError'),
+    explain:`В списке ${n} элементов, их индексы — от 0 до ${n-1}. Элемента с индексом ${n} нет → ошибка <b>IndexError: list index out of range</b> (индекс вне диапазона). Последний элемент — a[${n-1}], или a[-1].`};
+});
+G.make.push(function(){ // последний элемент
+  const right=pick(['a[-1]','a[len(a) - 1]']);const opts=shuffle([right,'a[len(a)]','a[0]','a[-0]']);
+  return {kind:'choice',mono:true,text:'Какая запись обращается к <b>последнему</b> элементу списка a?',opts,ans:opts.indexOf(right),
+    explain:`Последний индекс — len(a) − 1, к последнему элементу можно обратиться и через a[-1]. <code>a[len(a)]</code> — IndexError (такого индекса нет); <code>a[-0]</code> — это то же, что a[0], первый элемент.`};
+});
+G.make.push(function(){ // randint
+  const p=R(1,10),q=p+R(3,8),n=R(4,8);const right=`от ${p} до ${q} включительно`;
+  const opts=shuffle([right,`от ${p} до ${q-1} включительно`,`от ${p+1} до ${q} включительно`,`только числа ${p} и ${q}`]);
+  return {kind:'choice',text:'Какие числа могут оказаться в списке x?',code:L('from random import randint',`x = [randint(${p}, ${q}) for i in range(${n})]`),opts,ans:opts.indexOf(right),
+    explain:`<code>randint(a, b)</code> возвращает случайное целое число от a до b, <b>обе границы включаются</b> (в отличие от range!). А range(${n}) лишь задаёт, что чисел в списке будет ${n}.`};
+});
+G.make.push(function(){ // ввод в строку
+  const a=rl(4,1,20),i=R(0,1),j=R(2,3);
+  return {kind:'input',text:'Что появится на экране?',code:L('a = list(map(int, input().split()))',`print(a[${i}] + a[${j}])`),input:a.join(' '),ans:String(a[i]+a[j]),
+    explain:`<code>input().split()</code> разрезает строку по пробелам, <code>map(int, …)</code> превращает части в числа, <code>list()</code> собирает их в список: a = ${PL(a)}. a[${i}] + a[${j}] = ${a[i]} + ${a[j]} = ${a[i]+a[j]}.`};
+});
+
+/* ---------- 2. append() и изменение элементов ---------- */
+G.app.push(function(){
+  const a=rl(R(3,5),1,30),x=R(1,99);
+  return {kind:'input',lst:true,text:OUTL,code:L(`a = ${PL(a)}`,`a.append(${x})`,'print(a)'),ans:PL([...a,x]),
+    explain:`<code>a.append(${x})</code> добавляет <b>один</b> элемент в <b>конец</b> списка.`};
+});
+G.app.push(function(){ // заполнение в цикле
+  const n=R(3,5),v=R(1,3);let arr,expr;
+  if(v===1){const k=R(2,5);expr=`i * ${k}`;arr=rng(0,n,1).map(i=>i*k);}
+  else if(v===2){const c=R(1,9);expr=`i + ${c}`;arr=rng(0,n,1).map(i=>i+c);}
+  else{expr='i * i';arr=rng(0,n,1).map(i=>i*i);}
+  return {kind:'input',lst:true,text:OUTL,code:L('a = []',`for i in range(${n}):`,`    a.append(${expr})`,'print(a)'),ans:PL(arr),
+    explain:'Список начинается пустым, на каждом шаге цикла append добавляет в конец одно число:'+trace(['i',esc(expr),'a после append'],rng(0,n,1).map((i,k)=>[i,arr[k],esc(PL(arr.slice(0,k+1)))]))};
+});
+G.app.push(function(){ // присваивание элементу
+  const n=R(4,6),a=rl(n,1,30),k=R(0,n-1),v=R(50,99);const b=a.slice();b[k]=v;
+  return {kind:'input',lst:true,text:OUTL,code:L(`a = ${PL(a)}`,`a[${k}] = ${v}`,'print(a)'),ans:PL(b),
+    explain:`<code>a[${k}] = ${v}</code> — элементу с индексом ${k} (${k+1}-му по счёту) присваивается новое значение. Старое значение ${a[k]} стирается, длина списка не меняется.`};
+});
+G.app.push(function(){ // len после append
+  const n=R(3,6),a=rl(n,1,20);
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,`a.append(${R(1,9)})`,`a.append(${R(1,9)})`,'print(len(a))'),ans:String(n+2),
+    explain:`Было ${n} элементов, каждый append добавил по одному: ${n} + 2 = ${n+2}.`};
+});
+G.app.push(function(){ // отбор в новый список
+  const b=rl(R(6,8),1,40),v=R(1,2);let c,cond;
+  if(v===1){cond='x % 2 == 0';c=b.filter(x=>x%2===0);}else{const k=R(10,30);cond=`x > ${k}`;c=b.filter(x=>x>k);}
+  return {kind:'input',lst:true,text:OUTL+' Если список пуст — впиши []',code:L(`b = ${PL(b)}`,'c = []','for x in b:',`    if ${cond}:`,'        c.append(x)','print(c)'),ans:PL(c),
+    explain:`Цикл перебирает элементы b; в новый список c попадают только те, для которых условие <code>${esc(cond)}</code> истинно: ${c.length?c.join(', '):'таких нет'}.`};
+});
+G.app.push(function(){ // как добавить
+  const x=R(2,99),right=`a.append(${x})`;const opts=shuffle([right,`a = append(${x})`,`a.append[${x}]`,`a[len(a)] = ${x}`]);
+  return {kind:'choice',mono:true,text:`Как добавить число ${x} в <b>конец</b> списка a?`,opts,ans:opts.indexOf(right),
+    explain:`append — это <b>метод</b>: пишется через точку после имени списка, значение — в круглых скобках. <code>a[len(a)] = ${x}</code> вызовет IndexError: элемента с таким индексом ещё нет.`};
+});
+G.app.push(function(){ // пустой список и индекс
+  const x=R(1,9),opts=['Ошибка IndexError',`[${x}]`,'[]',`[0, ${x}]`],o=shuffle(opts);
+  return {kind:'choice',mono:true,text:'Что произойдёт при запуске программы?',code:L('a = []',`a[0] = ${x}`,'print(a)'),opts:o,ans:o.indexOf(opts[0]),
+    explain:`Список пуст — элемента a[0] в нём нет, поэтому присвоить ему значение нельзя: <b>IndexError</b>. В пустой список элементы добавляют методом <code>a.append(${x})</code>.`};
+});
+G.app.push(function(){ // +=
+  const n=R(4,6),a=rl(n,1,20),k=R(0,n-1),d=R(2,9);const b=a.slice();b[k]+=d;
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,`a[${k}] += ${d}`,'print(*a)'),ans:b.join(' '),
+    explain:`<code>a[${k}] += ${d}</code> — то же, что <code>a[${k}] = a[${k}] + ${d}</code>: ${a[k]} + ${d} = ${b[k]}. <code>print(*a)</code> выводит элементы через пробел.`};
+});
+G.app.push(function(){ // append выражения
+  const a=rl(R(3,5),1,30),s=a[0]+a[a.length-1];
+  return {kind:'input',lst:true,text:OUTL,code:L(`a = ${PL(a)}`,'a.append(a[0] + a[-1])','print(a)'),ans:PL([...a,s]),
+    explain:`Сначала вычисляется выражение в скобках: a[0] + a[-1] = ${a[0]} + ${a[a.length-1]} = ${s}. Затем это число добавляется в конец.`};
+});
+G.app.push(function(){ // ввод с append
+  const a=rl(3,1,30);
+  return {kind:'input',lst:true,text:OUTL,code:L('a = []','for i in range(3):','    a.append(int(input()))','print(a)'),input:a.join('  ⏎  '),inputNote:'каждое число — с новой строки',ans:PL(a),
+    explain:`Каждый шаг цикла читает одно число и добавляет его в конец. То же самое делает генератор: <code>a = [int(input()) for i in range(3)]</code>.`};
+});
+
+/* ---------- 3. Перебор списка циклом ---------- */
+G.loop.push(function(){ // по значениям
+  const v=R(1,3),n=R(4,6),a=v===3?rl(n,10,99):rl(n,1,15);let line,arr,ex;
+  if(v===1){line="    print(x * 2, end=' ')";arr=a.map(x=>x*2);ex='каждое умножается на 2';}
+  else if(v===2){const c=R(1,9);line=`    print(x + ${c}, end=' ')`;arr=a.map(x=>x+c);ex=`к каждому прибавляется ${c}`;}
+  else{line="    print(x % 10, end=' ')";arr=a.map(x=>x%10);ex='печатается последняя цифра каждого';}
+  return {kind:'input',seq:true,text:OUT,code:L(`a = ${PL(a)}`,'for x in a:',line),ans:arr.join(' '),
+    explain:`Цикл <code>for x in a</code> по очереди кладёт в x <b>значения</b> элементов: ${a.join(', ')}; ${ex}.`};
+});
+G.loop.push(function(){ // индекс, а не элемент
+  const n=R(3,5),a=Math.random()<.5?shuffle(['кот','дом','лес','сад','мяч','сыр','чай','кит']).slice(0,n):rl(n,10,50);
+  return {kind:'input',seq:true,text:OUT+' Будь внимателен: что именно печатается — индекс или элемент?',code:L(`a = ${PL(a)}`,'for i in range(len(a)):',"    print(i, end=' ')"),ans:rng(0,n,1).join(' '),
+    explain:`len(a) = ${n}, range(${n}) даёт ${rng(0,n,1).join(', ')}. Переменная i — это <b>индекс</b> (номер), а не элемент. Чтобы напечатать элементы, нужно <code>print(a[i], end=' ')</code>.`};
+});
+G.loop.push(function(){ // индексы по условию
+  let a,k,idx;do{a=rl(R(5,7),1,40);k=R(10,30);idx=a.map((x,i)=>x>k?i:-1).filter(i=>i>=0);}while(!idx.length||idx.length===a.length);
+  return {kind:'input',seq:true,text:OUT,code:L(`a = ${PL(a)}`,'for i in range(len(a)):',`    if a[i] > ${k}:`,"        print(i, end=' ')"),ans:idx.join(' '),
+    explain:`Печатаются <b>индексы</b> элементов, больших ${k}.${IT(a)}Подходят: ${idx.map(i=>`a[${i}] = ${a[i]}`).join(', ')}.`};
+});
+G.loop.push(function(){ // счётчик
+  const a=rl(R(6,8),1,30),v=R(1,3);let cond,f;
+  if(v===1){cond='x % 2 == 0';f=x=>x%2===0;}else if(v===2){cond='x % 2 != 0';f=x=>x%2!==0;}else{const k=R(10,20);cond=`x >= ${k}`;f=x=>x>=k;}
+  const c=a.filter(f);
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'k = 0','for x in a:',`    if ${cond}:`,'        k += 1','print(k)'),ans:String(c.length),
+    explain:`k — счётчик. Он увеличивается на 1 для каждого элемента, для которого <code>${esc(cond)}</code>: ${c.length?c.join(', '):'таких нет'} → k = ${c.length}.`};
+});
+G.loop.push(function(){ // разность соседей
+  const a=rl(R(4,5),1,20),d=a.slice(1).map((x,i)=>x-a[i]);
+  return {kind:'input',seq:true,text:OUT,code:L(`a = ${PL(a)}`,'for i in range(1, len(a)):',"    print(a[i] - a[i - 1], end=' ')"),ans:d.join(' '),
+    explain:`i = ${rng(1,a.length,1).join(', ')}. Из каждого элемента вычитается <b>предыдущий</b> (a[i − 1]): ${d.map((x,k)=>`${a[k+1]} − ${a[k]} = ${x}`).join('; ')}.`};
+});
+G.loop.push(function(){ // пары «не по порядку»
+  const a=rl(R(5,7),1,30),pairs=[];for(let i=0;i<a.length-1;i++)if(a[i]>a[i+1])pairs.push(i);
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'k = 0','for i in range(len(a) - 1):','    if a[i] > a[i + 1]:','        k += 1','print(k)'),ans:String(pairs.length),
+    explain:`Сравниваются <b>соседние</b> элементы a[i] и a[i + 1]. Пары «не по порядку» (левый больше правого): ${pairs.length?pairs.map(i=>`${a[i]} &gt; ${a[i+1]}`).join(', '):'нет'}. k = ${pairs.length}. Если k = 0 — список уже отсортирован по возрастанию. Такие сравнения соседей делает <b>сортировка пузырьком</b>.`};
+});
+G.loop.push(function(){ // заголовок для всех индексов
+  const right='for i in range(len(a)):';const opts=shuffle([right,'for i in range(len(a) + 1):','for i in range(1, len(a)):','for i in range(a):']);
+  return {kind:'choice',mono:true,text:'Какой заголовок цикла перебирает <b>все индексы</b> списка a?',opts,ans:opts.indexOf(right),
+    explain:'Индексы списка — от 0 до len(a) − 1, и range(len(a)) даёт ровно эти числа. range(len(a) + 1) дойдёт до индекса len(a) — IndexError; range(1, len(a)) пропустит a[0]; range(a) — ошибка: в range нужно число, а не список.'};
+});
+G.loop.push(function(){ // заголовок для соседей
+  const right='for i in range(len(a) - 1):';const opts=shuffle([right,'for i in range(len(a)):','for i in range(len(a) + 1):','for i in range(2, len(a)):']);
+  return {kind:'choice',mono:true,text:'В цикле сравниваются соседние элементы: <code>if a[i] &gt; a[i + 1]:</code>. Какой заголовок цикла правильный?',opts,ans:opts.indexOf(right),
+    explain:'Последняя пара — a[len(a) − 2] и a[len(a) − 1], значит i должен дойти только до len(a) − 2: это range(len(a) − 1). При range(len(a)) на последнем шаге a[i + 1] выйдет за границу списка — IndexError.'};
+});
+G.loop.push(function(){ // изменение по индексу
+  const a=rl(R(3,5),1,15),v=R(1,2);let b,line,ex;
+  if(v===1){b=a.map(x=>x*2);line='    a[i] = a[i] * 2';ex='каждый элемент удвоен';}
+  else{b=a.map((x,i)=>x+i);line='    a[i] = a[i] + i';ex='к каждому элементу прибавлен его индекс:'+trace(['i','a[i] было','a[i] + i'],a.map((x,i)=>[i,x,x+i]));}
+  return {kind:'input',lst:true,text:OUTL,code:L(`a = ${PL(a)}`,'for i in range(len(a)):',line,'print(a)'),ans:PL(b),
+    explain:`Чтобы <b>изменить</b> элементы списка, нужен перебор по индексам: <code>a[i] = …</code> записывает новое значение на место i-го элемента. Здесь ${ex}`};
+});
+G.loop.push(function(){ // чётные индексы
+  const a=rl(R(5,7),1,40),r=a.filter((_,i)=>i%2===0);
+  return {kind:'input',seq:true,text:OUT,code:L(`a = ${PL(a)}`,'for i in range(0, len(a), 2):',"    print(a[i], end=' ')"),ans:r.join(' '),
+    explain:`range(0, ${a.length}, 2) даёт индексы ${rng(0,a.length,2).join(', ')} — печатаются элементы с <b>чётными индексами</b>.${IT(a)}`};
+});
+
+/* ---------- 4. Поиск минимума и суммы ---------- */
+G.min.push(function(){ // сумма вручную
+  const a=rl(R(4,6),-5,20);let s=0;const rows=a.map(x=>{s+=x;return [x,s];});
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'s = 0','for x in a:','    s += x','print(s)'),ans:String(s),
+    explain:`Накопление суммы: s начинается с 0, на каждом шаге к s прибавляется очередной элемент.${trace(['x','s'],[['—',0],...rows])}То же делает функция <code>sum(a)</code>.`};
+});
+G.min.push(function(){ // сумма по условию
+  const a=rl(R(5,7),1,30),v=R(1,3);let cond,f;
+  if(v===1){cond='x % 2 != 0';f=x=>x%2!==0;}else if(v===2){const k=R(10,20);cond=`x > ${k}`;f=x=>x>k;}else{cond='x % 3 == 0';f=x=>x%3===0;}
+  const c=a.filter(f),s=c.reduce((p,x)=>p+x,0);
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'s = 0','for x in a:',`    if ${cond}:`,'        s += x','print(s)'),ans:String(s),
+    explain:`В сумму попадают только элементы, для которых <code>${esc(cond)}</code>: ${c.length?(c.length>1?c.join(' + ')+' = '+s:c[0]):'таких нет, s = 0'}.`};
+});
+G.min.push(function(){ // минимум/максимум вручную
+  const isMin=Math.random()<.6,a=rl(R(5,7),-10,40),op=isMin?'<':'>';let m=a[0];const rows=[];
+  a.forEach(x=>{const ch=isMin?x<m:x>m;if(ch)m=x;rows.push([x,ch?'да → m = '+x:'нет',m]);});
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'m = a[0]','for x in a:',`    if x ${op} m:`,'        m = x','print(m)'),ans:String(m),
+    explain:`Поиск ${isMin?'минимума':'максимума'}: сначала «лучшим» считаем первый элемент (m = ${a[0]}), затем сравниваем с ним каждый элемент; нашли ${isMin?'меньше':'больше'} — запоминаем.${trace(['x',`x ${esc(op)} m?`,'m'],rows)}Ответ совпадает с <code>${isMin?'min':'max'}(a)</code>.`};
+});
+G.min.push(function(){ // индекс минимума/максимума
+  const isMin=Math.random()<.6,a=ru(R(5,7),1,50),op=isMin?'<':'>';let im=0;for(let i=1;i<a.length;i++)if(isMin?a[i]<a[im]:a[i]>a[im])im=i;
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'im = 0','for i in range(1, len(a)):',`    if a[i] ${op} a[im]:`,'        im = i','print(im)'),ans:String(im),
+    explain:`Здесь запоминается не сам элемент, а его <b>индекс</b> im. ${isMin?'Минимальный':'Максимальный'} элемент — ${a[im]}, его индекс — ${im}.${IT(a)}Именно индекс понадобится в сортировке выбором, чтобы поменять элементы местами.`};
+});
+G.min.push(function(){ // ошибка m = 0
+  const isMin=Math.random()<.5,a=isMin?rl(R(4,6),5,40):rl(R(4,6),-40,-3),op=isMin?'<':'>';
+  return {kind:'input',text:OUT+` (Программа должна найти ${isMin?'минимум':'максимум'}.)`,code:L(`a = ${PL(a)}`,'m = 0','for x in a:',`    if x ${op} m:`,'        m = x','print(m)'),ans:'0',
+    explain:`Ни один элемент не ${isMin?'меньше':'больше'} 0, поэтому m так и осталось равным 0 — а такого числа в списке даже нет! Это частая ошибка: начальное значение нужно брать <b>из самого списка</b> — <code>m = a[0]</code>. Тогда ответ был бы ${isMin?Math.min(...a):Math.max(...a)}.`};
+});
+G.min.push(function(){ // встроенные функции
+  const v=R(1,4);
+  if(v===1){const a=rl(R(4,6),1,50),mx=Math.max(...a),mn=Math.min(...a);return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'print(max(a) - min(a))'),ans:String(mx-mn),
+    explain:`max(a) = ${mx}, min(a) = ${mn}. Разность: ${mx} − ${mn} = ${mx-mn}.`};}
+  if(v===2){const n=pick([2,4,5]),a=rl(n,1,20),s=a.reduce((p,x)=>p+x,0);return {kind:'input',text:OUT+' Будь внимателен к типу результата!',code:L(`a = ${PL(a)}`,'print(sum(a) / len(a))'),ans:pf(s/n),
+    explain:`Среднее арифметическое: sum(a) = ${s}, len(a) = ${n}, ${s} / ${n} = ${pf(s/n)}. Деление <code>/</code> всегда даёт вещественное число (float).`};}
+  if(v===3){const a=rl(R(5,7),1,9),m=Math.min(...a);return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'print(a.index(min(a)))'),ans:String(a.indexOf(m)),
+    explain:`min(a) = ${m}. Метод <code>index()</code> возвращает индекс <b>первого</b> такого элемента: ${a.indexOf(m)}.${IT(a)}`};}
+  const a=rl(R(4,6),1,30),s=a.reduce((p,x)=>p+x,0),mx=Math.max(...a);
+  return {kind:'input',text:OUT,code:L(`a = ${PL(a)}`,'print(sum(a) - max(a))'),ans:String(s-mx),explain:`sum(a) = ${s}, max(a) = ${mx}. ${s} − ${mx} = ${s-mx}.`};
+});
+G.min.push(function(){ // обмен
+  const n=R(4,6),a=ru(n,1,50),i=R(0,n-2),j=R(i+1,n-1),b=a.slice();[b[i],b[j]]=[b[j],b[i]];
+  return {kind:'input',lst:true,text:OUTL,code:L(`a = ${PL(a)}`,`a[${i}], a[${j}] = a[${j}], a[${i}]`,'print(a)'),ans:PL(b),
+    explain:`Параллельное присваивание меняет местами элементы с индексами ${i} и ${j}: ${a[i]} ↔ ${a[j]}. Обмен двух элементов — главная операция всех сортировок.`};
+});
+G.min.push(function(){ // неверный обмен
+  const n=R(4,6),a=ru(n,1,50),i=R(0,n-2),j=R(i+1,n-1),b=a.slice();b[i]=b[j];b[j]=b[i];
+  return {kind:'input',lst:true,text:OUTL+' (Программист хотел поменять два элемента местами.)',code:L(`a = ${PL(a)}`,`a[${i}] = a[${j}]`,`a[${j}] = a[${i}]`,'print(a)'),ans:PL(b),
+    explain:`После первой строки a[${i}] = ${a[j]}, старое значение ${a[i]} <b>потеряно</b>. Вторая строка записывает в a[${j}] то же число ${a[j]}. Правильно: через третью переменную (<code>x = a[${i}]</code>, <code>a[${i}] = a[${j}]</code>, <code>a[${j}] = x</code>) или <code>a[${i}], a[${j}] = a[${j}], a[${i}]</code>.`};
+});
+G.min.push(function(){ // шаг сортировки выбором
+  const a=ru(R(5,6),1,50);let im=0;for(let i=1;i<a.length;i++)if(a[i]<a[im])im=i;const b=a.slice();[b[0],b[im]]=[b[im],b[0]];
+  return {kind:'input',lst:true,text:OUTL,code:L(`a = ${PL(a)}`,'im = 0','for i in range(1, len(a)):','    if a[i] < a[im]:','        im = i','a[0], a[im] = a[im], a[0]','print(a)'),ans:PL(b),
+    explain:`Минимум ${a[im]} стоит на индексе ${im}. ${im===0?'Он уже на первом месте — обмен ничего не меняет.':`Он меняется местами с первым элементом (${a[0]}).`} Это <b>первый шаг сортировки выбором</b>: найти минимум и поставить его в начало, затем повторить для оставшейся части.`};
+});
+G.min.push(function(){ // начальное значение
+  const right='m = a[0]';const opts=shuffle([right,'m = 0','m = len(a)','m = a[len(a)]']);
+  return {kind:'choice',mono:true,text:'С какой строки правильно начинать поиск <b>минимального</b> элемента списка a (числа в списке могут быть любыми)?',opts,ans:opts.indexOf(right),
+    explain:'Начальное значение берут из самого списка — первый элемент. <code>m = 0</code> даст неверный ответ, если все числа положительные; <code>len(a)</code> — это количество элементов, а не элемент; <code>a[len(a)]</code> — IndexError.'};
+});
+G.min.push(function(){ // условие для min/max
+  const isMin=Math.random()<.5,o0=['if x < m:','if x > m:','if x == m:','if m > 0:'],right=isMin?o0[0]:o0[1],opts=shuffle(o0);
+  return {kind:'choice',mono:true,text:`Что нужно вписать вместо ___, чтобы программа нашла <b>${isMin?'минимальный':'максимальный'}</b> элемент?`,code:L('m = a[0]','for x in a:','    ___','        m = x','print(m)'),opts,ans:opts.indexOf(right),
+    explain:`m заменяется, когда найден элемент ${isMin?'<b>меньше</b>':'<b>больше</b>'} текущего «рекордсмена»: <code>${right}</code>.`};
+});
+
+/* ============ модули ============ */
+const MODULES=[
+  {id:'make',n:1,title:'Создание списка и индексы'},
+  {id:'app',n:2,title:'append() и изменение элементов'},
+  {id:'loop',n:3,title:'Перебор списка циклом'},
+  {id:'min',n:4,title:'Минимум, сумма, обмен'},
+  {id:'final',n:5,title:'Итоговая проверка'},
+  {id:'py',n:'🐍',title:'Практика в Python',py:true},
+  {id:'res',n:'📋',title:'Мои результаты'}
+];
+const TITLE=Object.fromEntries(MODULES.map(m=>[m.id,m.title]));
+const TOPICS=['make','app','loop','min'];
+const LEARN_N=5, CTRL_N=16;
+
+/* ================================================================
+   SHEET_URL — Google Apps Script web app URL.
+   Replace PASTE_WEB_APP_URL_HERE with the link (keep the quotes).
+   ================================================================ */
+const SHEET_URL='https://script.google.com/macros/s/AKfycbxOyhvMhsPzacbDTnbJMXpFHE4yk_wwZ3V0kL6v3BrTJ9lw788TYR4zGAH1ixERw3fJ/exec';
+/* ================================================================ */
+const SEND_ON=/^https:\/\/script\.google(usercontent)?\.com\//.test(SHEET_URL.trim());
+
+function makeTasks(mod,n){
+  let gens=[];
+  if(mod==='final'){const per=Math.ceil(n/TOPICS.length);TOPICS.forEach(m=>{gens.push(...shuffle(G[m]).slice(0,per).map(g=>({g,m})));});gens=shuffle(gens).slice(0,n);}
+  else{let pool=[];while(pool.length<n)pool.push(...shuffle(G[mod]));gens=pool.slice(0,n).map(g=>({g,m:mod}));}
+  return gens.map(x=>Object.assign(x.g(),{mod:x.m}));
+}
+function newSession(mod,mode){return {tasks:makeTasks(mod,mode==='learn'?LEARN_N:CTRL_N),idx:0,ans:[],checked:false,sel:null,started:mode==='learn',done:false,logged:false};}
+
+/* ============ состояние ============ */
+const S={mode:'learn',mod:'make',sub:'theory',sess:{},learnStats:{},ctrl:[],py:[],dirty:false};
+function ctrlActive(){const f=S.sess.final&&S.sess.final.control;return !!(f&&f.started&&!f.done);}
+function setDirty(v){S.dirty=v;const el=document.getElementById('saveState');if(el)el.innerHTML=v?'⚠️ Есть несохранённые результаты':'';}
+function enterModule(id,sub){
+  S.mod=id;S.sub=sub||'train';S.mode=id==='final'?'control':'learn';
+  if(G[id]||id==='final'){S.sess[id]={learn:newSession(id,'learn'),control:newSession(id,'control')};}
+  render();window.scrollTo({top:0,behavior:'smooth'});
+}
+function student(){return {fio:document.getElementById('fio').value.trim(),cls:document.getElementById('cls').value};}
+
+/* ============ проверка ответа ============ */
+const LOOKALIKE={A:'А',B:'В',C:'С',E:'Е',H:'Н',K:'К',M:'М',O:'О',P:'Р',T:'Т',X:'Х',a:'а',c:'с',e:'е',o:'о',p:'р',x:'х',y:'у'};
+function normalize(s,seq){
+  s=String(s).replace(/\u00a0/g,' ').trim();
+  if(seq)s=s.replace(/[,;]/g,' ');
+  s=s.replace(/[ABCEHKMOPTXaceopxy]/g,ch=>LOOKALIKE[ch]); // латинские буквы-двойники → русские
+  return s.replace(/\s+/g,' ');
+}
+const flat=s=>normalize(s).replace(/\s+/g,'').replace(/"/g,"'");
+function isCorrect(t,given){
+  if(t.kind==='choice')return given===t.ans;
+  if(t.lst)return flat(given)===flat(t.ans);
+  return normalize(given,t.seq)===normalize(t.ans,t.seq);
+}
+function quoteHint(t,given){
+  if(t.kind!=='input')return '';
+  const g=normalize(given,t.seq);
+  if(t.lst&&!g.startsWith('['))return '<br>💡 <code>print(a)</code> выводит список <b>в квадратных скобках, через запятую</b>. Без скобок, через пробел, выводит <code>print(*a)</code>.';
+  if(!t.lst&&g.startsWith('['))return '<br>💡 Здесь выводится не список целиком, а отдельные значения — без квадратных скобок.';
+  if(normalize(t.ans).includes('.0')&&g+'.0'===normalize(t.ans))return '<br>💡 Обрати внимание на тип: результат — вещественное число (float).';
+  return '';
+}
+
+/* ============ отрисовка ============ */
+function renderTabs(){
+  const el=document.getElementById('tabs');
+  const lock=ctrlActive();
+  el.innerHTML=MODULES.map(m=>`<button type="button" class="${m.id===S.mod?'on':''} ${m.py?'py':''}" data-m="${m.id}" ${lock&&m.id!==S.mod?'disabled title="Сначала заверши контроль"':''}><span class="n">${m.n}</span>${m.title}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(ctrlActive()){toast('Сначала заверши контроль');return;}if(b.dataset.m!==S.mod)enterModule(b.dataset.m,G[b.dataset.m]?'theory':'train');});
+  document.getElementById('fio').disabled=lock;document.getElementById('cls').disabled=lock;
+}
+function render(){
+  renderTabs();
+  const main=document.getElementById('main');
+  if(S.mod==='py'){main.innerHTML=pyHTML();bindPy();return;}
+  if(S.mod==='res'){main.innerHTML=resHTML();bindRes();return;}
+  const m=MODULES.find(x=>x.id===S.mod);
+  let h=`<div class="panel"><h2>${m.n}. ${m.title}</h2>`;
+  if(S.mod==='final'){const lock=ctrlActive();
+    h+=`<div class="subtabs"><button type="button" data-mode="control" class="${S.mode==='control'?'on':''}" ${lock?'disabled':''}>✅ Контроль (${CTRL_N} заданий)</button><button type="button" data-mode="learn" class="${S.mode==='learn'?'on':''}" ${lock?'disabled':''}>✏️ Тренировка с разбором</button></div>`;}
+  if(S.mode==='learn'){
+    h+=`<div class="mode-banner learn">📖 Режим <b>обучения</b>: серия из ${LEARN_N} заданий${S.mod==='final'?' по всем темам':''} — после каждого ответа будет разбор.${S.mod==='final'?'':' Начни со «Справки», ошибся — загляни в неё снова.'}</div>`;
+    if(S.mod!=='final')h+=`<div class="subtabs"><button type="button" data-s="theory" class="${S.sub==='theory'?'on':''}">📘 Справка</button><button type="button" data-s="train" class="${S.sub==='train'?'on':''}">✏️ Тренировка</button></div>`;
+    h+=(S.sub==='theory'&&S.mod!=='final')?`<div class="theory">${THEORY[S.mod]}<p style="margin-top:1.2em"><button type="button" class="btn" id="goTrain">Перейти к тренировке →</button></p></div>`:`<div id="taskArea">${taskHTML('learn')}</div>`;
+  }else{
+    h+=`<div class="mode-banner ctrl">✅ Режим <b>контроля</b>: ${CTRL_N} заданий по всем темам, без подсказок. Переходи между заданиями по номерам, ответы можно менять. Закончить можно в любой момент — оценка по решённым заданиям. Пока контроль не завершён, другие вкладки недоступны.</div><div id="taskArea">${taskHTML('control')}</div>`;
+  }
+  h+='</div>';
+  main.innerHTML=h;
+  main.querySelectorAll('.subtabs button[data-s]').forEach(b=>b.onclick=()=>{S.sub=b.dataset.s;render();});
+  main.querySelectorAll('.subtabs button[data-mode]').forEach(b=>b.onclick=()=>{if(ctrlActive())return;S.mode=b.dataset.mode;render();});
+  const gt=document.getElementById('goTrain');if(gt)gt.onclick=()=>{S.sub='train';render();window.scrollTo({top:0,behavior:'smooth'});};
+  bindTask();
+}
+function progressBar(s,mode){
+  return '<div class="progress">'+s.tasks.map((t,i)=>{let c='';if(i<s.ans.length)c=mode==='learn'?(s.ans[i].ok?'ok':'no'):'ans';else if(i===s.idx&&!s.done)c='cur';return `<span class="${c}"></span>`;}).join('')+'</div>';
+}
+function taskBody(t){
+  let h=`<div class="q">${t.text}</div>`;
+  if(t.code)h+=codeBlock(t.code,t.nums);
+  if(t.input)h+=`<div class="given">⌨️ Пользователь вводит: <kbd>${esc(t.input)}</kbd>${t.inputNote?` <span class="note">(${t.inputNote})</span>`:''}</div>`;
+  return h;
+}
+function taskHTML(mode){
+  const s=S.sess[S.mod][mode];
+  if(mode==='control'&&!s.started){
+    return `<p>В контрольной работе ${CTRL_N} заданий — по ${CTRL_N/TOPICS.length} на каждую тему: создание списка и индексы, append(), перебор списка циклом, поиск минимума и суммы. Подсказок и разборов во время работы нет. Между заданиями можно переходить по номерам и менять ответы. Закончить контроль можно в любой момент кнопкой «Завершить контроль» — оценка ставится <b>только по решённым заданиям</b>.</p><p>Контроль можно пройти несколько раз — сохраняются все попытки.</p><p>Перед началом впиши <b>фамилию, имя</b> и выбери <b>класс</b> вверху страницы.</p><button type="button" class="btn violet" id="startCtrl">${S.ctrl.length?'Начать новую попытку':'Начать контроль'}</button>`;
+  }
+  if(s.done)return summaryHTML(s,mode);
+  if(mode==='control')return ctrlHTML(s);
+  const t=s.tasks[s.idx];
+  let h=progressBar(s,mode)+`<div class="task"><div class="head"><span>Задание ${s.idx+1} из ${s.tasks.length}</span>${S.mod==='final'?`<span>Тема: ${TITLE[t.mod]}</span>`:''}</div>`+taskBody(t);
+  if(t.kind==='choice'){
+    h+=`<div class="opts">`+t.opts.map((o,i)=>{let c='';if(s.checked){if(i===t.ans)c='right';else if(i===s.sel)c='wrong';}else if(i===s.sel)c='sel';
+      return `<button type="button" data-i="${i}" class="${t.mono?'mono':''} ${c}" ${s.checked?'disabled':''}>${esc(o)}</button>`;}).join('')+`</div>`;
+  }else{
+    h+=`<div class="answer"><input type="text" id="ansIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Твой ответ" ${s.checked?'disabled':''} value="${s.checked?esc(s.ans[s.idx].given):''}"></div>`;
+  }
+  if(!s.checked)h+=`<div class="answer"><button type="button" class="btn" id="chk">Проверить</button></div>`;
+  else{const a=s.ans[s.idx];
+    h+=`<div class="fb ${a.ok?'ok':'no'}"><b class="t">${a.ok?'✔ Верно!':'✘ Не совсем.'}</b>${a.ok?'':` Правильный ответ: <code>${esc(t.kind==='choice'?t.opts[t.ans]:t.ans)}</code>`}${a.ok?'':quoteHint(t,a.given)}<div style="margin-top:6px">${t.explain}</div>${!a.ok&&S.mod!=='final'?'<div style="margin-top:8px"><button type="button" class="btn sec" id="toTheory">📘 Открыть справку по теме</button></div>':''}</div>
+    <div class="answer"><button type="button" class="btn" id="nxt">${s.idx+1<s.tasks.length?'Следующее задание →':'Итоги серии →'}</button></div>`;}
+  return h+'</div>';
+}
+function grade(c,n){return n?Math.round(c/n*10):0;}
+const hasAns=r=>r!==null&&r!==undefined&&String(r).trim()!=='';
+function ctrlHTML(s){
+  if(!s.resp)s.resp=s.tasks.map(()=>null);
+  const t=s.tasks[s.idx],r=s.resp[s.idx],cnt=s.resp.filter(hasAns).length;
+  let h=`<div class="cbar"><b>Решено: <span id="cntDone">${cnt}</span> из ${s.tasks.length}</b><button type="button" class="btn sec" id="finCtrl">🏁 Завершить контроль</button></div>`;
+  if(s.confirm)h+=`<div class="confirm"><b>Завершить контроль?</b><br>Решено ${cnt} из ${s.tasks.length} заданий. ${cnt<s.tasks.length?'Нерешённые задания не учитываются — оценка будет выставлена только по решённым.':'Все задания решены.'}${cnt?'':' <br>Ты не ответил ни на одно задание — попытка не будет засчитана.'}
+    <div class="answer"><button type="button" class="btn violet" id="finYes">Да, завершить</button> <button type="button" class="btn sec" id="finNo">Продолжить решать</button></div></div>`;
+  h+=`<div class="cnav">${s.tasks.map((x,i)=>`<button type="button" data-k="${i}" class="${hasAns(s.resp[i])?'done':''} ${i===s.idx?'cur':''}" title="Задание ${i+1}">${i+1}</button>`).join('')}</div>`;
+  h+=`<div class="task"><div class="head"><span>Задание ${s.idx+1} из ${s.tasks.length}</span><span>Тема: ${TITLE[t.mod]}</span></div>`+taskBody(t);
+  if(t.kind==='choice'){
+    h+=`<div class="opts">`+t.opts.map((o,i)=>`<button type="button" data-i="${i}" class="${t.mono?'mono':''} ${r===i?'sel':''}">${esc(o)}</button>`).join('')+`</div>`;
+  }else{
+    h+=`<div class="answer"><input type="text" id="ansIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Твой ответ" value="${hasAns(r)?esc(r):''}"></div>`;
+  }
+  h+=`<div class="answer"><button type="button" class="btn sec" id="cPrev" ${s.idx===0?'disabled':''}>← Предыдущее</button> <button type="button" class="btn violet" id="cNext" ${s.idx===s.tasks.length-1?'disabled':''}>Следующее →</button></div>`;
+  return h+'</div>';
+}
+function bindCtrl(s){
+  const area=document.getElementById('taskArea');
+  const upd=()=>{const b=area.querySelector(`.cnav button[data-k="${s.idx}"]`);if(b)b.classList.toggle('done',hasAns(s.resp[s.idx]));document.getElementById('cntDone').textContent=s.resp.filter(hasAns).length;};
+  const go=k=>{if(k<0||k>=s.tasks.length)return;s.idx=k;s.confirm=false;render();};
+  area.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{s.resp[s.idx]=+b.dataset.i;area.querySelectorAll('.opts button').forEach(x=>x.classList.toggle('sel',+x.dataset.i===s.resp[s.idx]));upd();});
+  const inp=document.getElementById('ansIn');
+  if(inp){if(!s.confirm)inp.focus();inp.oninput=()=>{s.resp[s.idx]=inp.value;upd();};inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();go(s.idx+1);}};}
+  area.querySelectorAll('.cnav button').forEach(b=>b.onclick=()=>go(+b.dataset.k));
+  document.getElementById('cPrev').onclick=()=>go(s.idx-1);
+  document.getElementById('cNext').onclick=()=>go(s.idx+1);
+  document.getElementById('finCtrl').onclick=()=>{s.confirm=true;render();};
+  const y=document.getElementById('finYes');if(y)y.onclick=()=>finishCtrl(s);
+  const n=document.getElementById('finNo');if(n)n.onclick=()=>{s.confirm=false;render();};
+}
+function finishCtrl(s){
+  if(!s.resp.some(hasAns)){S.sess.final.control=newSession('final','control');toast('Нет ни одного ответа — попытка не засчитана');render();return;}
+  s.ans=s.tasks.map((t,i)=>hasAns(s.resp[i])?{given:s.resp[i],ok:isCorrect(t,s.resp[i]),skip:false}:{given:null,ok:false,skip:true});
+  s.done=true;s.confirm=false;logCtrl(s);setDirty(true);render();window.scrollTo({top:0,behavior:'smooth'});
+  sendResults('sendMsg');
+}
+function summaryHTML(s,mode){
+  const c=s.ans.filter(a=>a.ok).length,n=s.tasks.length;
+  let h=`<div class="summary">`;
+  if(mode==='learn'){h+=`<h3>Серия завершена!</h3><div class="big" style="color:var(--blue)">${c} из ${n}</div><p>${c===n?'Отлично — всё верно! 🎉':c>=n*0.7?'Хороший результат. Посмотри ещё раз задания, где были ошибки.':'Перечитай справку и попробуй новую серию — задания будут другими.'}</p>
+    <button type="button" class="btn" id="again">Новая серия заданий</button></div>`;return h;}
+  const a=s.ans.filter(x=>!x.skip).length,g=grade(c,a),last=S.ctrl[S.ctrl.length-1];
+  h+=`<h3>Контроль завершён (попытка ${S.ctrl.length})</h3><p>${esc(student().fio)} ${esc(student().cls)}</p><div class="big">${g} / 10</div><p>Решено заданий: ${a} из ${n}. Верных ответов: ${c} из ${a} решённых.</p>${a<n?'<p class="note">Оценка выставлена только по решённым заданиям.</p>':''}
+  <table class="res-table" style="max-width:560px;margin:10px auto"><tr><th>Тема</th><th>Верно из решённых</th></tr>${TOPICS.map(id=>`<tr><td>${TITLE[id]}</td><td>${last.topics[id]}</td></tr>`).join('')}</table>
+  <p id="sendMsg" class="note">${SEND_ON?'':'Не забудь сохранить результаты в файл .txt.'}</p></div>`;
+  h+=`<table class="review"><tr><th>№</th><th>Задание</th><th>Твой ответ</th><th>Правильный ответ</th></tr>`+s.tasks.map((t,i)=>{const a=s.ans[i];const gv=a.skip?'':t.kind==='choice'?t.opts[a.given]:a.given;const rv=t.kind==='choice'?t.opts[t.ans]:t.ans;
+    return `<tr><td>${i+1}</td><td>${t.text.replace(/<br>/g,' ')}${t.code?`<pre class="mono">${esc(t.code)}</pre>`:''}${t.input?`<div class="note">Ввод: ${esc(t.input)}</div>`:''}</td><td class="${a.skip?'skip':a.ok?'ok':'no'}">${a.skip?'— не решено':(a.ok?'✔ ':'✘ ')+esc(gv)}</td><td>${esc(rv)}</td></tr>`;}).join('')+`</table>
+    <p style="text-align:center;margin-top:14px"><button type="button" class="btn sec" id="saveTxt">💾 Сохранить результаты (.txt)</button> <button type="button" class="btn violet" id="retry">🔄 Пройти контроль ещё раз</button></p>`;
+  return h;
+}
+function bindTask(){
+  const area=document.getElementById('taskArea');if(!area)return;
+  const mode=S.mode,s=S.sess[S.mod][mode];
+  if(mode==='control'&&s.started&&!s.done){bindCtrl(s);return;}
+  const sc=document.getElementById('startCtrl');
+  if(sc)sc.onclick=()=>{const st=student();if(!st.fio||!st.cls){toast('Впиши фамилию, имя и выбери класс вверху страницы');document.getElementById(st.fio?'cls':'fio').focus();return;}s.started=true;render();};
+  area.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{if(s.checked)return;s.sel=+b.dataset.i;area.querySelectorAll('.opts button').forEach(x=>x.classList.toggle('sel',+x.dataset.i===s.sel));});
+  const inp=document.getElementById('ansIn');
+  if(inp&&!inp.disabled){inp.focus();inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();const c=document.getElementById('chk');if(c)c.click();}};}
+  const chk=document.getElementById('chk');
+  if(chk)chk.onclick=()=>{
+    const t=s.tasks[s.idx];let given;
+    if(t.kind==='choice'){if(s.sel===null){toast('Выбери вариант ответа');return;}given=s.sel;}
+    else{given=inp.value;if(!given.trim()){toast('Впиши ответ');return;}}
+    const ok=isCorrect(t,given);s.ans.push({given,ok});
+    s.checked=true;const st=S.learnStats[S.mod]||(S.learnStats[S.mod]={c:0,n:0});st.n++;if(ok)st.c++;setDirty(true);
+    render();
+  };
+  const nxt=document.getElementById('nxt');
+  if(nxt){nxt.onclick=()=>{s.checked=false;s.sel=null;if(s.idx+1<s.tasks.length)s.idx++;else s.done=true;render();};nxt.focus();}
+  const tt=document.getElementById('toTheory');if(tt)tt.onclick=()=>{S.sub='theory';render();window.scrollTo({top:0,behavior:'smooth'});};
+  const ag=document.getElementById('again');if(ag)ag.onclick=()=>{S.sess[S.mod].learn=newSession(S.mod,'learn');render();};
+  const sv=document.getElementById('saveTxt');if(sv)sv.onclick=exportTxt;
+  const rt=document.getElementById('retry');if(rt)rt.onclick=()=>{const ns=newSession('final','control');ns.started=true;S.sess.final.control=ns;render();window.scrollTo({top:0,behavior:'smooth'});};
+}
+function logCtrl(s){
+  if(s.logged)return;s.logged=true;
+  const c=s.ans.filter(a=>a.ok).length,a=s.ans.filter(x=>!x.skip).length,topics={};
+  TOPICS.forEach(id=>{const idx=s.tasks.map((t,i)=>i).filter(i=>s.tasks[i].mod===id),done=idx.filter(i=>!s.ans[i].skip);topics[id]=done.length?`${done.filter(i=>s.ans[i].ok).length}/${done.length} (всего ${idx.length})`:`не решались (всего ${idx.length})`;});
+  S.ctrl.push({c,a,n:s.tasks.length,g:grade(c,a),time:new Date(),topics,id:Date.now()+'-'+Math.random().toString(36).slice(2,7),
+    details:s.tasks.map((t,i)=>({q:t.text.replace(/<[^>]+>/g,''),code:t.code||'',given:s.ans[i].skip?'не решено':t.kind==='choice'?t.opts[s.ans[i].given]:s.ans[i].given,right:t.kind==='choice'?t.opts[t.ans]:t.ans,ok:s.ans[i].ok,skip:s.ans[i].skip}))});
+}
+
+/* ============ практика в Python ============ */
+let PLIST=ru(12,-30,99);
+function bubblePass(a){a=a.slice();let k=0;for(let i=0;i<a.length-1;i++)if(a[i]>a[i+1]){[a[i],a[i+1]]=[a[i+1],a[i]];k++;}return {k,a};}
+const PYT={
+ '1':{name:'Задача 1',tag:'tagA',lvl:'append + перебор',fields:['Длина списка chet','Сумма элементов chet'],
+   solve:a=>{const c=a.filter(x=>x%2===0);return [String(c.length),String(c.reduce((p,x)=>p+x,0))];}},
+ '2':{name:'Задача 2',tag:'tagB',lvl:'минимум и его индекс',fields:['Минимальный элемент','Его индекс'],
+   solve:a=>{let im=0;for(let i=1;i<a.length;i++)if(a[i]<a[im])im=i;return [String(a[im]),String(im)];}},
+ 'S':{name:'Задача ★',tag:'tagS',lvl:'шаг к сортировке',fields:['Количество обменов','Список после прохода'],
+   solve:a=>{const r=bubblePass(a);return [String(r.k),r.a.join(' ')];}}
+};
+function pyHTML(){
+  const lv=(k,body,io,hints)=>`<div class="level"><h3>${PYT[k].name}<span class="tag ${PYT[k].tag}">${PYT[k].lvl}</span></h3>${body}
+    <div class="io">${io.map(x=>`<div><b>${x[0]}</b><div class="out">${esc(x[1])}</div></div>`).join('')}</div>
+    <p class="note">Сначала проверь программу на этом примере — ответ должен совпасть.</p>
+    ${hints.map((h,i)=>`<details class="try"><summary>Подсказка ${i+1}</summary>${h}</details>`).join('')}
+    <div class="check"><b>Запусти программу со своим списком (он вверху страницы) и впиши, что она вывела:</b>
+    ${PYT[k].fields.map((f,i)=>`<div class="row"><label for="pin${k}_${i}">${f}:</label><input id="pin${k}_${i}" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:${k==='S'&&i===1?'100%':'180px'};${k==='S'&&i===1?'max-width:520px':''}"></div>`).join('')}
+    <div class="row"><button type="button" class="btn green" data-pk="${k}">Проверить</button> <span id="pr${k}"></span></div></div></div>`;
+  return `<div class="panel"><h2>🐍 Практика в Python</h2>
+  <p>Открой среду программирования Python (IDLE) и реши <b>задачу 1</b> — она обязательная. Решил — переходи к задачам 2 и ★. Во всех задачах список вводится с клавиатуры <b>в одну строку через пробел</b>:</p>
+  ${codeBlock('a = list(map(int, input().split()))')}
+  <p>У каждого ученика свой список. Скопируй его и вставь в программу при вводе:</p>
+  <div class="plist"><b>Твой список:</b><input id="plist" readonly value="${PLIST.join(' ')}"><button type="button" class="btn sec" id="pcopy">📋 Скопировать</button><button type="button" class="btn sec" id="pnew">🔄 Другой список</button></div>
+  ${lv('1','<p>Создай пустой список <code>chet</code> и с помощью <code>append()</code> добавь в него все <b>чётные</b> элементы списка a. Выведи длину списка chet, а на следующей строке — сумму его элементов.</p>',[['Ввод (пример)','4 7 10 -2 5'],['Вывод','3\n12']],
+    ['Чётные элементы примера: 4, 10, −2. Их 3, сумма 4 + 10 + (−2) = 12.','Перебор: <code>for x in a:</code>, условие <code>if x % 2 == 0:</code>, внутри <code>chet.append(x)</code>. После цикла — <code>print(len(chet))</code> и <code>print(sum(chet))</code>.'])}
+  ${lv('2','<p>Найди <b>минимальный</b> элемент списка и его <b>индекс</b> — без функций <code>min()</code> и <code>index()</code>, с помощью цикла. Если минимальных элементов несколько, выведи индекс первого. Выведи минимум, а на следующей строке — его индекс.</p>',[['Ввод (пример)','8 3 -5 7 -5 2'],['Вывод','-5\n2']],
+    ['Запоминай индекс «рекордсмена»: <code>im = 0</code>, затем <code>for i in range(1, len(a)):</code> и <code>if a[i] &lt; a[im]:</code> <code>im = i</code>. В конце выведи <code>a[im]</code> и <code>im</code>.','Почему знак <code>&lt;</code>, а не <code>&lt;=</code>? С <code>&lt;=</code> в примере получится индекс 4 — последнего из минимумов, а нужен первый.'])}
+  ${lv('S','<p>Сделай <b>один проход «пузырька»</b>: перебери соседние пары слева направо; если <code>a[i] &gt; a[i + 1]</code> — поменяй элементы местами и увеличь счётчик обменов. Выведи количество обменов, а на следующей строке — список после прохода командой <code>print(*a)</code>.</p>',[['Ввод (пример)','5 1 4 2 8 3'],['Вывод','4\n1 4 2 5 3 8']],
+    ['Заголовок цикла: <code>for i in range(len(a) - 1):</code> — чтобы <code>a[i + 1]</code> не вышел за границу списка. Обмен: <code>a[i], a[i + 1] = a[i + 1], a[i]</code>.','Разбор примера: 5↔1, 5↔4, 5↔2, (5 и 8 — по порядку), 8↔3. Всего 4 обмена.'])}
+  <div class="box link">🔗 Посмотри на список после задачи ★: <b>максимум «всплыл» в конец</b>. Если повторить проход ещё несколько раз, список отсортируется по возрастанию. Это и есть <b>сортировка пузырьком</b> — тема следующих уроков.</div></div>`;
+}
+function bindPy(){
+  const pl=document.getElementById('plist');
+  document.getElementById('pcopy').onclick=()=>{
+    const done=()=>toast('Список скопирован');
+    if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(pl.value).then(done,()=>{pl.select();try{document.execCommand('copy');done();}catch(e){toast('Выдели список и скопируй вручную');}});
+    else{pl.focus();pl.select();try{document.execCommand('copy');done();}catch(e){toast('Выдели список и скопируй вручную');}}
+  };
+  document.getElementById('pnew').onclick=()=>{PLIST=ru(12,-30,99);render();toast('Новый список — запусти программы с ним заново');};
+  document.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.pk,vals=PYT[k].fields.map((_,i)=>normalize(document.getElementById(`pin${k}_${i}`).value));
+    if(vals.some(v=>!v))return toast('Заполни все поля');
+    const right=PYT[k].solve(PLIST),ok=vals.every((v,i)=>v===normalize(right[i]));
+    S.py.push({k,list:PLIST.join(' '),given:vals.join(' | '),ok,time:new Date()});setDirty(true);
+    document.getElementById('pr'+k).innerHTML=ok?'<b style="color:var(--green)">✔ Верно! Программа работает.</b>':'<b style="color:var(--orange)">✘ Не совпало.</b> Проверь программу на примере из условия, затем запусти снова со своим списком.';
+  });
+}
+
+/* ============ результаты и экспорт ============ */
+function fmtT(d){return d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
+function resHTML(){
+  const st=student();
+  let h=`<div class="panel"><h2>📋 Мои результаты</h2><p><b>${esc(st.fio)||'(впиши фамилию и имя вверху)'}</b> ${esc(st.cls)}</p>
+  <h3>Обучение (тренировка)</h3><table class="res-table"><tr><th>Тема</th><th>Верно / решено</th></tr>`;
+  h+=[...TOPICS,'final'].map(id=>{const x=S.learnStats[id];return `<tr><td>${TITLE[id]}</td><td>${x?`${x.c} / ${x.n}`:'—'}</td></tr>`;}).join('')+'</table>';
+  h+=`<h3>Контроль (итоговая проверка)</h3>`+(S.ctrl.length?`<div style="overflow-x:auto"><table class="res-table"><tr><th>Попытка</th><th>Время</th><th>Решено</th><th>Верно из решённых</th><th>Оценка</th>${TOPICS.map(id=>`<th>${TITLE[id]}</th>`).join('')}</tr>`+S.ctrl.map((c,i)=>`<tr><td>${i+1}</td><td>${fmtT(c.time)}</td><td>${c.a} из ${c.n}</td><td>${c.c} из ${c.a}</td><td><b>${c.g} / 10</b></td>${TOPICS.map(id=>`<td>${c.topics[id]}</td>`).join('')}</tr>`).join('')+'</table></div>':'<p class="note">Пока нет пройденных контрольных.</p>');
+  h+=`<h3>Практика в Python</h3>`+(S.py.length?`<table class="res-table"><tr><th>Время</th><th>Задача</th><th>Результат</th></tr>`+S.py.map(p=>`<tr><td>${fmtT(p.time)}</td><td>${PYT[p.k].name}</td><td>${p.ok?'✔ верно':'✘ не совпало ('+esc(p.given)+')'}</td></tr>`).join('')+'</table>':'<p class="note">Пока нет проверок.</p>');
+  h+=`<p style="margin-top:16px">${SEND_ON?'<button type="button" class="btn green" id="sendBtn">📤 Отправить результаты учителю</button> ':''}<button type="button" class="btn${SEND_ON?' sec':''}" id="saveTxt">💾 Сохранить результаты (.txt)</button></p><p id="sendMsg2" class="note"></p></div>`;
+  return h;
+}
+function bindRes(){document.getElementById('saveTxt').onclick=exportTxt;const sb=document.getElementById('sendBtn');if(sb)sb.onclick=()=>sendResults('sendMsg2',true);}
+/* ---- отправка в Google-таблицу ---- */
+function payload(){
+  const st=student(),learn={},py={};
+  [...TOPICS,'final'].forEach(id=>{const x=S.learnStats[id];learn[id]=x?`${x.c} из ${x.n}`:'';});
+  Object.keys(PYT).forEach(k=>{const tries=S.py.filter(p=>p.k===k);py[k]=!tries.length?'':tries.some(p=>p.ok)?'✔':'✘';});
+  return {fio:st.fio,cls:st.cls,sent:new Date().toLocaleString('ru-RU'),learn,py,
+    ctrl:S.ctrl.map((c,i)=>({id:c.id,attempt:i+1,time:c.time.toLocaleString('ru-RU'),c:c.c,a:c.a,n:c.n,g:c.g,topics:Object.fromEntries(TOPICS.map(t=>[t,c.topics[t].replace('/',' из ')]))}))};
+}
+async function sendResults(msgId,manual){
+  const say=t=>{const e=document.getElementById(msgId);if(e)e.innerHTML=t;};
+  if(!SEND_ON){say(manual?'Отправка не настроена — сохрани файл .txt.':'Не забудь сохранить результаты в файл .txt.');return;}
+  const st=student();if(!st.fio||!st.cls){say('Впиши фамилию, имя и класс, затем отправь результаты на вкладке «Мои результаты».');return;}
+  say('⏳ Отправляю результаты учителю…');
+  try{
+    const r=await fetch(SHEET_URL.trim(),{method:'POST',body:JSON.stringify(payload())});
+    const j=await r.json();
+    if(j&&j.ok){setDirty(false);say('✅ Результаты отправлены учителю.');toast('Результаты отправлены');return;}
+    throw new Error(j&&j.error||'ошибка');
+  }catch(e){say('⚠️ Не удалось отправить (нет интернета?). Сохрани результаты в файл .txt и нажми «Отправить» позже на вкладке «Мои результаты».');}
+}
+function exportTxt(){
+  const st=student();
+  if(!st.fio||!st.cls){toast('Впиши фамилию, имя и выбери класс вверху страницы');return;}
+  const now=new Date();
+  let t=`ПОВТОРЯЕМ СПИСКИ В PYTHON — результаты\r\nУченик: ${st.fio}\r\nКласс: ${st.cls}\r\nДата: ${now.toLocaleDateString('ru-RU')} ${fmtT(now)}\r\n\r\n=== ОБУЧЕНИЕ (верно / решено) ===\r\n`;
+  [...TOPICS,'final'].forEach(id=>{const x=S.learnStats[id];t+=`${TITLE[id]}: ${x?`${x.c} / ${x.n}`:'—'}\r\n`;});
+  t+=`\r\n=== КОНТРОЛЬ (итоговая проверка) ===\r\n`;
+  if(!S.ctrl.length)t+='нет\r\n';
+  S.ctrl.forEach((c,ci)=>{t+=`\r\nПопытка ${ci+1}, ${fmtT(c.time)}: решено ${c.a} из ${c.n}, верно ${c.c} из ${c.a}, оценка ${c.g}/10\r\n  По темам: ${TOPICS.map(id=>TITLE[id]+' '+c.topics[id]).join('; ')}\r\n`;c.details.forEach((d,i)=>{t+=`  ${i+1}. ${d.skip?'·':d.ok?'+':'-'} ${d.q}\r\n`+(d.code?d.code.split('\n').map(l=>'       | '+l).join('\r\n')+'\r\n':'')+`     ответ ученика: ${d.given} | верно: ${d.right}\r\n`;});});
+  t+=`\r\n=== ПРАКТИКА В PYTHON ===\r\n`;
+  if(!S.py.length)t+='нет проверок\r\n';
+  S.py.forEach(p=>{t+=`${fmtT(p.time)}  ${PYT[p.k].name}: ответ ${p.given} — ${p.ok?'верно':'неверно'} (список: ${p.list})\r\n`;});
+  const blob=new Blob(['\ufeff'+t],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`Списки_Python_${st.cls}_${st.fio.replace(/\s+/g,'_')}.txt`;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href);},1500);
+  setDirty(false);toast('Файл с результатами сохранён');
+}
+
+/* ============ справка ============ */
+const C=(code,nums)=>codeBlock(code,nums);
+const OUTB=s=>`<div class="out">${esc(s)}</div>`;
+const A10=[5,10,15,0,4,7,8,3,-1,2];
+const THEORY={
+make:`
+<h3>Что такое список</h3>
+<p><b>Список (list)</b> — структура данных, которая хранит под одним именем группу элементов в определённом порядке.</p>
+<p><b>Индекс</b> — порядковый номер элемента. Нумерация начинается <b>с нуля</b>. <b>Длина списка</b> — количество элементов, её возвращает функция <code>len()</code>.</p>
+${IT(A10,'A',true)}
+<p>A[0] = 5, A[2] = 15, A[9] = 2. <b>Отрицательный индекс</b> считает с конца: A[-1] = 2 — последний элемент, A[-2] = -1.<br>len(A) = 10, значит последний индекс — len(A) − 1 = 9.</p>
+<div class="box warn">Обращение к несуществующему индексу — ошибка <b>IndexError</b>. В списке A нет элемента A[10]!</div>
+<h3>Способы создания списка</h3>
+<table><tr><th>Способ</th><th>Код</th><th>Результат</th></tr>
+<tr><td>Перечислением</td><td><code>a = [4, 8, 15]</code></td><td><code>[4, 8, 15]</code></td></tr>
+<tr><td>Пустой список</td><td><code>a = []</code></td><td><code>[]</code></td></tr>
+<tr><td>Повторением</td><td><code>t = [0] * 5</code></td><td><code>[0, 0, 0, 0, 0]</code></td></tr>
+<tr><td>Генератор списка</td><td><code>k = [i ** 2 for i in range(1, 6)]</code></td><td><code>[1, 4, 9, 16, 25]</code></td></tr>
+<tr><td>Генератор с условием</td><td><code>t = [i for i in range(1, 51) if i % 10 == 3]</code></td><td><code>[3, 13, 23, 33, 43]</code></td></tr>
+<tr><td>Случайные числа</td><td><code>from random import randint</code><br><code>x = [randint(10, 20) for i in range(5)]</code></td><td>5 чисел от 10 до 20</td></tr>
+<tr><td>Ввод в одну строку</td><td><code>a = list(map(int, input().split()))</code></td><td><kbd>3 8 1</kbd> → <code>[3, 8, 1]</code></td></tr>
+<tr><td>Ввод в столбик</td><td><code>d = [int(input()) for i in range(5)]</code></td><td>5 чисел, каждое с новой строки</td></tr></table>
+<div class="box rule"><b>randint(a, b)</b> включает <b>обе</b> границы: <code>randint(10, 20)</code> может вернуть и 10, и 20.<br><b>range(a, b)</b> правую границу <b>не</b> включает: <code>range(10, 20)</code> — это числа от 10 до 19.</div>
+<h3>Вывод списка</h3>
+<div class="two"><div>${C(L('x = [1, 2, 3]','print(x)','print(*x)',"print(*x, sep='\\n')"))}</div><div>${OUTB('[1, 2, 3]\n1 2 3\n1\n2\n3')}<p class="cap"><code>print(x)</code> — в скобках через запятую; <code>print(*x)</code> — через пробел; с <code>sep='\\n'</code> — каждый с новой строки.</p></div></div>
+<details class="try"><summary>Проверь себя: что выведет программа?</summary>${C(L('a = [7, 3, 9, 1]','print(a[1] + a[-1], len(a))'))}${OUTB('4 4')}<p>a[1] = 3, a[-1] = 1, сумма 4; в списке 4 элемента.</p></details>
+`,
+app:`
+<h3>Метод append()</h3>
+<p><code>a.append(x)</code> добавляет <b>один</b> элемент x в <b>конец</b> списка a. Длина списка увеличивается на 1.</p>
+<div class="two"><div>${C(L('a = [0, 3, 6]','a.append(9)','print(a)'))}</div><div>${OUTB('[0, 3, 6, 9]')}</div></div>
+<div class="box rule"><b>Функция или метод?</b><br>Функция пишется перед списком, а список — в скобках: <code>len(a)</code>, <code>sum(a)</code>, <code>min(a)</code>, <code>max(a)</code>.<br>Метод пишется через точку после имени списка: <code>a.append(5)</code>, <code>a.index(7)</code>, <code>a.count(2)</code>.</div>
+<h3>Изменение элемента</h3>
+<div class="two"><div>${C(L('a = [4, 8, 15, 16]','a[2] = 100','a[0] += 1','print(a)'))}</div><div>${OUTB('[5, 8, 100, 16]')}<p class="cap">Новое значение записывается на место старого, длина не меняется.</p></div></div>
+<h3>Заполнение списка в цикле</h3>
+<div class="two"><div>${C(L('a = []','for i in range(5):','    a.append(i * 3)','print(a)'))}${OUTB('[0, 3, 6, 9, 12]')}<p class="cap">Начинаем с пустого списка, на каждом шаге добавляем элемент.</p></div>
+<div>${C(L('b = [7, 4, 10, 3, 8]','chet = []','for x in b:','    if x % 2 == 0:','        chet.append(x)','print(chet)'))}${OUTB('[4, 10, 8]')}<p class="cap">Отбор: в новый список попадают только чётные элементы.</p></div></div>
+<div class="box warn"><b>Частые ошибки</b><br>• <code>a = []</code>, затем <code>a[0] = 5</code> — IndexError: в пустом списке нет элемента a[0]. Нужно <code>a.append(5)</code>.<br>• <code>a = a.append(5)</code> — метод append ничего не возвращает, и в a окажется <code>None</code>. Пиши просто <code>a.append(5)</code>.<br>• <code>a.append(1, 2)</code> — ошибка: append добавляет только <b>один</b> элемент.</div>
+<details class="try"><summary>Другие методы списков (для справки)</summary>
+<table><tr><th>Метод</th><th>Что делает</th><th>Пример: x = [1, 2, 3]</th></tr>
+<tr><td><code>x.insert(i, b)</code></td><td>вставляет b на место с индексом i</td><td><code>x.insert(1, 9)</code> → [1, 9, 2, 3]</td></tr>
+<tr><td><code>x.pop(i)</code></td><td>удаляет элемент с индексом i (без i — последний)</td><td><code>x.pop(0)</code> → [2, 3]</td></tr>
+<tr><td><code>x.remove(b)</code></td><td>удаляет первый элемент, равный b</td><td><code>x.remove(3)</code> → [1, 2]</td></tr>
+<tr><td><code>x.extend(b)</code></td><td>добавляет в конец все элементы списка b</td><td><code>x.extend([7, 8])</code> → [1, 2, 3, 7, 8]</td></tr>
+<tr><td><code>x.count(b)</code></td><td>сколько раз встречается b</td><td><code>x.count(2)</code> → 1</td></tr></table></details>
+`,
+loop:`
+<h3>Два способа перебора</h3>
+<div class="two"><div><b>По значениям</b>${C(L('a = [7, 2, 9]','for x in a:',"    print(x, end=' ')"))}${OUTB('7 2 9')}<p class="cap">x получает сами <b>элементы</b>. Удобно, когда важно только значение: сумма, подсчёт, вывод.</p></div>
+<div><b>По индексам</b>${C(L('a = [7, 2, 9]','for i in range(len(a)):','    print(i, a[i])'))}${OUTB('0 7\n1 2\n2 9')}<p class="cap">i — <b>номер</b> элемента, a[i] — сам элемент. Нужно, когда важно <b>место</b>: изменить элемент, сравнить соседей, найти позицию.</p></div></div>
+<div class="box rule"><code>range(len(a))</code> даёт ровно все индексы списка: от 0 до len(a) − 1.</div>
+<h3>Изменение элементов</h3>
+<div class="two"><div>${C(L('a = [3, 5, 1]','for i in range(len(a)):','    a[i] = a[i] * 2','print(a)'))}${OUTB('[6, 10, 2]')}</div>
+<div><p>Изменить элементы можно только <b>через индекс</b>: <code>a[i] = …</code>.</p><p>Цикл <code>for x in a:</code> с командой <code>x = x * 2</code> меняет лишь переменную x — сам список останется прежним.</p></div></div>
+<h3>Подсчёт элементов</h3>
+<div class="two"><div>${C(L('a = [12, 7, 30, 5, 18]','k = 0','for x in a:','    if x > 10:','        k += 1','print(k)'))}</div><div>${OUTB('3')}<p class="cap">k — счётчик: до цикла 0, увеличивается на 1, когда условие выполнено.</p></div></div>
+<h3>Соседние элементы</h3>
+<div class="two"><div>${C(L('a = [4, 9, 2, 7]','for i in range(len(a) - 1):','    if a[i] > a[i + 1]:','        print(a[i], a[i + 1])'))}${OUTB('9 2')}</div>
+<div><p>Сравниваем a[i] с <b>правым соседом</b> a[i + 1]. Последняя пара — a[2] и a[3], поэтому i доходит только до len(a) − 2: заголовок <code>range(len(a) - 1)</code>.</p></div></div>
+<div class="box link">🔗 Сравнение соседей <code>a[i] &gt; a[i + 1]</code> — основа <b>сортировки пузырьком</b>.</div>
+<div class="box warn"><b>Частые ошибки</b><br>• <code>range(len(a) + 1)</code> — на последнем шаге IndexError.<br>• При сравнении соседей <code>range(len(a))</code> — на последнем шаге a[i + 1] выходит за границу.<br>• Путают i и a[i]: <code>print(i)</code> печатает номер, <code>print(a[i])</code> — элемент.<br>• <code>for i in range(a):</code> — ошибка: в range нужно число, например len(a).</div>
+`,
+min:`
+<h3>Сумма элементов</h3>
+<div class="two"><div>${C(L('a = [4, -1, 7]','s = 0','for x in a:','    s += x','print(s)'))}${OUTB('10')}</div>
+<div>${trace(['x','s'],[['—',0],[4,4],[-1,3],[7,10]])}<p class="cap">До цикла s = 0, на каждом шаге прибавляем очередной элемент. Встроенная функция: <code>sum(a)</code>.</p></div></div>
+<p>Среднее арифметическое: <code>sum(a) / len(a)</code> (результат — float).</p>
+<h3>Поиск минимума</h3>
+<div class="two"><div>${C(L('a = [6, 3, 8, 1, 5]','m = a[0]','for x in a:','    if x < m:','        m = x','print(m)'))}${OUTB('1')}</div>
+<div>${trace(['x','x &lt; m?','m'],[[6,'нет',6],[3,'да',3],[8,'нет',3],[1,'да',1],[5,'нет',1]])}</div></div>
+<p>1) Считаем «рекордсменом» первый элемент. 2) Сравниваем с ним каждый элемент. 3) Нашли меньше — запоминаем. Для <b>максимума</b> знак меняется на <code>&gt;</code>. Встроенные функции: <code>min(a)</code>, <code>max(a)</code>.</p>
+<div class="box warn">Нельзя начинать с <code>m = 0</code>: если все числа положительные, ответ будет 0, хотя такого числа в списке нет. Начальное значение берут из самого списка: <code>m = a[0]</code>.</div>
+<h3>Индекс минимума</h3>
+<div class="two"><div>${C(L('a = [6, 3, 8, 1, 5]','im = 0','for i in range(1, len(a)):','    if a[i] < a[im]:','        im = i','print(im, a[im])'))}${OUTB('3 1')}</div>
+<div><p>Запоминаем не значение, а <b>индекс</b> im. Знак <code>&lt;</code> находит <b>первый</b> из одинаковых минимумов.</p><p>Встроенный способ: <code>a.index(min(a))</code>.</p></div></div>
+<h3>Обмен двух элементов</h3>
+<div class="two"><div>${C(L('b = [12, 4, 15, 24, 16]','b[1], b[4] = b[4], b[1]','print(b)'))}${OUTB('[12, 16, 15, 24, 4]')}<p class="cap">Параллельное присваивание.</p></div>
+<div>${C(L('x = b[1]','b[1] = b[4]','b[4] = x'))}<p class="cap">Через третью переменную — тот же результат.</p></div></div>
+<div class="box warn">Так обменять нельзя: <code>b[1] = b[4]</code>, затем <code>b[4] = b[1]</code> — после первой строки старое значение b[1] потеряно, оба элемента станут равны 16.</div>
+<div class="box link">🔗 <b>Сортировка выбором</b>: 1) найти индекс минимума; 2) поменять минимум с первым элементом; 3) повторить для оставшейся части списка. Всё это ты уже умеешь!</div>
+<details class="try"><summary>Проверь себя: что выведет программа?</summary>${C(L('a = [9, 4, 7, 2, 6]','im = 0','for i in range(1, len(a)):','    if a[i] < a[im]:','        im = i','a[0], a[im] = a[im], a[0]','print(*a)'))}${OUTB('2 4 7 9 6')}<p>Минимум 2 стоит на индексе 3 и меняется местами с первым элементом 9.</p></details>
+`
+};
+
+/* ============ запуск ============ */
+window.addEventListener('beforeunload',e=>{if(S.dirty||ctrlActive()){e.preventDefault();e.returnValue='';}});
+document.getElementById('fio').value='';
+enterModule('make','theory');
+</script>
+</body>
+</html>
