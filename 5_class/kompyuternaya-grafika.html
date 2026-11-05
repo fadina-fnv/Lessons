@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Компьютерная графика и её виды</title>
+<style>
+:root{
+  --bg:#f3f7fc; --card:#ffffff; --ink:#1f2d4d; --muted:#4a5a7a;
+  --blue:#2f6fd6; --blue-l:#e3eefc; --line:#c9d8ef;
+  --ok:#23914a; --ok-l:#e2f5e7; --warn:#d07400; --warn-l:#fff0d9;
+  --rast:#16807f; --rast-l:#dff3f2; --vect:#7448c4; --vect-l:#efe7fb;
+  --rgb:#2f6fd6; --rgb-l:#e3eefc; --cmyk:#c2307f; --cmyk-l:#fbe6f1;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Times New Roman",Times,serif;font-size:20px;line-height:1.45}
+header{background:linear-gradient(135deg,#d8e9ff,#eef5ff 55%,#fff1dc);border-bottom:2px solid var(--line);padding:14px 18px}
+header h1{margin:0;font-size:32px;color:#1d4ea3;line-height:1.15}
+.student{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;align-items:flex-end}
+.student label{display:flex;flex-direction:column;font-size:17px;color:var(--muted);font-weight:bold}
+.student input{font:inherit;font-size:21px;padding:6px 10px;border:2px solid #9fb8de;border-radius:8px;width:320px;max-width:100%;background:#fff;color:var(--ink)}
+.student select{font:inherit;font-size:21px;padding:6px 10px;border:2px solid #9fb8de;border-radius:8px;background:#fff;color:var(--ink);width:120px}
+
+nav{position:sticky;top:0;z-index:20;background:#f8fbff;border-bottom:2px solid var(--line);padding:8px 10px;display:flex;gap:8px;overflow-x:auto}
+nav button{flex:0 0 auto;font:inherit;font-size:18px;display:flex;align-items:center;gap:7px;padding:7px 12px;border:2px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);cursor:pointer}
+nav button .num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--blue-l);font-weight:bold}
+nav button .st{font-size:16px;font-weight:bold;color:var(--muted)}
+nav button.active{border-color:var(--blue);background:var(--blue-l);font-weight:bold}
+nav button.done .num{background:var(--ok);color:#fff}
+nav button.done .st{color:var(--ok)}
+nav button.prog .num{background:#ffd98a}
+nav button.prog .st{color:var(--warn)}
+
+main{max-width:1000px;margin:0 auto;padding:16px 14px 60px}
+.view{display:none}
+.view.active{display:block}
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:18px}
+.card h2{margin:0 0 10px;font-size:27px;color:#1d4ea3;line-height:1.2}
+.card h3{margin:14px 0 6px;font-size:22px}
+.card p{margin:8px 0}
+.def{background:var(--blue-l);border-left:6px solid var(--blue);padding:10px 14px;border-radius:8px;margin:10px 0;font-size:21px}
+.def.r{background:var(--rast-l);border-color:var(--rast)}
+.def.v{background:var(--vect-l);border-color:var(--vect)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.box{border:2px solid var(--line);border-radius:10px;padding:10px 14px;background:#fbfdff}
+.box.plus{border-color:#9fd7b0;background:#f3fbf5}
+.box.minus{border-color:#f2c88d;background:#fffaf1}
+.box h4{margin:0 0 4px;font-size:20px}
+.box ul{margin:4px 0;padding-left:22px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.chip{font-size:21px;font-weight:bold;padding:4px 14px;border-radius:999px;border:2px solid}
+.chip.r{color:var(--rast);border-color:var(--rast);background:var(--rast-l)}
+.chip.v{color:var(--vect);border-color:var(--vect);background:var(--vect-l)}
+.chip.f{color:#1d4ea3;border-color:#7ea6e6;background:#eef4fd}
+.demo{border:2px dashed #9fb8de;border-radius:12px;padding:12px;background:#f9fbff;margin:12px 0;text-align:center}
+.demo .cap{font-weight:bold;font-size:21px;margin-bottom:6px}
+.demo canvas,.demo svg{max-width:100%;height:auto;border:2px solid var(--line);border-radius:8px;background:#fff}
+.demo input[type=range]{width:min(420px,100%);height:30px;accent-color:var(--blue)}
+.demo .info{font-size:20px;margin-top:4px}
+.pgrid{display:inline-grid;grid-template-columns:repeat(9,32px);gap:2px;background:var(--line);padding:2px;border-radius:6px}
+.pgrid button{width:32px;height:32px;border:none;background:#fff;padding:0;cursor:pointer}
+.pgrid button.on{background:#e0484f}
+.szb{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0}
+.szb button{font:inherit;font-size:19px;padding:6px 12px;border-radius:8px;border:2px solid #9fb8de;background:#fff;cursor:pointer;color:var(--ink)}
+.szb button.on{font-weight:bold;background:#fff7d6;border-color:#e0b000}
+.barw{text-align:left;max-width:520px;margin:8px auto 0;font-size:19px}
+.bar{height:22px;background:#e1e9f6;border-radius:8px;overflow:hidden;margin:2px 0 8px}
+.bar i{display:block;height:100%;min-width:6px;border-radius:8px;transition:width .3s}
+.gal{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:10px 0}
+.gal figure{margin:0;border:2px solid var(--line);border-radius:12px;padding:8px;text-align:center;background:#fff}
+.gal img,.gal canvas{width:100%;height:130px;object-fit:cover;display:block;border-radius:8px;image-rendering:auto}
+.gal canvas{image-rendering:pixelated}
+.gal figcaption{font-size:19px;font-weight:bold;margin-top:6px}
+.paint{border:3px solid var(--rast);background:var(--rast-l);border-radius:14px;padding:12px 16px;margin:14px 0}
+.paint h3{margin:0 0 6px;color:var(--rast);font-size:24px}
+.paint ul{margin:6px 0;padding-left:24px}
+.paint .note{background:#fff;border-left:5px solid var(--warn);padding:8px 12px;border-radius:8px;margin-top:8px}
+.mv canvas,.mv svg{width:260px;height:200px}
+.pair{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.pair figure{margin:0}
+.pair figcaption{font-weight:bold;font-size:21px;margin-bottom:4px}
+.pair .r figcaption{color:var(--rast)}
+.pair .v figcaption{color:var(--vect)}
+.tog{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.tog button{font:inherit;font-size:19px;padding:6px 12px;border-radius:8px;border:2px solid #9fb8de;background:#fff;cursor:pointer;color:var(--ink)}
+.tog button:disabled{opacity:.45;cursor:default}
+.tog button.on{font-weight:bold;background:#fff7d6;border-color:#e0b000}
+table.cmp{width:100%;border-collapse:collapse;font-size:20px}
+table.cmp th,table.cmp td{border:2px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+table.cmp th{background:var(--blue-l)}
+table.cmp th.r{background:var(--rast-l);color:var(--rast)}
+table.cmp th.v{background:var(--vect-l);color:var(--vect)}
+table.cmp td:first-child{font-weight:bold;background:#f6f9fe;width:24%}
+.rule{font-size:26px;font-weight:bold;text-align:center;padding:12px;border-radius:12px;background:linear-gradient(90deg,var(--rgb-l),var(--cmyk-l));margin:12px 0}
+.rule .a{color:var(--rgb)} .rule .b{color:var(--cmyk)}
+.steps{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+.steps li{counter-increment:s;position:relative;padding:8px 10px 8px 52px;margin:8px 0;border:2px solid var(--line);border-radius:10px;background:#fbfdff}
+.steps li::before{content:counter(s);position:absolute;left:10px;top:8px;width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center}
+.big-btn{font:inherit;font-size:22px;font-weight:bold;padding:12px 22px;border-radius:12px;border:none;background:var(--blue);color:#fff;cursor:pointer}
+.big-btn.sec{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.big-btn:disabled{opacity:.45;cursor:default}
+.center{text-align:center}
+
+/* задания */
+.tbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:20px}
+.progress{height:14px;background:#e1e9f6;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.progress div{height:100%;background:var(--blue);transition:width .3s}
+.qcard{background:#fff;border:3px solid var(--line);border-radius:16px;padding:18px;text-align:center}
+.qcard .emo{font-size:58px;line-height:1.1}
+.qcard .qt{font-size:27px;font-weight:bold;margin:8px 0 6px}
+.qcard .qp{font-size:21px;color:var(--muted)}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.ans button{font:inherit;font-size:24px;font-weight:bold;padding:16px 10px;border-radius:12px;border:3px solid;background:#fff;cursor:pointer}
+.ans .r{color:var(--rast);border-color:var(--rast)} .ans .r:hover:not(:disabled){background:var(--rast-l)}
+.ans .v{color:var(--vect);border-color:var(--vect)} .ans .v:hover:not(:disabled){background:var(--vect-l)}
+.ans .rgb{color:var(--rgb);border-color:var(--rgb)} .ans .rgb:hover:not(:disabled){background:var(--rgb-l)}
+.ans .cmyk{color:var(--cmyk);border-color:var(--cmyk)} .ans .cmyk:hover:not(:disabled){background:var(--cmyk-l)}
+.ans button.sel{box-shadow:0 0 0 4px #ffd24d}
+.ans button:disabled{cursor:default}
+.ans button.right{background:var(--ok-l);border-color:var(--ok);color:var(--ok)}
+.ans button.wrong{background:var(--warn-l);border-color:var(--warn);color:var(--warn)}
+.grp{margin-top:12px}
+.grp .gl{font-weight:bold;font-size:21px;margin-bottom:4px}
+.fb{margin-top:14px;padding:12px 16px;border-radius:12px;font-size:21px;text-align:left}
+.fb.ok{background:var(--ok-l);border:2px solid var(--ok)}
+.fb.no{background:var(--warn-l);border:2px solid var(--warn)}
+.fb b{font-size:22px}
+.next{margin-top:14px}
+.sum{text-align:center}
+.sum .score{font-size:40px;font-weight:bold;color:#1d4ea3}
+.log{text-align:left;margin:12px auto;max-width:720px;padding-left:0;list-style:none}
+.log li{padding:6px 10px;border-radius:8px;margin:4px 0;font-size:19px}
+.log li.ok{background:var(--ok-l)} .log li.no{background:var(--warn-l)}
+
+table.res{width:100%;border-collapse:collapse;font-size:21px;margin:10px 0}
+table.res td,table.res th{border:2px solid var(--line);padding:8px 10px;text-align:left}
+table.res th{background:var(--blue-l)}
+.sendbox{text-align:center;margin:10px 0 6px}
+.sendst{margin-top:8px;font-size:20px}
+.sendst .ok{color:var(--ok);font-weight:bold}
+.sendst .no{color:var(--warn);font-weight:bold}
+.grade{font-size:56px;font-weight:bold;color:var(--ok);text-align:center;margin:8px 0}
+.alert{background:var(--warn-l);border:2px solid var(--warn);border-radius:10px;padding:10px 14px;margin:10px 0}
+
+@media (max-width:640px){
+  body{font-size:19px}
+  header h1{font-size:26px}
+  .two{grid-template-columns:1fr}
+  .ans{grid-template-columns:1fr}
+  .qcard .qt{font-size:24px}
+  table.cmp{font-size:17px}
+  table.cmp th,table.cmp td{padding:6px}
+  .student input{width:100%}
+  .student label{flex:1 1 100%}
+  .student label.c{flex:0 0 auto}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Компьютерная графика и её виды</h1>
+  <div class="student">
+    <label>Фамилия и имя
+      <input id="fio" type="text" autocomplete="off" spellcheck="false">
+    </label>
+    <label class="c">Класс
+      <select id="cls" class="cls"><option value="">—</option><option>5А</option><option>5Б</option><option>5В</option></select>
+    </label>
+  </div>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+<!-- ===================== ТЕОРИЯ ===================== -->
+<section class="view" id="v-theory">
+
+  <div class="card">
+    <h2>1. Что такое компьютерная графика</h2>
+    <div class="def"><b>Компьютерная графика</b> — это создание и обработка изображений с помощью компьютера.</div>
+    <div class="def"><b>Графический редактор</b> — это программа для создания и редактирования рисунков и фотографий.</div>
+    <p>Фотографии в телефоне, рисунки в Paint, значки (иконки) приложений, схемы и диаграммы в презентации — всё это компьютерная графика.</p>
+    <p>Виды компьютерной графики различают по тому, <b>из чего строится изображение</b>: из пикселей или из фигур. От этого зависит и то, как компьютер хранит изображение.</p>
+    <p>Главных видов два:</p>
+    <div class="chips"><span class="chip r">растровая графика — из пикселей</span><span class="chip v">векторная графика — из фигур</span></div>
+    <p>Бывают и другие виды — фрактальная и трёхмерная графика, но главные — растровая и векторная.</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Растровая графика</h2>
+    <div class="def r"><b>Растровое изображение</b> состоит из множества маленьких квадратиков — <b>пикселей</b>. Каждый пиксель закрашен одним цветом.</div>
+    <p><b>Пиксель</b> — самый маленький элемент растрового изображения. Растровая картинка похожа на мозаику: из множества разноцветных кусочков складывается рисунок.</p>
+
+    <div class="demo">
+      <div class="cap">🧩 Пиксельная загадка</div>
+      <p style="margin:2px 0 8px">Попробуйте угадать, что нарисовано. Затем двигайте ползунок вправо — пикселей станет больше.</p>
+      <canvas id="pixCanvas" width="384" height="384"></canvas><br>
+      <input id="pixRange" type="range" min="0" max="8" value="0" step="1">
+      <div class="info" id="pixInfo"></div>
+    </div>
+    <p>Чем больше пикселей, тем подробнее и чётче изображение.</p>
+    <p><b>Пикселизация</b> — это когда при увеличении растровой картинки становятся видны отдельные пиксели-квадратики.</p>
+
+    <div class="demo">
+      <div class="cap">✏️ Попробуйте сами: рисунок из пикселей</div>
+      <p style="margin:2px 0 8px">Нажимайте на квадратики — каждый закрашивается одним цветом.</p>
+      <div class="pgrid" id="pgrid"></div>
+      <div class="tog"><button id="pgHeart">Сердечко</button><button id="pgClear">Очистить</button></div>
+    </div>
+
+    <h3>Примеры растровых изображений</h3>
+    <div class="gal">
+      <figure><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAcFBQYFBAcGBgYIBwcICxILCwoKCxYPEA0SGhYbGhkWGRgcICgiHB4mHhgZIzAkJiorLS4tGyIyNTEsNSgsLSz/2wBDAQcICAsJCxULCxUsHRkdLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCwsLCz/wAARCACgAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwC3LYmJsgUL8vB4NdFPbK4yKyrm1xkiuVxO25jXl39mnh3fxNjNZt/NtmODlSM49KNZlxMCx/1XPPTNYd1qbzP8gyQPTNctR+8ddEupKBLlwSrDkVraTbtYzRsm543JDDHBHY/0rL0+0lvArAMQf4vSupinW1tA0iAFe3qacWazfRF+SOMqMAADtVO4FuIzuAIBGR/I/WqEuqb5spnySOD2+n1FQzh3nRpztA+Xcp4cHpScjKwrX5ku41QFh9304PQ1C81xPJhjtiUBge/Ip11L5AnjhH7+PJGRkE44B/WqEtzOEXyeS0SnOM4bhf5EVmMbeRPbvFOjgvIRGWPIHGT+lVI7B7a5YSOWjkVp3Y9TzgD2/wDr1bhtJ5fkuQSDJ5oOeCfmGP8Ax0fnUxxJqFvcTuFV1VFHYnknj2H60wbKcBnnjkdrYbvlCADJIPf255/D3q9bnz3eRbYv8wIOcDCnAJPfr0HU1HFLKRMLDDFnbLEcE8fyBA/OnQ6q1sCswMiiNmGxfl4BwMd+maaIZPrwd9PuGYrsjjACqM5Yj9f/AK9YHhDVmOnNZOG8wHywpwQPb866PZHe2beZK0RWJRkHAyVBOPXHT0FZPhmPTIJ5ra2+YyncZGIAUA9B78Cqvo0xW1TM7WdMhsNTlvGOTI2NpOPlx82B+dVbjz4pYbi1fMUbD5j3U9BmtvxBZTHV7a4j+aFF2gkHkluc/hVAeXaO9q5CJLCzGPuGI4/Wi/cLEV1rtzo2uQlm32045Unv3x+ddLDeRTeW8W1lxhiOoP8Ak1yv9ltq1kqtMTcW2GBPQg4HT860baSKSy3JGYsnayr3OME1E1daFR0epviZXZXBJJPQ1OJvnPlgjHGMVz1rMyT7pGI2YBBPTFdLbxi4hVlYK7nPFKDsymTxS3RXdyCOBxTyzycSwkn1XippIWhVUyzMOOO5qtLcsD5aSsM9WHeuyOpKGyFVOIzvPrjkVWaInJkwF7mpSrdWk/GsfWdRIT7PC24HqaG+iNPhVzn/ABTefbZRawZEUfX3Nc0dP9q6FoMnOKabf2pXOVq7uznjYe1J9g9q6A2/tTTb+1Fxcp7ZJKyVVuCXiJUVrzWQZjxVeW2EUZ7cV0MzPMNUmWS8kSTBXPK0thaJMhZUUqOMHg1LrVrHJq0rqMEd6fYq0cgQKwGOWxXm1L3OyGxetLZokMsChHHVGGKdPqM9yzQ+XGWUY2k/ePpn1q8ZCYULF0JzkqKz/wDl4cMqzjGQ6gA0osbDT45o4ZXfr1aJhnIqrfagzGJJLXCI2A3PIqW5muFmSSObKk/6snBB9s1ESJlkJV4PVeqt7AGk2CKQtfPuXk3y7ZBnoc8HtV5wtkfOlYPnjGPuk9//AK1SwIPJBVnR+SFK/wAjVDUZJpDtmxJt64BBNTcqw3UrhpoAsLqSnzMqtz7Eeo6VRu5N+5WdsjJRu4B6j8zU1swB3rvfPAZU3bfqvWoZp/O3xxhCAw37eGHrgHmjmDlNXStNNpukEzN5mAwJ4XPcfnj8KsWtskU9tEV3FEDEY5bBbI/lVTTdkjGRtw2ON3zfdHQ59RyCK2AxWbDRBJIiVZh02kZyPqB+daJ6XIa1M8mFnjhkZVZ4VTa3AQYzjHuTjisyDQhpWyePeRCzyA+5BGKgndpdYBcgiMZJGTnBNddpsP2zTIlmOWRxI+ecnB49+tLm10Dl7lHR7lNZsJgDuZnLLn+HHArmb2COWP7RGxVTOuUf7w7H+XSrejmXRtXu2lm2qJ3ZEHCkH/65qKXSRba1NC0ryyEmZYh2Vv6lqok0NL022t7nEZOSFL7TwOpI/MiqlxPbjVfsissaAcMvTdjH8qv6G2zV9QlfDA4XGOwUcD8f5Vi+GdJ/tPU5bq5ibcJCgHoB6/hR5gXzayJI0bMGC43n6gf/AFq1dMlljheVs5Q4Uf7XYVBBYsL6VHJfZMcHrxgf4VsQwC2RCy7kTdJJ6lv8/wAqXL1Hctq7fZuc73GT7Csq9k2nCkbx6dBV9Xa4tmlHU8msuTcz7dm0H9aq7asjSna+o6SV5bA7Bz3xWNNBl/WulECWunsx4z0rEO1mPrW1OD3ZnVn9lGeYPamGD2rSMYNNMVU0Y3M0we1IYPatLyaTyfalYdz2U4qnfgGFhnBxVktWTrErLavgZOOK6GYo4w2W6/lLMCC3Jz0FDzRW4EcIB9Wx0qFZ3ET/AC+W+edx4qG4dpI87iTjGVwRXlyd2dsVZGityl1AXDfKOCKG3yxF4OD0w7bePyrCk22y+YG2FRlmU1nv4weJwIoSxQ4DP8wNEUxuxu3k90ZI/NtPJBJG90LA/wBf5VOsD20AdQHDHB2jP/oXSsy18Xia2zJaS25PBaJsr9cVesr21uHBt+QOQ24KW/A0pMFFl0mHyyFVG3D+JjnP4D+VFppH2iMSSyCJxzjaRkfiavQmMQhmKKPqD+pqhqPivQ9L5m1GIso4VCWGfTA60RSe43oUjaiDU5UIikTI3DcowfUEd6i1bT5ZY0mgiinaI4V8/MB6HpmoZfHunvEXiYyKw6fZyM/lUUPjHS3l3q4tnfh98bKjexqrIi5PpccUsMjmJ435LKc7sdCDnr/nmtsYSIZ+YbdpY9wOh/Kqtrf2WoKslnLHKQRuG4HI/Crl4hW0woxtBG3saWyK3ZxsDiW8eIEfMxUEdu3/ANeu/wBLt0hhjbrtBzgY5Oa43QYVk1N/MTaQx7dT613gkijh2LkE9cVlB6mkloefa7aGPxmm/PlnYAg5B79PrVvWZjYa4JyuXlVI2I68sSfp2H41rX2lrd6zbXJOWibfjue/6Vnz241G88pg6lk2gN2IIb+la83cz5ewkEQls9TmgzHJJjbxj5sD+po8BWxTTpt5Z5QWLE9Tk1uafYMdHkRo1aQzM/HUYPH9Kg0Gzaxvp1DkxE4wRgkk8flSjK45RsZk3m2GtOBIzYACqecsf8K2bNSbMpJkYySw5zVDxJD9kvYroZ2kEfrj/GtPR1ZbXMb+Y7DGW7ewFXGV3yshqyuU7SY287I+Skh4yOlWLlFRzOceWvNFzGVmHBZgOec06Uma2ETL+Aq4v3rCbsrmBqGqvcttXIjHQVmR3JM5FdIdKRj9wVAdFCMWCV2200MlJdSlE2anKZpZLcQkdqPMApMhsTbRsqRSGp2ykI9J3Ejg1lavcLFbMGIyR1pl9rcFpGRvAIrkb/Wm1CQojZWrnJJAlcoTBpG8wDK5O5fWlcssZZXCRkdOhWqcepRW0kkUpKZ6d6xby5utUnWGISbO5xgivO6nWti5f6gwhWK2mE00h2kiprDQpGRXkBLEcjsfYim6D4bZZzPPDubpkNkV2NpbSISr/KoHB/xpb6Ie2rOe0y2T95EyAlSRgjk+9dFY6db3FmCYVUdGI6E+orL1K3a1LToGwp+8DyPSr+nXqKvyuCGbOzOMZ7/SsOrTNXtdCa1pUNvpkpUbVVSSueOledeGdATV7qa+kQGJXKoD0+tetapD9t0S4jTJZ4yuPwrgPBLoukzQMSJIpCGA7Vpdwg7GM3dq5cm0eIhwIVYKOmcYrgtbiTcslvchF2B9q/OpyTwSPunjoa7/AFbU30/Srp0XzJNh2g8dK8gsbtoUud3McykEDH3uxrswkIuN2cFabvY2dO+0QzJdWrtDN2ZejexHcV6T4e8TLrVq1rcjyryI7XXP5Ee1cjoVnnT4VkA3fe6+tUNTlbR/FlvcQsU6bseme9ZT96bgb0pcsbs9YsbGOFvOwC7HIPpxVmWcqSTljkAAd8nBo01xNbRyDLBhnNOnLQxtKQMKDgYzWXIlqdd7iQ3SzvKVG4r8inpkcZFNjtolu/MC4YDLA+vpVKCR0tmWNclASQxwemefx/lV7TnZrgowByNxOME5Gc/yFEloSnqaNrJIsqKoATkMe/rUTMkNxjcu8Dipj+7l5ORt/EVkzBpblzGSHyASfXv+gpU17o57ieJiLixiIQud3ygcY9zU+lwGKzRQoVsDknpWZ4i1Wx0qyWW9mEYHKrnLMfYVzEXje61DP2GJIov4fMBJP4U1GV+YiU4pWud9JbBnAefzD2AwF/Ko/LnikG4/L6kda4O18Ya/Y6mlvOtvKknIYrjNegWOoLfQASqEfGcVeiYtWi5CgfqOfWnzQKEqmt0IpimV49KfcXw8uuyEtDka1MHWWWME9K51r7a4BNX9fvAUIBrAhAkYE1pa4I6C1uA2Oa0FcFetYtsqqBV5ZVA61I7HPzazNqV7seQgE8CtuztUWUA44HNYOkWqvc+Y1uEx0Lsa661ZCUyV69lrkbvqdCVjJv8ASobi/VHjLBvStmx0W2s1UcNn1HSk1C6+zlW2AlT69qvWd2l7GvQAenNZ2TdjRN2LEdnHvxGQg7gYqe4hAgwB869DjFTwRxqNxAP4U6bDoVBU8U0rA2c3NcbbeTCOGXqDyPzrLgvQ+SiCOQcg9jWtcQGG5yNwc9i3UVmT2pWU4yPK+fG309uv5Vg46mqZqaHrsMubeRgmfyPr9KwNZt38M+JDfwj/AIl98cSMBwje/sakZYvmlRo1JBxt4Kk/pitHTtSabT3stSiWe3PyFsDj8O4p+pEo3K19YLd2jOj+ajL0HXFeb2/hCRNSfzAZI1bKKB1+tejzaJqelkz6BKl1Z4z9nkb7vsp6j6GsW68W6jZHbNoMsUueSeQfxxRSlUhdQ2ZzTpJ6tFux06PTrNri5PlogzgiuL16SK8P258iWR8Rr/sDv+dWdS1vWNcmUTWzCEH5YUBAP19ay72G8mnBnXZjhU/uj0FdVGnytym9RNNqyWh7B4HuheaDbkksUXafwrcvonS03ovJ4weB9a434dXQSzeAjvwB1Nd3cjNodzH8Kib0sdK3OcuEKqGBbk445LH+nT9as6YQtyzsSXZPvbuOvP8AP9KdOh2qFVTxjIOMf5FR2pjhnUJGCM4wPT05+tZN6DtqasrFASDz2xWZPP8AYtPuL+fHyDgep/8A11NqF26qijC7h19qzPESN/wjMKMQWlm5x364ohsTU0PMdZ1Q3fiINqGHSZD8x6J6Y9Kk8JAO8y9VDjBqt4n0qeRYpIFJZflKjqQa6HwXos0Ua7zx1YnpXY5x9keeruZb1rTwW05sEFpguenaupi0y+hUSW8o4GACKy2kXV/F1vZWw3w2PLsOQW713jKsUIyMVycuiPQi/dMq1064ZAZSHY9eKsS6WzJjFatjcQjqRWisluw5xXoxSscr3POdS8NPPnANY7eH7i36A168YreTpioJNLhk6AVVgTseStDPbr8yGqz3TKecivUrvw7FIDwKwrrwohJwtZuDNOZHn2jSPIpaUNn1NdNalkhyBuHvVf7ItpAqRAH61ZeE/ZVYKyH2rjZoia4iW8teDhh6msKzvp9K1H7uYwfm4rdtNwGMZB7msvU4BFc7iMZ746io6XNY72OwsNbivYwwBC+tWJb5MEbs+xFcQlpPsWaznZM9h3/Ckm1a9hjMU6nj+Lpn8aFN2HyK+h0V/JHcRnIaNx0I/wAaxra8a43QOSJVOMdDWO+pyzOVV2U/jT7W2knf97gEnh15qeZvcrksbksKghYFRXLbjsI4/A0zEYQtHK0Ug4ZWBUZ9fpVSC0uoTu8+OVBxhwW2/T0q355imLMYijcSJnJJ9RnvUksltL2a1LSRKCG5bYwZD9P8itqC+sb2LdPCm49TxXPxylAxhbzEX7zCMDGe/bj6VYaNWmGfJ3cASRtyfwxUyj1Q0zVvRp8UJmgjTd7CuA1W2F3eyTMNoXOBiuraK4EoQeU+Bn2H41k39s7btihsDOc/rSUmnctWasZvgu5NjftHKzKGORn0r0c6hHdYWNtoTJx1ryry3/tBArEY5+Xqe/FdhYTSRx4BKAKMKOtE52eocmmhtMQxYAZJpwt9uJFJAB/OobYjIzlNx5GOtXY1WQgY5U52+1ZOY1Ep3WVmBZvlxjjnNZHi6+kj0uygtk8yZ5NwX1x1rq9YtS+nh1+9GM4ArzvVJpRrlvK2cRtnBHrWsJW0M5RuU28R2AURX1pNE6/wlOtP/tvUtXhNhoWnvbo/DTsMHHtXdCPSpIFlmjRifVRnNSw39siEW0KRkdMjGauMo7pGPstdWVPCmgp4bsM3BHmv8zuTnJp+pa8ZZGjgBYAdelZ99f3N3KftEjqhOAFIwKpIjruGBtznI71pG7ZTaSNW2vpIlBLc1JJr0sQ71itMVOKY0m8c11Xa2OaxuQ+KXDfMSK1rfxQuOWrhJUKnIFN8xwMDOa0UmS0ej/8ACUwEYLimjXreU/eFeci0uZfmBNTRwXMY53U1UfYLGjOpCsSRx0q/aKLm0BXg+lZLyxyRsoJLD9a0dDbZHsYnb2yOlcsdXY6HoiVI3VypwM1BqNuJ4cMPmHRhW1Jbh1yCKpzQfJgNxScOUalcw9Pn+zv5chU/hzW2YIrlMlFIPcisS+0+P/WLIdw/uioLO5kjk4LIB3dv6VC00ZrvqjXl0qDPy4X6Gqstg8Z3Rnd9eauxyJcp8rc+oNXIS+NrAHFPluClYwl06VR5sP7tj1XJxVKW0vWlyQCwPc5DD3zXZBEI6YqGS0Vx0HX0zScQ5jBERleJFmPb5OCF9/pU0CyQMpmEMqKcEg8EdOcdf88Vrvpirh4yUYj+EZBqrNADMyu2VTqp6foeKybtuG44vAozHEY9/deg/Csy8cth9wMa5BI4J49avk70+RVUg9CQWAqvc2izhQIlfBBzjHQVDaKSOYvHNnD9pEW5lI2qBlmPr7VLZapJ9oUXGY5JAMZPT8a07m1MNsvzKW7/AOHvXPXPmrKxkIyegHGBWV1I6Emjs7W6ZBtJDZ7jj+da9hOvnKzqcZ6ehrkNNnYRp82eBwefauitZl3Ak4I6e5rB6MbSOj1D57dt2MYzXnOtRg3qyJiTnk9Pwrv9SQvp27HIAPWvNr+VpNY2M2VC/d/HqPeur7RgtjeJmltVycDPQimK5ChctK+MneQMe3FR28y/Y2UszMvA4zxVaRpNiqpBkbGO/Hp9a1jEybLIdS7IgErbvudhU+xlX5lxVvSLQkAyBQ7deK3JNKV4+BXfRpaXZy1J62OLuFw1NjiYjODXUHQN8mStWxoYSP7ta+zI5jjnTjkVPYab9olBI4rUvNMKvwK0dIthGBxQ4WFe5LbaMgjA21MdFTaeBWvFtC1JkEVVgPJxEzS8usJ9M9fyq/YzmCXZvab2HFZEjqjFd4Rj/Cec07T5TFeDdJsJPXGQa4IPU63sd1ayxSqMKQe4anTRDBKoP1qO2cbV+VTnuDV7ZuXhTXS1dGSZhziNOsEeffP+NZV7bwOfM+yxuR3VmH9a6S509pDuK/mcVQawYtgNGg/3v8KwaezNYvqjGtL63hk2taInv5jf1rctrmCcZRCo/wBlwf6VlX+kW7L88zcd1jz/ADIqCyvbSxk8pvPx0DMFGf1qU7bltJ6o6tFgC5LSD6gGnrHG5+SRvxQ1Ttr2B1BVHx2yw/wq/b7HJZkAUdMsTVyM1cqTfaIjhWYp3CjGPzrOa7iaXymmwTzg9OPbFbsl/ZljGyow6YHaqX9nac1w0ylVdhjapz+fauGau9DeLtuYdxJHLBIbO7jM4OPlwcGn6bcaoIP9MWIMOFIbgj15706bw5BFeS3UDCNm6c4BP0BxUWmpqsV1Mt3ILiBfuY61n0saIddQm4hJ28AdRnA+lcdqTguSj7sH5mPavT7dFuYABhS+eeT+GK878V+Eb/TLqW+tm823k5aPHQ+1VSp3Y5VLKwmmXcUJX5sevOOK6W0ukfaqyZzxnPX2rzi1ayDBZ7kGRu2cY9q2IZvs8itDM2B0BPtW06cFuTFTmro9Hub5msfK3ZwcZ6dulcdKT/a6/L98YPHOKo3GuXTxbUlAYjkkZq74ehu7yRppmyI+jY61M4r4kxJSjpJGgY2huUQ/NkYA6Z962LWxSAGRkG7t7VgzQSfbI3kuwQsmUAxnHpXS7Gktwwk6ju1aUkYVCOOcRS5HStuy1OJsKSKwDaShCcZ+hzWYq3sd5wGC5rspzcdzmkrnpUTQuMginvtIxXNWF88aAOea2IrsSJ1rrUrmVrFLVAiKTVbTn3c1Brd1k7Qepp2msFiA71D3GbSv2FToSRVeBcjJq0opgeQ3dnlklwEHctx+NBglZwyTiYYxtQBf1P8AhVieIMhd5Eb2U81Qe3PyvGWAz/Ea8xaM7d0dZobMsWHTyyOzNuro4pWYAA/lXKaDC4cMVY+pBrr4AwAzXXF3Ri1ZjWTd1FQS24POM1obc9SKYyKvX9ef0oaBMyJLLzchULfSsm98PLOCzMqY79cf0/Wumkc4woGPfn9OlU5rZpxukPy+rHj8KzcEzRSaOdhls9JG1pJbk+3T+g/U10NjqMFzbhkgVUPALDIz/LNVJrK2i+dowx6guufyX/Goo2nmmJjPlqg+aRj90fXt9Bip5XsNtM0rmGEkedIEz0Rjz/3yP61mS2AlDfZiIkHJJPX3zUzJbtGWAZz/AHj1P09Pr1qjPbiVsNM21enJ2r/jXLOBrGRXitLqOZoxchv77YJP0Hb8as2LahGrlkWRVb5QeOKqw70lKxXTIF+6CR+dXbe8uo1O6QOQeAOPzpRptluRvWdw5jVpVCM3RQelS3SxXUGyUHB7HGMVjDV32YkR1b64zQNZCxdCOem3muuEUjnk7nnHjnwzFaahHImFjmJHT7tZcJa2hSBZN7AfePpXb+NpYdR0CZPuzLhlJ6gg1xvhrRbnVJxLfO0VseoXq/tnsK0nDnW+g6VVU5bamz4e0OXVpRPLlbcHg/367yeO2stPWFNsKL3HFQW01vZ2yRRgIiDAA4AFU72a3uhtlLFV5xWU4qMbIHOU5XY6xt9OheP94JSuR83PJ9K15BAAuxAmBjpWPpqQK2QokQ9j2rWdlZfkGR/d7/hU0kRUYx5VVeVVh7cUkBiLZBZfYnNZ0zsXLRNuA6juPwqa2SWfGARW1jK5au53RcoA2PSm2ur7Vww21oQaUWTcw5rJ1ezEKkhfxFbQuiGMuZ/tU4wcjNa2nRnisXR7N3k3ZyDXX2lsEUZFUtRFmBSFFTimjAGKeBVCPKY1VlwLf5P7xOKl+zSSMAhjMY7EdKy9MN6CFmlkB/uf4+lb0EbyjB2t7A4rzXudqNPS4VQgJye+3gV0cI+Qbjj2rnLExwnG4lvUDgVuW7LgYJY+9dEHoZSLv04FJsB68CkVwOooZs9a0JGMEA+UD6mqsrYJOct6nr/9arTj8TVdsKeMM/r2FIZUa3U/NKSB1x3NQNH5vLARwIeFHTP9TVxo/MJLEgZ5Pc1DL85xjCL0HpSGVXAkP9yJeg7sailTcmCAGYYUdlFWMAksw+VeAKhbJVnJ5J61NijPmgx9xRx0Pv61RYSxH5BnufetorlarSRtjGKEkO5mG6kUkmPntioReSbjvQn0xWmYF2lsdKhFvuHSqsGhi3cct4NjodhOTir9jD5ECrEpGO1aSWQ3ZxxVuGBIl4FFyXboZjrcOPudakitZWbJUAVpu4UdKqvcMu4qp45rKSuCZYjjRY/uhfXFQ75GkMYU1LbK80vA+Vua3bLT0UguORVxVkZvUzLXSmnlEjjD/wB4d/rW/bafHCA20GraQAKNowRTs46flVkkbhVXjpWBq4QqS2MVuTN8pIrjvEt0yxMFODVkl7SZoF6EVti+hjX7wNeUWt/dpOArEAnk16Bpdh9pt1Z5MnHariJmk+rRKfl5p41PcOFpF022jHzcmnA2sXGBVAf/2Q==" alt="Фотография кошки"><figcaption>Фотография</figcaption></figure>
+      <figure><img src="data:image/jpeg;base64,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" alt="Фотография попугая"><figcaption>Фотография</figcaption></figure>
+      <figure><img src="data:image/jpeg;base64,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" alt="Снимок экрана учебника"><figcaption>Скриншот (снимок экрана)</figcaption></figure>
+      <figure><canvas id="galPix" width="24" height="16"></canvas><figcaption>Рисунок из пикселей</figcaption></figure>
+    </div>
+    <p>Фотографии получаются <b>реалистичными</b>: в них плавные переходы цвета, мелкие детали, шерсть, перья. <b>Скриншот</b> (снимок экрана) — тоже растровое изображение: он запоминает цвет каждого пикселя экрана.</p>
+
+    <div class="two">
+      <div class="box plus"><h4>👍 Достоинства</h4><ul>
+        <li>передаёт фотографии реалистично, с плавными переходами цвета</li>
+        <li>получается сразу при съёмке фотоаппаратом и при сканировании</li>
+      </ul></div>
+      <div class="box minus"><h4>👎 Недостатки</h4><ul>
+        <li>при увеличении появляется <b>пикселизация</b> — становятся видны отдельные квадратики-пиксели</li>
+        <li>файлы обычно большие: компьютер хранит цвет <b>каждого</b> пикселя</li>
+      </ul></div>
+    </div>
+    <h3>Где применяют</h3>
+    <p>Фотографии, скриншоты, отсканированные документы, кадры видео, рисунки в Paint.</p>
+    <h3>Форматы файлов</h3>
+    <div class="chips"><span class="chip f">JPG</span><span class="chip f">PNG</span><span class="chip f">BMP</span><span class="chip f">GIF</span></div>
+    <h3>Растровые редакторы</h3>
+    <div class="chips"><span class="chip r">Paint</span><span class="chip r">Photoshop</span></div>
+    <div class="paint">
+      <h3>🎨 Программа Paint</h3>
+      <p><b>Paint</b> — растровый графический редактор. Он входит в состав Windows, устанавливать его не нужно. Открыть: <b>Пуск → Paint</b> или набрать «Paint» в поиске.</p>
+      <p><b>Что можно делать в Paint:</b></p>
+      <ul>
+        <li>рисовать <b>карандашом</b> и <b>кистями</b>, стирать <b>ластиком</b>;</li>
+        <li>закрашивать области <b>заливкой</b>, выбирать цвета в <b>палитре</b>;</li>
+        <li>рисовать <b>фигуры</b> (линии, прямоугольники, овалы, звёзды) и добавлять <b>текст</b>;</li>
+        <li><b>выделять</b> часть рисунка, перемещать, копировать, поворачивать и менять её размер;</li>
+        <li><b>увеличивать масштаб</b>: при сильном увеличении видны пиксели, а на вкладке «Вид» можно включить <b>линии сетки</b>.</li>
+      </ul>
+      <p><b>Форматы сохранения:</b> PNG, JPG, BMP, GIF — все растровые.</p>
+      <div class="note"><b>Важно!</b> В Paint тоже есть фигуры, но после рисования фигура превращается в пиксели и становится частью рисунка. Выбрать её снова и перекрасить как отдельный объект уже нельзя. Поэтому Paint — <b>растровый</b> редактор.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3. Векторная графика</h2>
+    <div class="def v"><b>Векторное изображение</b> строится из простых фигур: линий, дуг, окружностей, овалов, прямоугольников. Такие фигуры называют <b>графическими примитивами</b>.</div>
+    <p>Компьютер запоминает не каждую точку, а <b>описание каждой фигуры</b>: где она находится, какого она размера, какого цвета контур и заливка.</p>
+
+    <div class="demo">
+      <div class="cap">Домик из фигур</div>
+      <svg viewBox="0 0 600 250" width="600" height="250">
+        <rect x="0" y="0" width="600" height="250" fill="#ffffff"/>
+        <rect x="40" y="110" width="140" height="110" fill="#f2b36b" stroke="#8a5a2b" stroke-width="3"/>
+        <polygon points="25,112 110,40 195,112" fill="#e2574c" stroke="#8a3a2b" stroke-width="3"/>
+        <rect x="65" y="135" width="40" height="40" fill="#8ec9ff" stroke="#2f6fd6" stroke-width="3"/>
+        <g font-size="20" fill="#7448c4" font-family="Times New Roman">
+          <text x="225" y="62">▲ треугольник: 3 вершины,</text>
+          <text x="245" y="86">красная заливка</text>
+          <text x="225" y="140">■ прямоугольник: место, размер,</text>
+          <text x="245" y="164">оранжевая заливка</text>
+          <text x="225" y="210">■ окно: квадрат, голубая заливка</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="two">
+      <div class="box plus"><h4>👍 Достоинства</h4><ul>
+        <li>увеличивается <b>без потери качества</b> — остаётся чётким</li>
+        <li>файлы обычно небольшие</li>
+        <li>каждую фигуру можно отдельно переместить, растянуть, перекрасить</li>
+      </ul></div>
+      <div class="box minus"><h4>👎 Недостатки</h4><ul>
+        <li>трудно передать фотографию с плавными переходами цвета</li>
+      </ul></div>
+    </div>
+    <h3>Где применяют</h3>
+    <p>Логотипы, эмблемы, значки (иконки), схемы, чертежи, диаграммы, шрифты (буквы), мультфильмы, иллюстрации в детских книгах.</p>
+    <h3>Форматы файлов</h3>
+    <div class="chips"><span class="chip f">SVG</span><span class="chip f">WMF</span><span class="chip f">CDR</span></div>
+    <p style="font-size:18px;color:var(--muted)">WMF — формат картинок Windows и Microsoft Office (например, клипарт), CDR — формат программы CorelDRAW.</p>
+    <h3>Где создают векторные изображения</h3>
+    <div class="chips"><span class="chip v">PowerPoint (фигуры)</span><span class="chip v">Inkscape</span><span class="chip v">CorelDRAW</span></div>
+  </div>
+
+  <div class="card">
+    <h2>4. Растр и вектор при увеличении</h2>
+    <p>Слева — растровая картинка, справа — точно такая же векторная. Двигайте ползунок: обе картинки увеличиваются, приближаясь к правому глазу смайлика.</p>
+    <div class="demo">
+      <div class="pair">
+        <figure class="r"><figcaption>Растровая</figcaption><canvas id="zoomR" width="250" height="250"></canvas></figure>
+        <figure class="v"><figcaption>Векторная</figcaption>
+          <svg id="zoomV" width="250" height="250" viewBox="0 0 40 40">
+            <rect x="-5" y="-5" width="50" height="50" fill="#ffffff"/>
+            <circle cx="20" cy="20" r="16" fill="#ffd23f" stroke="#d07400" stroke-width="2"/>
+            <circle cx="14" cy="16" r="2.2" fill="#1f2d4d"/>
+            <circle cx="26" cy="16" r="2.2" fill="#1f2d4d"/>
+            <path d="M28.02 25.09 A9 9 0 0 1 11.98 25.09" fill="none" stroke="#1f2d4d" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </figure>
+      </div>
+      <input id="zoomRange" type="range" min="1" max="8" value="1" step="1">
+      <div class="info" id="zoomInfo"></div>
+    </div>
+    <p>Растровая картинка «рассыпается» на квадратики: пиксели просто становятся больше. Это и есть <b>пикселизация</b>. Векторная остаётся гладкой: компьютер заново рисует фигуры по их описанию в любом размере.</p>
+  </div>
+
+  <div class="card">
+    <h2>5. Перемещение и увеличение части рисунка</h2>
+    <p>Слева — растровый рисунок (как в Paint), справа — такой же векторный. Попробуйте передвинуть солнце и увеличить его.</p>
+    <div class="demo">
+      <div class="pair mv">
+        <figure class="r"><figcaption>Растровый</figcaption><canvas id="mvR" width="260" height="200"></canvas></figure>
+        <figure class="v"><figcaption>Векторный</figcaption>
+          <svg id="mvV" viewBox="0 0 260 200" width="260" height="200">
+            <rect width="260" height="200" fill="#8fd3ff"/>
+            <rect y="160" width="260" height="40" fill="#5cb85c"/>
+            <rect x="120" y="105" width="90" height="62" fill="#f2b36b"/>
+            <polygon points="110,108 165,62 220,108" fill="#e2574c"/>
+            <rect x="135" y="120" width="26" height="24" fill="#2f6fd6" stroke="#fff" stroke-width="4"/>
+            <circle id="mvSun" cx="55" cy="50" r="22" fill="#ffd23f" stroke="#e8a000" stroke-width="3"/>
+          </svg>
+        </figure>
+      </div>
+      <div class="tog"><button id="mvMove">☀️ Передвинуть солнце</button><button id="mvBig">🔍 Увеличить солнце</button><button id="mvReset">↩ Вернуть как было</button></div>
+      <div class="info" id="mvInfo">Нажимайте кнопки и сравнивайте рисунки.</div>
+    </div>
+    <div class="two">
+      <div class="box"><h4 style="color:var(--rast)">В растровом рисунке</h4><ul>
+        <li>передвигаются <b>пиксели</b> выделенного прямоугольника вместе с кусочком неба;</li>
+        <li>на старом месте остаётся <b>пустое (белое) место</b> — под солнцем ничего не было нарисовано;</li>
+        <li>при увеличении появляется <b>пикселизация</b>.</li>
+      </ul></div>
+      <div class="box"><h4 style="color:var(--vect)">В векторном рисунке</h4><ul>
+        <li>солнце — <b>отдельная фигура</b>, она передвигается целиком;</li>
+        <li>небо под ней <b>не портится</b>;</li>
+        <li>при увеличении солнце остаётся <b>гладким</b>.</li>
+      </ul></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>6. Размер файла</h2>
+    <p>Растровый файл хранит цвет <b>каждого</b> пикселя, поэтому чем больше пикселей, тем больше файл. Векторный файл хранит только описание фигур, и его размер почти не зависит от того, насколько большой будет картинка.</p>
+    <div class="demo">
+      <div class="cap">Выберите размер картинки в пикселях</div>
+      <div class="szb" id="szB"></div>
+      <div class="info" id="szOut"></div>
+      <div class="barw">Растровый файл<div class="bar"><i id="bR" style="background:var(--rast)"></i></div>Векторный файл (простой логотип)<div class="bar"><i id="bV" style="background:var(--vect);width:1%"></i></div></div>
+      <p style="font-size:17px;color:var(--muted);margin:4px 0 0">Размер растра посчитан без сжатия. Форматы JPG и PNG сжимают файл, но правило то же: больше пикселей — больше файл.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>7. Сравнение растровой и векторной графики</h2>
+    <div style="overflow-x:auto">
+    <table class="cmp">
+      <tr><th>Признак</th><th class="r">Растровая</th><th class="v">Векторная</th></tr>
+      <tr><td>Из чего состоит</td><td>из пикселей</td><td>из фигур (линий, кругов, многоугольников)</td></tr>
+      <tr><td>Что хранит компьютер</td><td>цвет каждого пикселя</td><td>описание каждой фигуры</td></tr>
+      <tr><td>При увеличении</td><td>пикселизация: видны квадратики-пиксели</td><td>остаётся чётким</td></tr>
+      <tr><td>Перемещение части рисунка</td><td>на старом месте остаётся пустое место</td><td>фигура передвигается, рисунок под ней не портится</td></tr>
+      <tr><td>Размер файла</td><td>обычно большой</td><td>обычно небольшой</td></tr>
+      <tr><td>Лучше всего подходит</td><td>для фотографий</td><td>для логотипов, значков (иконок), схем</td></tr>
+      <tr><td>Форматы</td><td>JPG, PNG, BMP, GIF</td><td>SVG, WMF, CDR</td></tr>
+      <tr><td>Программы</td><td>Paint, Photoshop</td><td>PowerPoint, Inkscape, CorelDRAW</td></tr>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>8. Цветовые модели RGB и CMYK</h2>
+    <p><b>Цветовая модель</b> — это способ получить нужные цвета, смешивая несколько основных цветов. Какую модель выбрать, зависит от того, <b>где будет изображение</b>: на экране или на бумаге.</p>
+
+    <h3 style="color:var(--rgb)">RGB — для экранов</h3>
+    <p>Экран телефона, монитора, телевизора, интерактивной панели <b>светится</b>. Цвета на нём получаются смешиванием трёх цветов <b>света</b>:</p>
+    <div class="chips"><span class="chip" style="color:#d42020;border-color:#e06060;background:#fdeaea">R — Red, красный</span><span class="chip" style="color:#178a2e;border-color:#5cb85c;background:#e8f7ea">G — Green, зелёный</span><span class="chip" style="color:#1f4fd0;border-color:#6a8fe8;background:#e8eefc">B — Blue, синий</span></div>
+    <div class="demo">
+      <div class="cap">Три прожектора в тёмной комнате</div>
+      <canvas id="rgbCanvas" width="320" height="270"></canvas>
+      <div class="tog" id="rgbTog"></div>
+      <div class="info">Свет складывается: чем больше света, тем светлее. Все три цвета вместе дают <b>белый</b>.</div>
+    </div>
+
+    <h3 style="color:var(--cmyk)">CMYK — для печати</h3>
+    <p>Бумага сама не светится. Принтер или типография наносит на неё <b>краски</b>:</p>
+    <div class="chips"><span class="chip" style="color:#0a7fa8;border-color:#3fb6dd;background:#e4f6fc">C — Cyan, голубой</span><span class="chip" style="color:#b0206e;border-color:#e060a8;background:#fbe6f1">M — Magenta, пурпурный</span><span class="chip" style="color:#8a7200;border-color:#e0c200;background:#fff9d6">Y — Yellow, жёлтый</span><span class="chip" style="color:#3b4660;border-color:#8892a8;background:#eef0f4">K — Key, чёрный</span></div>
+    <div class="demo">
+      <div class="cap">Три краски на белой бумаге</div>
+      <canvas id="cmykCanvas" width="320" height="270"></canvas>
+      <div class="tog" id="cmykTog"></div>
+      <div class="info">Краски смешиваются: чем больше краски, тем темнее. Три краски вместе дают тёмно-коричневый, а не чистый чёрный — поэтому добавляют отдельную чёрную краску <b>K</b>.</div>
+    </div>
+    <p>Поэтому одно и то же изображение на экране и на бумаге может выглядеть немного по-разному.</p>
+    <div class="rule"><span class="a">Светится — RGB</span> &nbsp;•&nbsp; <span class="b">Печатается — CMYK</span></div>
+  </div>
+
+  <div class="card">
+    <h2>9. Памятка: как выбрать</h2>
+    <ol class="steps">
+      <li><b>Какое изображение?</b> Фотография, скриншот, рисунок кистью — <b style="color:var(--rast)">растровая</b> графика. Логотип, значок (иконка), схема, чертёж из фигур — <b style="color:var(--vect)">векторная</b> графика.</li>
+      <li><b>Где будет изображение?</b> На экране (телефон, сайт, презентация, телевизор, проектор) — <b style="color:var(--rgb)">RGB</b>. На бумаге (плакат, книга, открытка, газета, фотоальбом) — <b style="color:var(--cmyk)">CMYK</b>.</li>
+    </ol>
+    <p class="center" style="margin-top:16px"><button class="big-btn" id="theoryDoneBtn">Теория изучена — к заданию 1 →</button></p>
+  </div>
+</section>
+
+<!-- ===================== ЗАДАНИЯ ===================== -->
+<section class="view" id="v-t1"></section>
+<section class="view" id="v-t2"></section>
+<section class="view" id="v-t3"></section>
+<section class="view" id="v-t4"></section>
+
+<!-- ===================== РЕЗУЛЬТАТ ===================== -->
+<section class="view" id="v-result"></section>
+</main>
+
+<script>
+/* ===================== БАНКИ ЗАДАНИЙ ===================== */
+const BANK1 = [
+ {a:'r',e:'📷',t:'Фотография кота, снятая на телефон',x:'Камера записывает изображение по точкам — пикселям. Фотография — растровая графика.'},
+ {a:'r',e:'🖥️',t:'Снимок экрана (скриншот)',x:'Скриншот сохраняет цвет каждой точки экрана, то есть пиксели.'},
+ {a:'r',e:'🖌️',t:'Рисунок, нарисованный кистью в Paint',x:'Paint — растровый редактор: кисть закрашивает пиксели.'},
+ {a:'r',e:'📄',t:'Отсканированная страница учебника',x:'Сканер, как фотоаппарат, разбивает страницу на пиксели.'},
+ {a:'r',e:'🎬',t:'Кадр, вырезанный из видео',x:'Каждый кадр видео состоит из пикселей.'},
+ {a:'r',e:'🏞️',t:'Фотография пейзажа с экскурсии',x:'Фотография с плавными переходами цвета — растровая графика.'},
+ {a:'r',e:'🤳',t:'Селфи, сделанное на телефон',x:'Любое фото с камеры — растровое изображение.'},
+ {a:'r',e:'👨‍👩‍👧',t:'Фотография класса на школьной линейке',x:'Это фотография, она состоит из пикселей.'},
+ {a:'r',e:'🗂️',t:'Файл «рисунок.bmp»',x:'BMP — формат растровых изображений.'},
+ {a:'r',e:'🖼️',t:'Файл «экскурсия.jpg»',x:'JPG — формат растровых изображений, в нём обычно хранят фотографии.'},
+ {a:'v',e:'🔷',t:'Схема из кругов и стрелок, нарисованная фигурами в PowerPoint',x:'Фигуры PowerPoint компьютер хранит как описания фигур — это векторная графика.'},
+ {a:'v',e:'⭐',t:'Эмблема класса, собранная из фигур в PowerPoint',x:'Эмблема из фигур — векторное изображение, её можно увеличивать без потерь.'},
+ {a:'v',e:'🔤',t:'Буквы шрифта, которые остаются гладкими при любом размере',x:'Буквы шрифта описаны контурами — это векторная графика.'},
+ {a:'v',e:'📐',t:'Чертёж из линий и окружностей',x:'Чертёж состоит из простых фигур — линий и окружностей.'},
+ {a:'v',e:'🚇',t:'Схема метро из цветных линий и кружков',x:'Схема собрана из линий и кругов — векторная графика.'},
+ {a:'v',e:'🧩',t:'Файл «логотип.svg»',x:'SVG — формат векторных изображений.'},
+ {a:'v',e:'📎',t:'Картинка-клипарт «книга.wmf» из Microsoft Office',x:'WMF — векторный формат картинок Windows и Microsoft Office.'},
+ {a:'v',e:'🔎',t:'Значок, который остаётся чётким при любом увеличении',x:'Без потери качества увеличивается векторное изображение.'},
+ {a:'v',e:'🚸',t:'Дорожный знак, нарисованный из фигур в редакторе Inkscape',x:'Inkscape — векторный редактор, знак собран из фигур.'},
+ {a:'v',e:'📊',t:'Диаграмма, построенная в PowerPoint',x:'Столбики и линии диаграммы — фигуры, это векторная графика.'},
+ {a:'v',e:'🏷️',t:'Логотип, который печатают и на маленькой ручке, и на огромном баннере',x:'Чтобы логотип был чётким при любом размере, его делают векторным.'}
+];
+const BANK2 = [
+ {a:'r',e:'🟥',t:'Изображение состоит из пикселей',x:'Пиксели — основа растровой графики.'},
+ {a:'r',e:'🔍',t:'При сильном увеличении появляется пикселизация (видны квадратики)',x:'При увеличении растра пиксели становятся крупнее и заметнее.'},
+ {a:'r',e:'🌅',t:'Хорошо передаёт фотографии с плавными переходами цвета',x:'Каждый пиксель может быть своего цвета, поэтому фото выглядит реалистично.'},
+ {a:'r',e:'📦',t:'Файл обычно большой по размеру',x:'Компьютер хранит цвет каждого пикселя, поэтому файл большой.'},
+ {a:'r',e:'📷',t:'Получается при съёмке фотоаппаратом или при сканировании',x:'Фотоаппарат и сканер создают растровые изображения.'},
+ {a:'r',e:'🗂️',t:'Форматы файлов: JPG, PNG, BMP, GIF',x:'JPG, PNG, BMP и GIF — форматы растровых изображений.'},
+ {a:'r',e:'🕳️',t:'Если передвинуть часть рисунка, на старом месте остаётся пустое место',x:'Передвигаются пиксели, а под ними ничего не нарисовано.'},
+ {a:'r',e:'🎨',t:'Компьютер запоминает цвет каждой точки',x:'Растровое изображение — это набор цветных точек-пикселей.'},
+ {a:'r',e:'🖌️',t:'Создаётся и редактируется в Paint',x:'Paint — растровый редактор.'},
+ {a:'v',e:'🔺',t:'Изображение состоит из фигур: линий, кругов, многоугольников',x:'Фигуры (объекты) — основа векторной графики.'},
+ {a:'v',e:'🔎',t:'Увеличивается без потери качества',x:'Компьютер заново рисует фигуры по описанию в любом размере.'},
+ {a:'v',e:'📝',t:'Компьютер запоминает описание фигур: где, какого размера, какого цвета',x:'Так хранится векторное изображение.'},
+ {a:'v',e:'🪶',t:'Файл обычно небольшой по размеру',x:'Описание фигур занимает мало места.'},
+ {a:'v',e:'🧩',t:'Форматы файлов: SVG, WMF, CDR',x:'SVG, WMF и CDR — форматы векторных изображений.'},
+ {a:'v',e:'☀️',t:'Фигуру можно передвинуть, и рисунок под ней не испортится',x:'Каждая фигура — отдельный объект, под ней сохраняется остальной рисунок.'},
+ {a:'v',e:'↔️',t:'Каждую фигуру можно отдельно переместить или перекрасить',x:'В векторном изображении каждая фигура — отдельный объект.'},
+ {a:'v',e:'🏷️',t:'Лучше всего подходит для логотипов, значков, схем',x:'Логотипы и значки должны быть чёткими при любом размере — это вектор.'},
+ {a:'v',e:'🚫',t:'Трудно передать фотографию с плавными переходами цвета',x:'Это недостаток векторной графики.'}
+];
+const BANK3 = [
+ {a:'rgb',e:'📱',t:'Обои для экрана телефона'},
+ {a:'rgb',e:'🌐',t:'Картинка для сайта школы'},
+ {a:'rgb',e:'🖥️',t:'Презентация для показа на интерактивной панели'},
+ {a:'rgb',e:'📺',t:'Мультфильм для просмотра по телевизору'},
+ {a:'rgb',e:'💬',t:'Аватарка в мессенджере'},
+ {a:'rgb',e:'🎮',t:'Картинка для игры на планшете'},
+ {a:'rgb',e:'✉️',t:'Фото, которое отправят другу в сообщении'},
+ {a:'rgb',e:'💻',t:'Заставка для монитора компьютера'},
+ {a:'rgb',e:'📽️',t:'Изображение, которое покажут через проектор'},
+ {a:'rgb',e:'📘',t:'Иллюстрация в электронном учебнике'},
+ {a:'cmyk',e:'🎉',t:'Плакат к празднику, который напечатают в типографии'},
+ {a:'cmyk',e:'💌',t:'Открытка для печати на принтере'},
+ {a:'cmyk',e:'📰',t:'Школьная газета на бумаге'},
+ {a:'cmyk',e:'📕',t:'Обложка печатной книги'},
+ {a:'cmyk',e:'🖨️',t:'Фото для печати в фотоальбом'},
+ {a:'cmyk',e:'📃',t:'Листовка-приглашение, которую напечатают и раздадут гостям'},
+ {a:'cmyk',e:'📅',t:'Календарь, напечатанный на бумаге'},
+ {a:'cmyk',e:'🏅',t:'Грамота, которую распечатают для награждения'},
+ {a:'cmyk',e:'🏷️',t:'Наклейка, которую напечатают на принтере'},
+ {a:'cmyk',e:'🍬',t:'Рисунок на коробке конфет (коробку печатают на фабрике)'}
+];
+BANK3.forEach(q=>{q.x = q.a==='rgb'
+  ? 'Изображение будет на экране, а экран светится — выбираем RGB.'
+  : 'Изображение будет напечатано красками на бумаге — выбираем CMYK.';});
+const BANK4 = [
+ {g:'r',m:'rgb',e:'🌐',t:'Фотография с экскурсии для сайта школы'},
+ {g:'v',m:'cmyk',e:'🏫',t:'Логотип школы из простых фигур для большого баннера, который напечатают в типографии'},
+ {g:'r',m:'cmyk',e:'📒',t:'Фотография класса, которую распечатают для фотоальбома'},
+ {g:'v',m:'rgb',e:'📱',t:'Значок кнопки в приложении на телефоне, нарисованный из фигур'},
+ {g:'v',m:'cmyk',e:'🚪',t:'Схема эвакуации из линий и стрелок, которую напечатают и повесят на стену'},
+ {g:'r',m:'rgb',e:'🎮',t:'Скриншот игры для презентации на интерактивной панели'},
+ {g:'r',m:'cmyk',e:'🖼️',t:'Портрет бабушки, снятый на телефон, для печати в рамку'},
+ {g:'v',m:'rgb',e:'⭐',t:'Эмблема класса из фигур для заставки на экране компьютера'},
+ {g:'v',m:'cmyk',e:'🗺️',t:'Карта-схема района из линий и значков для печатной брошюры'},
+ {g:'r',m:'rgb',e:'🖌️',t:'Рисунок, нарисованный кистью в Paint, для показа на интерактивной панели'},
+ {g:'r',m:'rgb',e:'🏞️',t:'Фото пейзажа для обоев на экране телефона'},
+ {g:'v',m:'cmyk',e:'📰',t:'Название газеты, набранное шрифтом, для печатной школьной газеты'},
+ {g:'r',m:'cmyk',e:'📄',t:'Отсканированный старый документ, копию которого напечатают на принтере'},
+ {g:'v',m:'rgb',e:'📊',t:'Схема из фигур PowerPoint для показа на уроке через проектор'},
+ {g:'r',m:'cmyk',e:'🎨',t:'Фотография рисунка с выставки, которую напечатают в школьной газете'},
+ {g:'v',m:'rgb',e:'🌐',t:'Логотип класса из фигур для страницы класса в интернете'},
+ {g:'r',m:'rgb',e:'🎬',t:'Кадр из видео с праздника для показа на экране в актовом зале'},
+ {g:'v',m:'cmyk',e:'🏷️',t:'Эмблема из фигур, которую напечатают на наклейках'},
+ {g:'r',m:'cmyk',e:'💌',t:'Фотография мамы для открытки, которую распечатают на принтере'},
+ {g:'v',m:'rgb',e:'📐',t:'Чертёж из линий для показа на интерактивной панели'}
+];
+const GNAME = {r:'растровая',v:'векторная'};
+BANK4.forEach(q=>{
+  const g = q.g==='r' ? 'Это фотография или рисунок из пикселей — растровая графика' : 'Изображение собрано из фигур — векторная графика';
+  const m = q.m==='rgb' ? 'будет на экране — RGB' : 'будет напечатано — CMYK';
+  q.x = g + '; ' + m + '.';
+});
+
+/* ===================== НАСТРОЙКА ЗАДАНИЙ ===================== */
+const OPT_RV = [{v:'r',l:'Растровая',c:'r'},{v:'v',l:'Векторная',c:'v'}];
+const OPT_CM = [{v:'rgb',l:'RGB (экран)',c:'rgb'},{v:'cmyk',l:'CMYK (печать)',c:'cmyk'}];
+const TASKS = [
+ {id:'t1',nav:'Задание 1',title:'Задание 1. Растровая или векторная?',bank:BANK1,n:10,type:'one',opts:OPT_RV,prompt:'Какая это графика?',ans:{r:'растровая',v:'векторная'}},
+ {id:'t2',nav:'Задание 2',title:'Задание 2. Свойства графики',bank:BANK2,n:10,type:'one',opts:OPT_RV,prompt:'Это свойство какой графики?',ans:{r:'растровая',v:'векторная'}},
+ {id:'t3',nav:'Задание 3',title:'Задание 3. Экран или печать?',bank:BANK3,n:10,type:'one',opts:OPT_CM,prompt:'Какую цветовую модель выбрать?',ans:{rgb:'RGB',cmyk:'CMYK'}},
+ {id:'t4',nav:'Задание 4',title:'Задание 4. Выбери вид графики и цветовую модель',bank:BANK4,n:10,type:'two',prompt:'Выберите вид графики и цветовую модель, затем нажмите «Проверить».'}
+];
+const VIEWS = [{id:'theory',nav:'Теория'}].concat(TASKS.map(t=>({id:t.id,nav:t.nav}))).concat([{id:'result',nav:'Результат'}]);
+
+/* ===== Google Apps Script: вставьте ссылку веб-приложения вместо PASTE_SCRIPT_URL_HERE ===== */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDNy1odCYQJcE9MtYfYMJkIQdSPhhxRTWKwgVzhEoRmKQ-RQIAxdP8V2JGYOIL8kSA/exec';
+
+let state, theoryDone, current, sendInfo;
+function freshState(){
+  state = {};
+  TASKS.forEach(t=>{ state[t.id] = {qs:null,i:0,pts:0,redo:0,max:t.type==='two'?t.n*2:t.n,answered:false,done:false,log:[],sel:{}}; });
+  theoryDone = false;
+  sendInfo = {status:'', count:0};
+}
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pickBalanced(bank,n){
+  const groups={}; bank.forEach(q=>{(groups[q.a]=groups[q.a]||[]).push(q);});
+  const keys=Object.keys(groups); const per=Math.floor(n/keys.length);
+  let res=[]; keys.forEach(k=>{res=res.concat(shuffle(groups[k]).slice(0,per));});
+  return shuffle(res);
+}
+function genQs(t){ return t.type==='two' ? shuffle(t.bank).slice(0,t.n) : pickBalanced(t.bank,t.n); }
+function startTask(id){
+  const t=TASKS.find(x=>x.id===id), s=state[id];
+  s.qs=genQs(t); s.i=0; s.pts=0; s.answered=false; s.done=false; s.log=[]; s.sel={};
+}
+
+/* ===================== НАВИГАЦИЯ ===================== */
+function renderNav(){
+  const nav=document.getElementById('nav'); nav.innerHTML='';
+  VIEWS.forEach((v,k)=>{
+    const b=document.createElement('button');
+    let cls='', st='';
+    if(v.id==='theory'){ if(theoryDone){cls='done';st='✓';} }
+    else if(v.id!=='result'){
+      const s=state[v.id];
+      if(s.done){cls='done';st='✓ '+s.pts+'/'+s.max;}
+      else if(s.qs && (s.i>0||s.answered)){cls='prog';st=(s.i+(s.answered?1:0))+'/'+s.qs.length;}
+    }
+    if(current===v.id) cls+=' active';
+    b.className=cls;
+    b.innerHTML='<span class="num">'+(v.id==='result'?'★':k+0||'📖')+'</span>'+v.nav+(st?' <span class="st">'+st+'</span>':'');
+    if(v.id==='theory') b.querySelector('.num').textContent='📖';
+    b.onclick=()=>show(v.id);
+    nav.appendChild(b);
+  });
+}
+function show(id){
+  current=id;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('v-'+id).classList.add('active');
+  if(id==='result') renderResult();
+  else if(id!=='theory'){ if(!state[id].qs) startTask(id); renderTask(id); }
+  renderNav();
+  window.scrollTo(0,0);
+}
+
+/* ===================== ОТРИСОВКА ЗАДАНИЯ ===================== */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function renderTask(id){
+  const t=TASKS.find(x=>x.id===id), s=state[id], el=document.getElementById('v-'+id);
+  const idx=TASKS.indexOf(t);
+  if(s.done){
+    const next = idx<TASKS.length-1 ? '<button class="big-btn" data-go="'+TASKS[idx+1].id+'">К заданию '+(idx+2)+' →</button>' : '<button class="big-btn" data-go="result">К результату →</button>';
+    el.innerHTML='<div class="card sum"><h2>'+t.title+'</h2>'+
+      '<p style="font-size:24px">Задание выполнено!</p>'+
+      '<div class="score">'+s.pts+' из '+s.max+' '+plural(s.max,'балла','баллов','баллов')+'</div>'+
+      '<ul class="log">'+s.log.map(l=>'<li class="'+(l.ok?'ok':'no')+'">'+(l.ok?'✅ ':'🔸 ')+esc(l.t)+' — <b>'+esc(l.right)+'</b></li>').join('')+'</ul>'+
+      '<p style="margin-top:18px">'+next+'</p>'+
+      '<p><button class="big-btn sec" data-redo="'+id+'">Пройти задание ещё раз</button></p>'+
+      '<p style="font-size:17px;color:var(--muted)">При повторном прохождении задания будут новыми, а старый результат заменится новым.</p></div>';
+    el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
+    el.querySelector('[data-redo]').onclick=()=>{ if(confirm('Пройти задание заново? Текущий результат за это задание заменится новым.')){state[id].redo++;startTask(id);renderTask(id);renderNav();window.scrollTo(0,0);} };
+    return;
+  }
+  const q=s.qs[s.i], n=s.qs.length;
+  let h='<div class="card"><h2>'+t.title+'</h2>'+
+    '<div class="tbar"><span>Вопрос <b>'+(s.i+1)+'</b> из '+n+'</span><span>Баллы: <b>'+s.pts+'</b></span></div>'+
+    '<div class="progress"><div style="width:'+(100*s.i/n)+'%"></div></div>'+
+    '<div class="qcard"><div class="emo">'+q.e+'</div><div class="qt">'+esc(q.t)+'</div><div class="qp">'+t.prompt+'</div>';
+  if(t.type==='one'){
+    h+='<div class="ans">'+t.opts.map(o=>'<button class="'+o.c+'" data-v="'+o.v+'">'+o.l+'</button>').join('')+'</div>';
+  } else {
+    h+='<div class="grp"><div class="gl">Вид графики</div><div class="ans" data-grp="g">'+OPT_RV.map(o=>'<button class="'+o.c+'" data-v="'+o.v+'">'+o.l+'</button>').join('')+'</div></div>'+
+       '<div class="grp"><div class="gl">Цветовая модель</div><div class="ans" data-grp="m">'+OPT_CM.map(o=>'<button class="'+o.c+'" data-v="'+o.v+'">'+o.l+'</button>').join('')+'</div></div>'+
+       '<p class="next"><button class="big-btn" id="checkBtn" disabled>Проверить</button></p>';
+  }
+  h+='<div id="fbBox"></div></div></div>';
+  el.innerHTML=h;
+
+  if(t.type==='one'){
+    el.querySelectorAll('.ans button').forEach(b=>b.onclick=()=>answerOne(id,b.dataset.v));
+  } else {
+    s.sel={};
+    el.querySelectorAll('.ans').forEach(g=>{
+      g.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+        if(s.answered) return;
+        s.sel[g.dataset.grp]=b.dataset.v;
+        g.querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));
+        document.getElementById('checkBtn').disabled=!(s.sel.g&&s.sel.m);
+      });
+    });
+    document.getElementById('checkBtn').onclick=()=>answerTwo(id);
+  }
+}
+function showFeedback(id,ok,partial,text){
+  const s=state[id], last=s.i===s.qs.length-1;
+  const box=document.getElementById('fbBox');
+  const head = ok ? 'Верно! 👍' : (partial ? 'Почти! Одна часть ответа верная.' : 'Не совсем так.');
+  box.innerHTML='<div class="fb '+(ok?'ok':'no')+'"><b>'+head+'</b><br>'+esc(text)+'</div>'+
+    '<p class="next"><button class="big-btn" id="nextBtn">'+(last?'Завершить задание ✓':'Следующий вопрос →')+'</button></p>';
+  const nb=document.getElementById('nextBtn');
+  nb.onclick=()=>nextQ(id);
+  nb.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function answerOne(id,v){
+  const t=TASKS.find(x=>x.id===id), s=state[id];
+  if(s.answered||s.done) return;
+  s.answered=true;
+  const q=s.qs[s.i], ok=v===q.a;
+  if(ok) s.pts++;
+  s.log.push({t:q.t,ok:ok,right:t.ans[q.a]});
+  document.querySelectorAll('#v-'+id+' .ans button').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.v===q.a) b.classList.add('right');
+    else if(b.dataset.v===v) b.classList.add('wrong');
+  });
+  showFeedback(id,ok,false,'Правильный ответ: '+t.ans[q.a]+'. '+q.x);
+  renderNav();
+}
+function answerTwo(id){
+  const s=state[id];
+  if(s.answered||s.done||!(s.sel.g&&s.sel.m)) return;
+  s.answered=true;
+  const q=s.qs[s.i];
+  const okG=s.sel.g===q.g, okM=s.sel.m===q.m;
+  s.pts+=(okG?1:0)+(okM?1:0);
+  s.log.push({t:q.t,ok:okG&&okM,right:GNAME[q.g]+', '+q.m.toUpperCase()});
+  ['g','m'].forEach(k=>{
+    document.querySelectorAll('#v-'+id+' .ans[data-grp="'+k+'"] button').forEach(b=>{
+      b.disabled=true; b.classList.remove('sel');
+      if(b.dataset.v===q[k]) b.classList.add('right');
+      else if(b.dataset.v===s.sel[k]) b.classList.add('wrong');
+    });
+  });
+  document.getElementById('checkBtn').style.display='none';
+  showFeedback(id,okG&&okM,okG!==okM,'Правильный ответ: '+GNAME[q.g]+' графика, '+q.m.toUpperCase()+'. '+q.x);
+  renderNav();
+}
+function nextQ(id){
+  const s=state[id];
+  if(!s.answered) return;
+  s.answered=false;
+  s.i++;
+  if(s.i>=s.qs.length){ s.done=true; s.i=s.qs.length; }
+  renderTask(id); renderNav();
+  document.getElementById('v-'+id).scrollIntoView({block:'start'});
+  window.scrollTo(0,0);
+}
+
+/* ===================== РЕЗУЛЬТАТ ===================== */
+function plural(n,a,b,c){n=Math.abs(n)%100;const d=n%10;if(n>10&&n<20)return c;if(d>1&&d<5)return b;if(d===1)return a;return c;}
+function renderResult(){
+  const el=document.getElementById('v-result');
+  const fio=document.getElementById('fio').value.trim(), cls=document.getElementById('cls').value.trim();
+  let tot=0,max=0,allDone=true,rows='';
+  TASKS.forEach((t,k)=>{
+    const s=state[t.id]; max+=s.max;
+    if(s.done){ tot+=s.pts; rows+='<tr><td>'+t.title+'</td><td style="color:var(--ok);font-weight:bold">✓ выполнено</td><td><b>'+s.pts+'</b> из '+s.max+'</td></tr>'; }
+    else { allDone=false;
+      const st = s.qs&&(s.i>0||s.answered) ? 'начато, не закончено' : 'не выполнено';
+      rows+='<tr style="background:var(--warn-l)"><td>'+t.title+'</td><td style="color:var(--warn);font-weight:bold">'+st+'</td><td><button class="big-btn sec" style="font-size:18px;padding:6px 12px" data-go="'+t.id+'">Перейти</button></td></tr>'; }
+  });
+  let h='<div class="card"><h2>Результат</h2>';
+  h+='<p style="font-size:22px">Ученик: <b>'+(fio?esc(fio):'—')+'</b>, класс: <b>'+(cls?esc(cls):'—')+'</b></p>';
+  h+='<div style="overflow-x:auto"><table class="res"><tr><th>Задание</th><th>Состояние</th><th>Баллы</th></tr>'+rows+'</table></div>';
+  if(allDone){
+    const pct=Math.round(100*tot/max);
+    const grade=Math.max(1,Math.round(pct/10));
+    h+='<p style="font-size:24px;text-align:center">Всего: <b>'+tot+'</b> из '+max+' '+plural(max,'балла','баллов','баллов')+' ('+pct+'%)</p>';
+    h+='<div class="grade">Оценка: '+grade+' из 10</div>';
+    h+='<div class="sendbox"><button class="big-btn" id="sendBtn">'+(sendInfo.count?'Отправить ещё раз':'📨 Отправить результат учителю')+'</button><div id="sendStatus" class="sendst">'+sendInfo.status+'</div></div>';
+    h+='<p class="center" style="font-size:20px">'+(grade>=9?'Отлично! Ты умеешь различать виды графики и выбирать цветовую модель.':grade>=7?'Хорошо! Повтори таблицу сравнения и памятку.':'Перечитай теорию и пройди задания ещё раз.')+'</p>';
+  } else {
+    h+='<div class="alert"><b>Оценка появится, когда будут выполнены все 4 задания.</b> Невыполненные задания выделены — нажмите «Перейти».</div>';
+  }
+  h+='<p class="center" style="margin-top:22px"><button class="big-btn sec" id="resetAll">Начать заново</button></p></div>';
+  el.innerHTML=h;
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
+  const sb=document.getElementById('sendBtn');
+  if(sb) sb.onclick=()=>sendResult(tot,max);
+  document.getElementById('resetAll').onclick=()=>{
+    if(confirm('Начать заново? Все результаты и фамилия будут стёрты.')){
+      freshState(); document.getElementById('fio').value=''; document.getElementById('cls').value=''; markEmpty(); show('theory');
+    }
+  };
+}
+
+function setSend(html){ sendInfo.status=html; const e=document.getElementById('sendStatus'); if(e) e.innerHTML=html; }
+function sendResult(tot,max){
+  const fio=document.getElementById('fio').value.trim(), cls=document.getElementById('cls').value;
+  if(!fio||!cls){ setSend('<span class="no">Впишите фамилию и имя и выберите класс вверху страницы, затем нажмите кнопку ещё раз.</span>'); window.scrollTo(0,0); document.getElementById(!fio?'fio':'cls').focus(); return; }
+  if(SCRIPT_URL.indexOf('PASTE_')===0){ setSend('<span class="no">Отправка ещё не настроена. Покажите результат учителю.</span>'); return; }
+  if(sendInfo.count && !confirm('Результат уже отправлен. Отправить ещё раз?')) return;
+  const pct=Math.round(100*tot/max), grade=Math.max(1,Math.round(pct/10));
+  const data={fio:fio, cls:cls, t1:state.t1.pts, t2:state.t2.pts, t3:state.t3.pts, t4:state.t4.pts,
+    total:tot, max:max, pct:pct, grade:grade,
+    redo:TASKS.reduce((a,t)=>a+state[t.id].redo,0), sent:sendInfo.count+1,
+    device: /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?'телефон':'компьютер'};
+  const btn=document.getElementById('sendBtn'); if(btn) btn.disabled=true;
+  setSend('Отправляю…');
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(data)})
+    .then(()=>{ sendInfo.count++; setSend('<span class="ok">✓ Результат отправлен учителю ('+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+').</span>'); if(btn){btn.disabled=false; btn.textContent='Отправить ещё раз';} })
+    .catch(()=>{ setSend('<span class="no">Не получилось отправить. Проверьте интернет и нажмите кнопку ещё раз или покажите результат учителю.</span>'); if(btn) btn.disabled=false; });
+}
+
+/* ===================== ДЕМОНСТРАЦИИ ===================== */
+// Пиксельная загадка
+const scene=document.createElement('canvas'); scene.width=scene.height=256;
+(function(){
+  const x=scene.getContext('2d');
+  x.fillStyle='#8fd3ff';x.fillRect(0,0,256,256);
+  x.fillStyle='#ffd23f';x.beginPath();x.arc(208,50,28,0,Math.PI*2);x.fill();
+  x.fillStyle='#5cb85c';x.fillRect(0,195,256,61);
+  x.fillStyle='#f2b36b';x.fillRect(46,118,116,84);
+  x.fillStyle='#e2574c';x.beginPath();x.moveTo(30,122);x.lineTo(104,58);x.lineTo(178,122);x.closePath();x.fill();
+  x.fillStyle='#ffffff';x.fillRect(64,136,36,32);x.fillStyle='#2f6fd6';x.fillRect(69,141,26,22);
+  x.fillStyle='#8a5a2b';x.fillRect(118,146,28,56);
+  x.fillStyle='#7a4a1f';x.fillRect(204,138,14,64);
+  x.fillStyle='#2e8b3e';x.beginPath();x.arc(211,124,30,0,Math.PI*2);x.fill();
+})();
+const PIX_LEVELS=[6,8,12,16,24,32,64,128,256];
+function drawPix(){
+  const N=PIX_LEVELS[+document.getElementById('pixRange').value];
+  const c=document.getElementById('pixCanvas'), x=c.getContext('2d'), W=c.width;
+  const tmp=document.createElement('canvas'); tmp.width=tmp.height=N;
+  const tx=tmp.getContext('2d'); tx.imageSmoothingEnabled=true; tx.drawImage(scene,0,0,N,N);
+  x.imageSmoothingEnabled=false; x.clearRect(0,0,W,W); x.drawImage(tmp,0,0,W,W);
+  if(N<=24){ x.strokeStyle='rgba(255,255,255,.55)'; x.lineWidth=1; const st=W/N;
+    for(let i=1;i<N;i++){ x.beginPath();x.moveTo(i*st,0);x.lineTo(i*st,W);x.stroke(); x.beginPath();x.moveTo(0,i*st);x.lineTo(W,i*st);x.stroke(); } }
+  const M=N*N;
+  document.getElementById('pixInfo').innerHTML='Изображение из <b>'+N+' × '+N+' = '+M.toLocaleString('ru-RU')+'</b> '+plural(M,'пикселя','пикселей','пикселей').replace('пикселя','пикселя')+(N>=64?' — теперь хорошо видно: это домик, дерево и солнце.':'');
+}
+document.getElementById('pixRange').oninput=drawPix;
+
+// Растр и вектор при увеличении
+const RS=125, zsrc=document.createElement('canvas'); zsrc.width=zsrc.height=RS;
+(function(){
+  const x=zsrc.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,RS,RS); x.scale(RS/40,RS/40);
+  x.fillStyle='#ffd23f';x.strokeStyle='#d07400';x.lineWidth=2;
+  x.beginPath();x.arc(20,20,16,0,Math.PI*2);x.fill();x.stroke();
+  x.fillStyle='#1f2d4d';x.beginPath();x.arc(14,16,2.2,0,Math.PI*2);x.fill();x.beginPath();x.arc(26,16,2.2,0,Math.PI*2);x.fill();
+  x.strokeStyle='#1f2d4d';x.lineWidth=2;x.lineCap='round';x.beginPath();x.arc(20,21,9,0.15*Math.PI,0.85*Math.PI);x.stroke();
+})();
+function drawZoom(){
+  const z=+document.getElementById('zoomRange').value;
+  const s=40/z, fx=26, fy=16;
+  const sx=Math.min(Math.max(fx-s/2,0),40-s), sy=Math.min(Math.max(fy-s/2,0),40-s);
+  const c=document.getElementById('zoomR'), x=c.getContext('2d'), k=RS/40;
+  x.imageSmoothingEnabled=false; x.clearRect(0,0,250,250);
+  x.drawImage(zsrc,sx*k,sy*k,s*k,s*k,0,0,250,250);
+  document.getElementById('zoomV').setAttribute('viewBox',sx+' '+sy+' '+s+' '+s);
+  document.getElementById('zoomInfo').innerHTML='Увеличение: <b>× '+z+'</b>';
+}
+document.getElementById('zoomRange').oninput=drawZoom;
+
+// RGB и CMYK
+const rgbOn={R:true,G:true,B:true}, cmyOn={C:true,M:true,Y:true,K:false};
+const CIRC=[[115,100],[205,100],[160,175]];
+function drawRGB(){
+  const c=document.getElementById('rgbCanvas'), x=c.getContext('2d');
+  x.globalCompositeOperation='source-over'; x.fillStyle='#141c3c'; x.fillRect(0,0,320,270);
+  x.globalCompositeOperation='lighter';
+  [['R','#ff0000'],['G','#00ff00'],['B','#0000ff']].forEach((p,i)=>{
+    if(!rgbOn[p[0]]) return; x.fillStyle=p[1]; x.beginPath(); x.arc(CIRC[i][0],CIRC[i][1],72,0,Math.PI*2); x.fill(); });
+  x.globalCompositeOperation='source-over';
+}
+function drawCMYK(){
+  const c=document.getElementById('cmykCanvas'), x=c.getContext('2d');
+  x.globalCompositeOperation='source-over'; x.fillStyle='#ffffff'; x.fillRect(0,0,320,270);
+  x.globalCompositeOperation='multiply';
+  [['C','rgb(40,180,230)'],['M','rgb(225,40,140)'],['Y','rgb(250,230,40)']].forEach((p,i)=>{
+    if(!cmyOn[p[0]]) return; x.fillStyle=p[1]; x.beginPath(); x.arc(CIRC[i][0],CIRC[i][1],72,0,Math.PI*2); x.fill(); });
+  x.globalCompositeOperation='source-over';
+  if(cmyOn.K){ x.fillStyle='#1a1a1a'; x.beginPath(); x.arc(160,128,26,0,Math.PI*2); x.fill(); }
+}
+function makeTog(boxId,obj,labels,draw){
+  const box=document.getElementById(boxId); box.innerHTML='';
+  Object.keys(labels).forEach(k=>{
+    const b=document.createElement('button');
+    const upd=()=>{ b.classList.toggle('on',obj[k]); b.textContent=labels[k]+(obj[k]?' — вкл.':' — выкл.'); };
+    b.onclick=()=>{obj[k]=!obj[k];upd();draw();}; upd(); box.appendChild(b);
+  });
+}
+makeTog('rgbTog',rgbOn,{R:'R красный',G:'G зелёный',B:'B синий'},drawRGB);
+makeTog('cmykTog',cmyOn,{C:'C голубой',M:'M пурпурный',Y:'Y жёлтый',K:'K чёрный'},drawCMYK);
+
+// Рисунок из пикселей
+const HEART=["..XX.XX..",".XXXXXXX.","XXXXXXXXX","XXXXXXXXX",".XXXXXXX.","..XXXXX..","...XXX...","....X...."];
+(function(){
+  const g=document.getElementById('pgrid');
+  for(let i=0;i<72;i++){const b=document.createElement('button');b.setAttribute('aria-label','Пиксель '+(i+1));b.onclick=()=>b.classList.toggle('on');g.appendChild(b);}
+  const setG=f=>[...g.children].forEach((b,i)=>b.classList.toggle('on',f(i)));
+  document.getElementById('pgHeart').onclick=()=>setG(i=>HEART[Math.floor(i/9)][i%9]==='X');
+  document.getElementById('pgClear').onclick=()=>setG(()=>false);
+  setG(i=>HEART[Math.floor(i/9)][i%9]==='X');
+})();
+// Размер файла
+const SIDES=[10,100,500,1000,3000];
+function fmtB(b){return b<1024?b+' байт':b<1048576?(b/1024).toFixed(1).replace('.',',')+' КБ':(b/1048576).toFixed(1).replace('.',',')+' МБ';}
+function drawSize(k){
+  const sd=SIDES[k],p=sd*sd;
+  document.querySelectorAll('#szB button').forEach((b,j)=>b.classList.toggle('on',j===k));
+  document.getElementById('bR').style.width=Math.max(1,p*3/27e6*100)+'%';
+  document.getElementById('szOut').innerHTML='Растр <b>'+sd+' × '+sd+'</b> = '+p.toLocaleString('ru-RU')+' пикселей ≈ <b>'+fmtB(p*3)+'</b><br>Простой векторный логотип любого размера ≈ <b>1 КБ</b>';
+}
+SIDES.forEach((sd,k)=>{const b=document.createElement('button');b.textContent=sd+' × '+sd;b.onclick=()=>drawSize(k);document.getElementById('szB').appendChild(b);});
+drawSize(1);
+
+// Пиксельный рисунок в галерее
+(function(){
+  const P=["........................","...YYY..................","..YYYYY.........WWWW....","..YYYYY.......WWWWWWWW..","...YYY..........WWWW....","........................","........RRRRRRRR........",".......RRRRRRRRRR.......","......RRRRRRRRRRRR......",".......OOOOOOOOOO.......",".......OOBBOOOOOO.......",".......OOBBOOODDO.......",".......OOOOOOODDO.......","GGGGGGGGGGGGGGGGGGGGGGGG","GGGGGGGGGGGGGGGGGGGGGGGG","GGGGGGGGGGGGGGGGGGGGGGGG"];
+  const C={'.':'#8fd3ff',Y:'#ffd23f',W:'#ffffff',R:'#e2574c',O:'#f2b36b',B:'#2f6fd6',D:'#8a5a2b',G:'#5cb85c'};
+  const x=document.getElementById('galPix').getContext('2d');
+  P.forEach((r,y)=>[...r].forEach((c,i)=>{x.fillStyle=C[c];x.fillRect(i,y,1,1);}));
+})();
+// Перемещение и увеличение
+const MV_POS=[[55,50],[212,38],[100,42]];
+let mvState;
+function mvScene(){
+  const x=document.getElementById('mvR').getContext('2d');
+  x.imageSmoothingEnabled=false;
+  x.fillStyle='#8fd3ff';x.fillRect(0,0,260,200);
+  x.fillStyle='#5cb85c';x.fillRect(0,160,260,40);
+  x.fillStyle='#f2b36b';x.fillRect(120,105,90,62);
+  x.fillStyle='#e2574c';x.beginPath();x.moveTo(110,108);x.lineTo(165,62);x.lineTo(220,108);x.closePath();x.fill();
+  x.fillStyle='#ffffff';x.fillRect(131,116,34,32);x.fillStyle='#2f6fd6';x.fillRect(135,120,26,24);
+  x.fillStyle='#ffd23f';x.strokeStyle='#e8a000';x.lineWidth=3;x.beginPath();x.arc(55,50,22,0,Math.PI*2);x.fill();x.stroke();
+  mvState={p:0,r:22};
+  const sun=document.getElementById('mvSun'); sun.setAttribute('cx',55); sun.setAttribute('cy',50); sun.setAttribute('r',22);
+  document.getElementById('mvBig').disabled=false; document.getElementById('mvMove').disabled=false;
+  document.getElementById('mvInfo').textContent='Нажимайте кнопки и сравнивайте рисунки.';
+}
+function mvBox(){const [cx,cy]=MV_POS[mvState.p], h=mvState.r+3; return [Math.round(cx-h),Math.round(cy-h),Math.round(2*h)];}
+document.getElementById('mvMove').onclick=()=>{
+  const x=document.getElementById('mvR').getContext('2d');
+  const [bx,by,bw]=mvBox(); const img=x.getImageData(bx,by,bw,bw);
+  x.fillStyle='#ffffff'; x.fillRect(bx,by,bw,bw);
+  mvState.p=(mvState.p+1)%MV_POS.length;
+  const [nx,ny,nw]=mvBox(); x.putImageData(img,nx,ny);
+  const [cx,cy]=MV_POS[mvState.p], sun=document.getElementById('mvSun'); sun.setAttribute('cx',cx); sun.setAttribute('cy',cy);
+  document.getElementById('mvInfo').innerHTML='В растровом рисунке на старом месте осталась <b>белая дыра</b>, а в векторном небо целое.';
+};
+document.getElementById('mvBig').onclick=()=>{
+  const c=document.getElementById('mvR'), x=c.getContext('2d');
+  const [bx,by,bw]=mvBox(); const t=document.createElement('canvas'); t.width=t.height=bw;
+  const tx=t.getContext('2d'); tx.drawImage(c,bx,by,bw,bw,0,0,bw,bw);
+  const d=tx.getImageData(0,0,bw,bw), a=d.data;
+  for(let j=0;j<a.length;j+=4){ if(Math.abs(a[j]-143)<12&&Math.abs(a[j+1]-211)<12&&Math.abs(a[j+2]-255)<12) a[j+3]=0; }
+  tx.putImageData(d,0,0);
+  const [cx,cy]=MV_POS[mvState.p]; const k=2, nw=bw*k;
+  x.imageSmoothingEnabled=false; x.drawImage(t,0,0,bw,bw,Math.round(cx-nw/2),Math.round(cy-nw/2),nw,nw);
+  mvState.r*=k; document.getElementById('mvSun').setAttribute('r',mvState.r);
+  document.getElementById('mvBig').disabled=true; document.getElementById('mvMove').disabled=true;
+  document.getElementById('mvInfo').innerHTML='Растровое солнце стало <b>ступенчатым</b> — это пикселизация. Векторное осталось гладким. Чтобы попробовать ещё раз, нажмите «Вернуть как было».';
+};
+document.getElementById('mvReset').onclick=mvScene;
+mvScene();
+
+/* ===================== ЗАПУСК ===================== */
+function markEmpty(){}
+['fio','cls'].forEach(i=>{const e=document.getElementById(i); const f=()=>{ if(current==='result') renderResult();}; e.addEventListener(i==='cls'?'change':'input',f);});
+document.getElementById('theoryDoneBtn').onclick=()=>{theoryDone=true; show('t1');};
+
+window.addEventListener('pageshow',()=>{document.getElementById('fio').value='';});
+freshState();
+document.getElementById('fio').value=''; document.getElementById('cls').value='';
+markEmpty();
+drawPix(); drawZoom(); drawRGB(); drawCMYK();
+show('theory');
+</script>
+</body>
+</html>
