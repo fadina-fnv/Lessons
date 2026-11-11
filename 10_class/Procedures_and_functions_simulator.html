@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пользовательские процедуры и функции — учебник-тренажёр</title>
+<style>
+:root{
+  --teal:#129a86; --teal-d:#007b73; --turq:#33dcc4; --turq-l:#dcf7f2;
+  --lav:#dcc2ef; --lav-l:#f4ecfa; --lav-m:#d9cae1; --cream:#fefad4; --gray:#e1e1e3; --sage:#a5bbb9;
+  --text:#24423f; --muted:#5d7774; --amber:#e9a23b; --amber-l:#fff3df; --code-bg:#fafafb;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Times New Roman",Times,serif;font-size:21px;color:var(--text);background:#ffffff;line-height:1.45}
+code,pre,.mono,input.mono,textarea.mono{font-family:"JetBrains Mono",Consolas,"Courier New",monospace}
+header{background:var(--cream);border-bottom:5px solid var(--turq);padding:14px 22px;display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between}
+header h1{margin:0;font-size:30px;color:var(--teal-d)}
+header .sub{color:var(--muted);font-size:18px}
+.modes{display:flex;border:2px solid var(--teal);border-radius:12px;overflow:hidden;background:#fff}
+.modes button{border:0;background:#fff;color:var(--teal-d);font:inherit;font-weight:bold;padding:8px 18px;cursor:pointer}
+.modes button.on{background:var(--teal);color:#fff}
+nav{display:flex;flex-wrap:wrap;gap:6px;padding:10px 22px;background:#fff;border-bottom:2px solid var(--gray);position:sticky;top:0;z-index:5}
+nav button{font:inherit;font-size:19px;border:2px solid var(--sage);background:#fff;color:var(--text);border-radius:10px;padding:5px 13px;cursor:pointer}
+nav button:hover{background:var(--turq-l)}
+nav button.on{border-color:var(--teal);background:var(--teal);color:#fff}
+nav .cnt{display:inline-block;font-size:15px;background:var(--lav);color:#3c2a50;border-radius:8px;padding:0 7px;margin-left:4px}
+nav button.on .cnt{background:#fff;color:var(--teal-d)}
+main{max-width:1100px;margin:0 auto;padding:18px 18px 60px}
+.card{background:#fff;border:2px solid var(--gray);border-radius:16px;padding:18px 22px;margin-bottom:16px;box-shadow:0 2px 0 var(--lav-m)}
+.student{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--lav-l);border:2px solid var(--lav);border-radius:12px;padding:10px 16px;margin-bottom:14px}
+.student input,.student select{font:inherit;padding:5px 10px;border:2px solid var(--sage);border-radius:8px;background:#fff}
+.student input{width:280px}
+.modelab{color:var(--muted)}
+h2{color:var(--teal-d);margin:4px 0 8px;font-size:27px}
+h3{color:var(--teal-d);margin:18px 0 8px;font-size:23px}
+.descr{color:var(--muted);margin-bottom:8px}
+pre.code{background:var(--code-bg);border:2px solid var(--gray);border-left:6px solid var(--turq);border-radius:10px;padding:12px 16px;font-size:20px;line-height:1.55;overflow-x:auto;margin:10px 0}
+.kw{color:#e07b00;font-weight:bold}.bi{color:#8a4fc0}.fn{color:#0b7d8f;font-weight:bold}.st{color:#1d9a50}.nu{color:#c0507a}.cm{color:#8a9aab;font-style:italic}
+.out{background:var(--turq-l);border:2px dashed var(--teal);border-radius:10px;padding:8px 14px;font-size:20px;white-space:pre;margin:8px 0;overflow-x:auto}
+.note{background:var(--lav-l);border-left:6px solid var(--lav);border-radius:8px;padding:10px 14px;margin:10px 0}
+.warn{background:var(--cream);border-left:6px solid var(--sage);border-radius:8px;padding:10px 14px;margin:10px 0}
+table.cmp{border-collapse:collapse;width:100%;margin:10px 0;table-layout:fixed}
+table.cmp td,table.cmp th{border:2px solid var(--gray);padding:8px 10px;vertical-align:top}
+table.cmp th{background:var(--turq-l);color:var(--teal-d)}
+table.err td.mono{font-size:17px;white-space:pre-wrap}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btn{font:inherit;font-weight:bold;border:0;border-radius:10px;padding:9px 20px;cursor:pointer;background:var(--teal);color:#fff}
+.btn:hover{background:var(--teal-d)}
+.btn.sec{background:#fff;color:var(--teal-d);border:2px solid var(--teal)}
+.btn.sec:hover{background:var(--turq-l)}
+.btn.lav{background:var(--lav);color:#3c2a50}
+.btn:disabled{opacity:.4;cursor:default}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.pill{font:inherit;font-weight:bold;min-width:46px;height:42px;border:2px solid var(--sage);border-radius:10px;background:#fff;color:var(--text);cursor:pointer}
+.pill:hover{background:var(--turq-l)}
+.pill.cur{outline:3px solid var(--turq);outline-offset:1px;border-color:var(--teal)}
+.pill.ok{background:var(--teal);border-color:var(--teal);color:#fff}
+.pill.no{background:var(--amber-l);border-color:var(--amber)}
+.pill.done{background:var(--lav);border-color:var(--lav)}
+.pillgroups{display:flex;flex-wrap:wrap;gap:6px 22px;margin:6px 0 4px}
+.pgname{font-size:17px;color:var(--muted);font-weight:bold}
+.pg .pills{margin:2px 0 6px}
+.taskbox{border-top:2px solid var(--gray);padding-top:10px}
+.opts{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.opt{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--gray);border-radius:10px;padding:8px 12px;cursor:pointer;background:#fff}
+.opt:hover{border-color:var(--turq)}
+.opt.sel{border-color:var(--teal);background:var(--turq-l)}
+.opt.good{border-color:var(--teal);background:var(--turq-l);box-shadow:inset 6px 0 0 var(--teal)}
+.opt.wrong{border-color:var(--amber);background:var(--amber-l)}
+.q{font-size:22px;font-weight:bold;margin:6px 0}
+.fb{border-radius:10px;padding:10px 14px;margin:10px 0}
+.fb.ok{background:var(--turq-l);border:2px solid var(--teal)}
+.fb.no{background:var(--amber-l);border:2px solid var(--amber)}
+.fb.neutral{background:var(--lav-l);border:2px solid var(--lav)}
+textarea.ans{width:100%;min-height:110px;font-size:20px;padding:8px 12px;border:2px solid var(--sage);border-radius:10px}
+input.blank{font-size:19px;width:7.5em;padding:1px 6px;border:2px solid var(--teal);border-radius:6px;background:var(--cream);color:var(--text)}
+input.blank.good{border-color:var(--teal);background:var(--turq-l)}
+input.blank.wrong{border-color:var(--amber);background:var(--amber-l)}
+.lines{background:var(--code-bg);border:2px solid var(--gray);border-radius:10px;padding:8px 0;font-size:20px;margin:10px 0;overflow-x:auto}
+.ln{display:flex;cursor:pointer;padding:1px 12px;white-space:pre}
+.ln:hover{background:var(--turq-l)}
+.ln .no{color:#8aa0a0;width:2.4em;flex:none;user-select:none}
+.ln.sel{background:var(--lav-l);outline:2px solid var(--lav)}
+.ln.good{background:var(--turq-l);outline:2px solid var(--teal)}
+.ln.wrong{background:var(--amber-l);outline:2px solid var(--amber)}
+.stat{display:flex;flex-wrap:wrap;gap:6px 20px;margin:6px 0;font-size:19px;color:var(--muted)}
+.stat b{color:var(--text)}
+.grade{font-size:46px;font-weight:bold;color:var(--teal-d)}
+.inp{background:var(--cream);border:2px solid #e8dc8a;border-radius:10px;padding:8px 14px;font-size:20px;white-space:pre;display:inline-block;min-width:160px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grouptag{display:inline-block;background:var(--lav);color:#3c2a50;border-radius:8px;padding:1px 10px;font-size:17px;font-weight:bold}
+h3.tt{margin-top:6px}
+.sampleHead{margin:12px 0 4px;font-weight:bold;color:var(--teal-d)}
+.tag{display:inline-block;background:var(--turq);border-radius:6px;padding:0 8px;font-size:17px;font-weight:bold;color:#0b3d38;margin-right:8px}
+.tag.tag2{background:var(--lav);color:#3c2a50}
+.toc{display:flex;flex-wrap:wrap;gap:4px 18px}
+.toc b{width:100%}
+.toc a{color:var(--teal-d);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.hidden{display:none}
+@media(max-width:800px){.two{grid-template-columns:1fr}body{font-size:19px}pre.code{font-size:16px}.student input{width:100%}table.err td.mono{font-size:14px}}
+.summary{display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-bottom:14px}
+.sumbox{border:2px solid var(--gray);border-radius:12px;padding:10px 14px;background:#fff}
+.sumbox.act{border-color:var(--teal);background:var(--turq-l)}
+.sumt{font-weight:bold;color:var(--teal-d)}
+.sg small{font-size:15px;font-weight:normal;opacity:.9}
+.sg{display:inline-block;min-width:44px;text-align:center;font-size:26px;font-weight:bold;color:#fff;background:var(--teal);border-radius:10px;padding:0 8px;vertical-align:middle}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.chip{font-size:16px;background:var(--lav-l);border:1px solid var(--lav);border-radius:8px;padding:0 8px}
+.chip.full{background:var(--teal);border-color:var(--teal);color:#fff}
+.sumhint{font-size:16px;color:var(--muted)}
+@media(max-width:800px){.summary{grid-template-columns:1fr}}
+.sendbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;border:2px dashed var(--sage);border-radius:12px;padding:6px 12px;margin:0 0 14px;background:#fff}
+.sendbar .btn{margin:0}
+.send{font-weight:bold}
+.send.ok{color:var(--teal-d)}
+.send.no{color:#b06a00}
+.send.wait{color:var(--muted)}
+.editor{width:100%;min-height:260px;font-size:19px;line-height:1.5;padding:10px 12px;border:2px solid var(--teal);border-radius:10px;background:var(--code-bg);color:var(--text);tab-size:4;white-space:pre;overflow:auto}
+.editor:disabled{opacity:.85}
+.edhead{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:space-between;margin:12px 0 4px}
+.inp.small{padding:1px 8px;font-size:18px;min-width:0}
+.runrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:6px 0}
+.runrow .btn{margin:0}
+.pystat{font-size:17px}
+.pystat.ok{color:var(--teal-d)}.pystat.no{color:#b06a00;font-weight:bold}.pystat.wait{color:var(--muted)}
+.errbox{background:var(--amber-l);border:2px solid var(--amber);border-radius:10px;padding:6px 12px;margin:6px 0;white-space:pre-wrap;font-size:18px}
+b.idf{font-family:"JetBrains Mono",Consolas,"Courier New",monospace;font-size:.95em;color:var(--teal-d)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Пользовательские процедуры и функции</h1>
+    <div class="sub">Учебник-тренажёр · Python</div>
+  </div>
+  <div class="modes" id="modes">
+    <button data-m="learn" class="on">Обучение</button>
+    <button data-m="test">Контроль</button>
+  </div>
+</header>
+<nav id="nav"></nav>
+<main id="main"></main>
+
+<script>
+/* ===================== ВСПОМОГАТЕЛЬНОЕ ===================== */
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const pyNum=x=>{ if(Number.isInteger(x)) return String(x); let s=String(x); return s; };
+const pyFloat=x=>Number.isInteger(x)? x.toFixed(1) : String(x);
+
+const KW=new Set(['def','return','for','in','if','else','elif','while','global','import','and','or','not','True','False','None','break','continue']);
+const BI=new Set(['print','input','int','float','str','range','len','abs','max','min','sum','round','bin']);
+function hlSeg(code,fns){
+  const re=/('[^'\n]*'?|"[^"\n]*"?)|(#.*)|(\b\d+(?:\.\d+)?\b)|([A-Za-zА-Яа-яЁё_]\w*)|([\s\S])/g;
+  let out='',m,prevDef=false;
+  while((m=re.exec(code))){
+    if(m[1]) out+='<span class="st">'+esc(m[1])+'</span>';
+    else if(m[2]) out+='<span class="cm">'+esc(m[2])+'</span>';
+    else if(m[3]) out+='<span class="nu">'+m[3]+'</span>';
+    else if(m[4]){
+      const w=m[4];
+      if(KW.has(w)) out+='<span class="kw">'+w+'</span>';
+      else if(prevDef||fns.has(w)) out+='<span class="fn">'+esc(w)+'</span>';
+      else if(BI.has(w)) out+='<span class="bi">'+w+'</span>';
+      else out+=esc(w);
+      prevDef=(w==='def'); continue;
+    } else out+=esc(m[5]);
+    if(m[5]&&!/\s/.test(m[5])) prevDef=false;
+  }
+  return out;
+}
+const fnNames=code=>new Set([...code.matchAll(/def\s+(\w+)/g)].map(x=>x[1]));
+const hl=code=>hlSeg(code,fnNames(code));
+const pre=code=>'<pre class="code">'+hl(code)+'</pre>';
+
+function normLine(s){return s.replace(/\u00a0/g,' ').trim().replace(/\s+/g,' ').toLowerCase().replace(/ё/g,'е')}
+function normLines(s){let a=String(s).split('\n').map(normLine);while(a.length&&a[a.length-1]==='')a.pop();while(a.length&&a[0]==='')a.shift();return a}
+function sameOutput(user,expected){
+  const u=normLines(user), e=normLines(expected);
+  if(u.length!==e.length) return false;
+  for(let i=0;i<e.length;i++){
+    if(u[i]===e[i]) continue;
+    const un=u[i].replace(',','.'), en=e[i];
+    if(un!==''&&!isNaN(un)&&en!==''&&!isNaN(en)&&Math.abs(parseFloat(un)-parseFloat(en))<1e-6) continue;
+    return false;
+  }
+  return true;
+}
+
+/* ===================== ГЕНЕРАТОРЫ ===================== */
+const FN=['calc','summa','mix','f','count','work','get_sum','compute','magic','solve'];
+const PAR=[['a','b'],['x','y'],['m','n'],['p','q'],['k','t']];
+
+/* ---------- Модуль 1. Строение ---------- */
+const DEF_Q=[
+  {q:'Функция — это…',c:'Подпрограмма, которая принимает данные, выполняет с ними действия и возвращает результат',w:['Подпрограмма, которая выполняет действия, но ничего не возвращает','Переменная, в которой хранятся вычисленные данные','Основная программа, которая управляет всеми действиями в коде'],e:'Функция обязательно возвращает результат с помощью return.'},
+  {q:'Процедура — это…',c:'Подпрограмма, которая выполняет действия (например, выводит на экран), но не возвращает результат',w:['Подпрограмма, которая обязательно возвращает результат','Встроенная команда Python, например print','Основная часть программы после описания функций'],e:'В процедуре нет return: она что-то делает, но значение в программу не возвращает.'},
+  {q:'Параметр — это…',c:'Переменная в заголовке подпрограммы, от значения которой зависит её работа',w:['Значение, которое передаётся подпрограмме при вызове','Имя подпрограммы','Результат, который возвращает функция'],e:'Параметры записываются в скобках после имени в строке def.'},
+  {q:'Аргумент — это…',c:'Значение, которое передаётся подпрограмме при её вызове',w:['Переменная в заголовке подпрограммы','Ключевое слово для создания функции','Результат работы функции'],e:'Аргументы записываются в скобках при вызове: f(3, 5) — 3 и 5 аргументы.'},
+  {q:'С помощью какого ключевого слова создают (описывают) функцию?',c:'def',w:['function','return','import'],e:'Описание подпрограммы начинается со слова def.'},
+  {q:'С помощью какого ключевого слова функция возвращает значение в основную программу?',c:'return',w:['print','break','continue'],e:'return передаёт значение в место вызова.'},
+  {q:'Сколько параметров может быть у подпрограммы?',c:'Любое количество, в том числе ни одного',w:['Только один','Не больше двух','Хотя бы один обязательно'],e:'Бывают подпрограммы без параметров: def hello():'},
+  {q:'Что вернёт подпрограмма, в которой нет return?',c:'None (ничего)',w:['0','Пустую строку','Последнее выведенное значение'],e:'Если return нет, Python возвращает специальное значение None.'},
+  {q:'Где в программе должна быть описана функция?',c:'До её первого вызова',w:['В любом месте, даже после вызова','Только в самом конце программы','Только внутри print()'],e:'Python выполняет программу сверху вниз: при вызове функция уже должна быть описана.'},
+  {q:'Чем выделяется тело функции?',c:'Отступом (4 пробела) после строки с двоеточием',w:['Фигурными скобками { }','Словом end в конце','Точкой с запятой'],e:'Всё, что записано с отступом после def …:, — тело функции.'},
+  {q:'Что происходит, когда выполняется return?',c:'Функция возвращает значение и сразу завершает работу',w:['Функция выводит значение на экран','Функция возвращает значение и продолжает выполнять следующие строки','Программа полностью останавливается'],e:'Строки тела функции после return не выполняются.'},
+  {q:'Чем return отличается от print?',c:'print показывает значение на экране, return передаёт его в программу',w:['Ничем, это одно и то же','return показывает значение на экране, print передаёт его в программу','print можно писать только в функции, а return — только в основной программе'],e:'Значение, выведенное print, нельзя сохранить в переменную или использовать в вычислениях.'},
+];
+function genStructure(kind){
+  kind=kind||pick(['def','def','par','arg','type','role','calls']);
+  if(kind==='def'||typeof kind==='object'){const d=typeof kind==='object'?kind:pick(DEF_Q);return {type:'mc',q:d.q,code:null,options:shuffle([d.c,...d.w]),correct:d.c,expl:d.e,brief:d.q};}
+  const name=pick(FN), [p1,p2]=pick(PAR), v1=ri(2,9), v2=ri(2,9);
+  const isFunc=Math.random()<.5;
+  const body=isFunc?`    return ${p1} * ${p2}`:`    print(${p1} * ${p2})`;
+  const call=isFunc?`print(${name}(${v1}, ${v2}))`:`${name}(${v1}, ${v2})`;
+  const code=`def ${name}(${p1}, ${p2}):\n${body}\n\n${call}`;
+  if(kind==='par') return {type:'mc',q:'Что в этой программе является параметрами?',code,options:shuffle([`${p1}, ${p2}`,`${v1}, ${v2}`,name,isFunc?'return':'print']),correct:`${p1}, ${p2}`,expl:`Параметры записаны в заголовке: def ${name}(${p1}, ${p2}).`,brief:'параметры'};
+  if(kind==='arg') return {type:'mc',q:'Что в этой программе является аргументами?',code,options:shuffle([`${p1}, ${p2}`,`${v1}, ${v2}`,name,`${p1} * ${p2}`]),correct:`${v1}, ${v2}`,expl:`Аргументы — значения при вызове: ${name}(${v1}, ${v2}).`,brief:'аргументы'};
+  if(kind==='type') return {type:'mc',q:'Это процедура или функция?',code,options:['Процедура','Функция'],correct:isFunc?'Функция':'Процедура',expl:isFunc?'Есть return — подпрограмма возвращает результат, значит, это функция.':'Нет return — подпрограмма только выводит результат, значит, это процедура.',brief:'процедура/функция'};
+  if(kind==='calls'){
+    const n=ri(1,4); const calls=[];const vals=[];
+    for(let i=0;i<n;i++){vals.push(ri(1,9));}
+    let code2=`def ${name}(${p1}):\n    return ${p1} + 10\n\n`;
+    if(n===1) code2+=`print(${name}(${vals[0]}))`;
+    else if(n===2) code2+=`x = ${name}(${vals[0]})\nprint(x + ${name}(${vals[1]}))`;
+    else if(n===3) code2+=`print(${name}(${vals[0]}))\nprint(${name}(${vals[1]}) * 2)\ny = ${name}(${vals[2]})`;
+    else code2+=`for i in range(4):\n    print(${name}(i))`;
+    const ans=String(n);
+    return {type:'mc',q:`Сколько раз вызывается функция ${name}?`,code:code2,options:['1','2','3','4'],correct:ans,expl:n===4?'Вызов стоит в цикле, который повторяется 4 раза.':`Считаем, сколько раз встречается ${name}(…) вне строки def.`,brief:'количество вызовов'};
+  }
+  // role
+  const fn=pick(['convert','to_miles','double','triple','half']);
+  const k=pick(['0.6214','2','3','0.5']);
+  const code3=`def ${fn}(km):\n    return km * ${k}\n\nnum = int(input())\nprint(${fn}(num))`;
+  const lines=[[`def ${fn}(km):`,'объявление (заголовок) функции'],[`    return km * ${k}`,'возврат результата'],['num = int(input())','считывание данных'],[`print(${fn}(num))`,'вызов функции и вывод результата']];
+  const L=pick(lines);
+  return {type:'mc',q:`Какую роль выполняет строка  ${L[0].trim()}  ?`,code:code3,options:shuffle(lines.map(x=>x[1])),correct:L[1],expl:`«${L[0].trim()}» — ${L[1]}.`,brief:'назначение строки'};
+}
+
+/* ---------- Модуль 2. Что выведет? ---------- */
+const OUT_GENS=[
+  ()=>{const n=pick(['calculate','calc','mix']),[a,b]=pick(PAR),K=ri(2,4),M=ri(1,6),x=ri(1,9);let y=ri(1,9);while(y===x)y=ri(1,9);
+    const f=(p,q)=>p*K+q-M;
+    return {code:`def ${n}(${a}, ${b}):\n    c = ${a} * ${K} + ${b} - ${M}\n    return c\n\nx = ${x}\ny = ${y}\nprint(${n}(x, y))\nprint(${n}(y, x))`,ans:`${f(x,y)}\n${f(y,x)}`,expl:`Порядок аргументов важен: при ${n}(y, x) параметр ${a} получает значение y = ${y}.`}},
+  ()=>{const n=pick(['show','printer','out10']),K=ri(2,5),v=ri(2,9),w=ri(2,9);
+    return {code:`def ${n}(x):\n    print(x * ${K})\n\n${n}(${v})\nr = ${n}(${w})\nprint(r)`,ans:`${v*K}\n${w*K}\nNone`,expl:`${n} — процедура: она печатает, но ничего не возвращает. Поэтому в r попадает None.`}},
+  ()=>{const n=pick(['get_sum','summa']),a=ri(1,5),b=ri(1,5),c=ri(1,5);
+    return {code:`def ${n}(x, y, z):\n    return x + y + z\n    print('Сумма равна', x + y + z)\n\nprint(${n}(${a}, ${b}, ${c}))`,ans:`${a+b+c}`,expl:'return завершает работу функции: строка с print после него не выполняется.'}},
+  ()=>{const n=ri(4,9),v=pick([0,1]);
+    const s=v===0? n*(n-1)/2 : n*(n+1)/2;
+    return {code:`def f(n):\n    s = 0\n    for x in range(${v===0?'n':'1, n + 1'}):\n        s += x\n    return s\n\nprint(f(${n}))`,ans:`${s}`,expl:v===0?`range(${n}) — это числа от 0 до ${n-1}. Их сумма ${s}.`:`range(1, ${n+1}) — числа от 1 до ${n}. Их сумма ${s}.`}},
+  ()=>{const arr=Array.from({length:ri(3,4)},()=>ri(1,4));const p=arr.reduce((a,b)=>a*b,1);
+    return {code:`def do_something(numbers):\n    result = 1\n    for i in numbers:\n        result *= i\n    return result\n\nprint(do_something([${arr.join(', ')}]))`,ans:`${p}`,expl:`Функция перемножает все элементы списка: ${arr.join(' · ')} = ${p}.`}},
+  ()=>{const n=pick(['sq','square']),a=ri(2,6),b=ri(2,6);
+    return {code:`def ${n}(x):\n    return x * x\n\nprint(${n}(${a}) + ${n}(${b}))`,ans:`${a*a+b*b}`,expl:`Результат функции можно использовать в выражении: ${a*a} + ${b*b} = ${a*a+b*b}.`}},
+  ()=>{const n=pick(['plus','add_k']),K=ri(2,9),v=ri(1,9);
+    return {code:`def ${n}(x):\n    return x + ${K}\n\n${n}(${v})\ny = ${n}(${v})\nprint(y * 2)`,ans:`${(v+K)*2}`,expl:`Первый вызов ${n}(${v}) вернул значение, но его никуда не сохранили и не вывели — на экране ничего не появилось.`}},
+  ()=>{const ch=pick(['*','#','+','-']),n=ri(3,7),w=pick(['ab','ну','ok']),k=ri(2,3);
+    return {code:`def line(ch, n):\n    return ch * n\n\nprint(line('${ch}', ${n}))\nprint(line('${w}', ${k}))`,ans:`${ch.repeat(n)}\n${w.repeat(k)}`,expl:'Строку можно умножить на число — она повторится n раз.'}},
+  ()=>{const a=ri(-9,9)||3,b=ri(-9,9)||-4;
+    const s=x=>x>0?'плюс':'не плюс';
+    return {code:`def sign(x):\n    if x > 0:\n        return 'плюс'\n    return 'не плюс'\n\nprint(sign(${a}))\nprint(sign(${b}))`,ans:`${s(a)}\n${s(b)}`,expl:'Если условие выполнено, срабатывает первый return и функция сразу завершается.'}},
+  ()=>{const n=pick(['work','twice']),v=ri(2,9);
+    return {code:`def ${n}(x):\n    print('x =', x)\n    return x * 2\n\nprint(${n}(${v}) + 1)`,ans:`x = ${v}\n${v*2+1}`,expl:`Сначала при вызове выполняется print внутри функции, затем функция возвращает ${v*2}, и к нему прибавляется 1.`}},
+  ()=>{const n=pick(['hello','greet']),nm=pick(['Аня','Тимур','Дана','Арман']);
+    return {code:`def ${n}(name):\n    print('Привет,', name)\n\nx = ${n}('${nm}')\nprint(x)`,ans:`Привет, ${nm}\nNone`,expl:'Процедура выводит приветствие, но ничего не возвращает — в x записывается None.'}},
+  ()=>{const a=ri(2,9),b=ri(2,9);
+    return {code:`def do_something(number):\n    return number * 2\n\nprint(do_something(${a}))\nprint(do_something(${a}) + do_something(${b}))`,ans:`${a*2}\n${a*2+b*2}`,expl:'Каждый вызов возвращает удвоенное число.'}},
+  ()=>{const km=pick([10,100,1000,500,50]);
+    return {code:`def convert_to_miles(km):\n    return km * 0.6214\n\nprint(convert_to_miles(${km}))`,ans:pyFloat(km*0.6214),expl:`${km} · 0.6214 = ${pyFloat(km*0.6214)}. Результат вещественный.`}},
+];
+function genOutput(gf){const g=(gf||pick(OUT_GENS))();return {type:'out',q:'Что будет выведено на экран? Запиши вывод программы (каждое значение — на отдельной строке, как в IDLE).',code:g.code,correct:g.ans,expl:g.expl,brief:'что выведет'}}
+
+/* ---------- Модуль 3. Заполни пропуск ---------- */
+const FILL_GENS=[
+  ()=>{const n=pick(['mult','area','proizv']),a=ri(2,9),b=ri(2,9);return {code:`{{0}} ${n}(a, b):\n    return a * b\n\nprint(${n}(${a}, ${b}))`,ans:[['def']],out:`${a*b}`,expl:'Описание функции начинается со слова def.'}},
+  ()=>{const n=pick(['summa','plus']),x=ri(2,9),y=ri(2,9);return {code:`def ${n}(a, b):\n    {{0}} a + b\n\ns = ${n}(${x}, ${y})\nprint(s * 2)`,ans:[['return']],out:`${(x+y)*2}`,expl:'Чтобы результат можно было сохранить в s, функция должна его вернуть — return.'}},
+  ()=>{const a=ri(2,9),b=ri(2,9);return {code:`def perimeter(a, {{0}}):\n    return 2 * (a + b)\n\nprint(perimeter(${a}, ${b}))`,ans:[['b']],out:`${2*(a+b)}`,expl:'В теле используется переменная b — значит, это второй параметр.'}},
+  ()=>{const n=ri(2,5);return {code:`def cube(x):\n    return x ** 3\n\nprint({{0}}(${n}))`,ans:[['cube']],out:`${n**3}`,expl:'Функцию вызывают по имени, указанному после def.'}},
+  ()=>{const a=pick([2,3,5,10]),k=ri(2,4);return {code:`def power(a, n):\n    return a ** n\n\nprint(power(${a}, {{0}}))`,ans:[[String(k)]],out:`${a**k}`,expl:`${a} в степени ${k} равно ${a**k}, значит, второй аргумент — ${k}.`}},
+  ()=>{const nm=pick(['Аня','Тимур','Дана']);return {code:`def hello(name){{0}}\n    print('Привет,', name)\n\nhello('${nm}')`,ans:[[':']],out:`Привет, ${nm}`,expl:'Строка с def заканчивается двоеточием.'}},
+  ()=>{const a=ri(1,6)*2,b=ri(1,6)*2;return {code:`{{0}} avg(a, b):\n    {{1}} (a + b) / 2\n\nprint(avg(${a}, ${b}))`,ans:[['def'],['return']],out:pyFloat((a+b)/2),expl:'Нужны def (описание) и return (возврат результата). Деление / даёт вещественное число.'}},
+  ()=>{const n=pick(['show','ten']);return {code:`def ${n}(x):\n    print(x * 10)\n\n{{0}}(7)`,ans:[[n]],out:'70',expl:'Процедуру вызывают по имени: '+n+'(7).'}},
+  ()=>{const a=ri(1,9),b=ri(10,19);const sw=Math.random()<.5;return {code:`def maxi(a, b):\n    if a > b:\n        return {{0}}\n    return {{1}}\n\nprint(maxi(${sw?b:a}, ${sw?a:b}))`,ans:[['a'],['b']],out:`${b}`,expl:'Если a > b, большее — a, иначе — b.'}},
+  ()=>{const a=ri(2,9),k=ri(2,9);return {code:`def rect(a, b):\n    return a * b\n\nprint(rect(${a}, {{0}}))`,ans:[[String(k)]],out:`${a*k}`,expl:`${a} · ${k} = ${a*k}.`}},
+  ()=>{const n=pick([7,9,13,15]);return {code:`def parity(n):\n    if n % 2 == 0:\n        return 'чётное'\n    {{0}} 'нечётное'\n\nprint(parity(${n}))`,ans:[['return']],out:'нечётное',expl:'Функция должна вернуть строку — return.'}},
+  ()=>{const arr=[ri(1,9),ri(1,9),ri(1,9)];return {code:`def total(nums):\n    s = 0\n    for x in nums:\n        s += x\n    return {{0}}\n\nprint(total([${arr.join(', ')}]))`,ans:[['s']],out:`${arr[0]+arr[1]+arr[2]}`,expl:'Сумма накапливается в переменной s — её и возвращаем.'}},
+  ()=>{const n=ri(3,6);return {code:`def stars({{0}}):\n    print('*' * n)\n\nstars(${n})`,ans:[['n']],out:'*'.repeat(n),expl:'В теле используется n — это параметр процедуры.'}},
+];
+function genFill(gf){const g=(gf||pick(FILL_GENS))();return {type:'fill',q:'Заполни пропуски так, чтобы программа работала и выводила указанный результат.',code:g.code,answers:g.ans,out:g.out,correct:g.ans.map(a=>a[0]).join(' | '),expl:g.expl,brief:'пропуск',full:g.code.replace(/\{\{(\d)\}\}/g,(m,i)=>g.ans[+i][0])}}
+
+/* ---------- Модуль 4. Найди ошибку ---------- */
+const BUG_GENS=[
+  ()=>{const n=pick(FN),a=ri(2,9),b=ri(2,9);return {lines:[`def ${n}(a, b)`,`    return a + b`,``,`print(${n}(${a}, ${b}))`],err:0,fix:`def ${n}(a, b):`,expl:'В конце строки с def пропущено двоеточие.'}},
+  ()=>{const n=pick(FN);return {lines:[`def ${n}(a, b):`,`    s = a + b`,`return s`,``,`print(${n}(9, 5))`],err:2,fix:'    return s',expl:'Нет отступа перед return — строка оказалась вне функции (ошибка «return outside function»).'}},
+  ()=>{const n=pick(FN);return {lines:[`def ${n}(a, b; c):`,`    return a + b + c`,``,`print(${n}(1, 2, 3))`],err:0,fix:`def ${n}(a, b, c):`,expl:'Параметры перечисляются через запятую, а не через точку с запятой.'}},
+  ()=>{const n=pick(['square','sq','kvadrat']);return {lines:[`print(${n}(5))`,``,`def ${n}(x):`,`    return x * x`],err:0,fix:'(перенести вызов после описания функции)',expl:'Функция вызывается раньше, чем описана — ошибка NameError. Описание должно быть выше вызова.'}},
+  ()=>{const n=pick(FN);return {lines:[`def ${n}(a, b, c):`,`    return a * b * c`,``,`print(${n}(2, 3))`],err:3,fix:`print(${n}(2, 3, 4))`,expl:'У функции три параметра, а при вызове передано только два аргумента (TypeError).'}},
+  ()=>{const n=pick(FN);return {lines:[`def ${n}(x):`,`    retrun x * 2`,``,`print(${n}(4))`],err:1,fix:'    return x * 2',expl:'Опечатка в ключевом слове: нужно return.'}},
+  ()=>{return {lines:[`def sq(x):`,`    return y * y`,``,`print(sq(6))`],err:1,fix:'    return x * x',expl:'Внутри функции используется переменная y, которой нет. Параметр называется x.'}},
+  ()=>{const n=pick(['summa','get_sum']);return {lines:[`def ${n}(a, b, c):`,`    return a + b + c`,``,`print(${n}(a = 9, c = 5, 3))`],err:3,fix:`print(${n}(9, 3, 5))  # или ${n}(a = 9, b = 3, c = 5)`,expl:'Аргумент без имени нельзя писать после именованных (a = 9, c = 5) — SyntaxError.'}},
+  ()=>{return {lines:[`def Summa(a, b):`,`    return a + b`,``,`print(summa(2, 3))`],err:3,fix:'print(Summa(2, 3))',expl:'Python различает большие и маленькие буквы: Summa и summa — разные имена.'}},
+  ()=>{const n=pick(FN);return {lines:[`${n}(a, b):`,`    return a - b`,``,`print(${n}(8, 3))`],err:0,fix:`def ${n}(a, b):`,expl:'Описание функции должно начинаться со слова def.'}},
+  ()=>{const n=pick(FN);return {lines:[`Def ${n}(x):`,`    return x + 1`,``,`print(${n}(10))`],err:0,fix:`def ${n}(x):`,expl:'Ключевые слова пишутся маленькими буквами: def.'}},
+  ()=>{const n=pick(['show','out']);return {lines:[`def ${n}(x):`,`print(x * 3)`,``,`${n}(5)`],err:1,fix:'    print(x * 3)',expl:'Тело процедуры должно быть с отступом 4 пробела.'}},
+  ()=>{const n=pick(['area','pl']);return {lines:[`def ${n}(a, b):`,`    return a * b`,``,`print(${n} 4, 5)`],err:3,fix:`print(${n}(4, 5))`,expl:'Аргументы при вызове записываются в круглых скобках сразу после имени функции.'}},
+];
+function genBug(gf){const g=(gf||pick(BUG_GENS))();return {type:'bug',q:'В программе есть одна ошибка. Нажми на строку, в которой она допущена.',lines:g.lines,errLine:g.err,correct:'строка '+(g.err+1),fix:g.fix,expl:g.expl,brief:'ошибка в строке '+(g.err+1)}}
+
+/* ---------- Модуль 5. Задачи в IDLE (по аналогии) ---------- */
+const WORDS=['Python','программа','функция','информатика','компьютер','параметр','алгоритм','переменная'];
+const IDLE_GENS=[
+  ()=>{const a=ri(2,9),b=ri(2,9),c=ri(2,9),d=ri(2,9);return {
+    title:'Сумма площадей',
+    sample:'def perimeter(a, b):\n    return 2 * (a + b)\n\nx = int(input())\ny = int(input())\nprint(perimeter(x, y))',
+    sampleText:'Функция возвращает периметр прямоугольника.',
+    task:'Напиши функцию area(a, b), которая возвращает площадь прямоугольника. С её помощью найди сумму площадей двух прямоугольников. Программа вводит 4 числа: стороны первого и второго прямоугольника.',
+    input:`${a}\n${b}\n${c}\n${d}`,ans:`${a*b+c*d}`,
+    sol:'def area(a, b):\n    return a * b\n\na1 = int(input())\nb1 = int(input())\na2 = int(input())\nb2 = int(input())\nprint(area(a1, b1) + area(a2, b2))'}},
+  ()=>{const s=ri(2,30)*100,p=pick([10,20,25,30,50]);return {
+    title:'Цена со скидкой',
+    sample:'def add_tax(s, p):\n    return s + s * p / 100\n\ns = int(input())\np = int(input())\nprint(add_tax(s, p))',
+    sampleText:'Функция возвращает цену с наценкой p процентов.',
+    task:'Напиши функцию discount(s, p), которая возвращает стоимость товара s после скидки p процентов. Программа вводит s и p и выводит результат.',
+    input:`${s}\n${p}`,ans:pyFloat(s-s*p/100),
+    sol:'def discount(s, p):\n    return s - s * p / 100\n\ns = int(input())\np = int(input())\nprint(discount(s, p))'}},
+  ()=>{const n=ri(10,99);return {
+    title:'Чётное или нечётное',
+    sample:"def check(x):\n    if x > 0:\n        return 'положительное'\n    return 'не положительное'\n\nx = int(input())\nprint(check(x))",
+    sampleText:'Функция возвращает слово в зависимости от условия.',
+    task:"Напиши функцию parity(n), которая возвращает строку 'чётное' или 'нечётное'. Программа вводит число и выводит результат функции.",
+    input:`${n}`,ans:n%2===0?'чётное':'нечётное',
+    sol:"def parity(n):\n    if n % 2 == 0:\n        return 'чётное'\n    return 'нечётное'\n\nn = int(input())\nprint(parity(n))"}},
+  ()=>{const v=[ri(-50,99),ri(-50,99),ri(-50,99)];return {
+    title:'Наибольшее из трёх',
+    sample:'def max2(a, b):\n    if a > b:\n        return a\n    return b\n\na = int(input())\nb = int(input())\nprint(max2(a, b))',
+    sampleText:'Функция возвращает большее из двух чисел.',
+    task:'Напиши функцию max3(a, b, c), которая возвращает наибольшее из трёх чисел (не используй встроенную max). Подсказка: можно вызвать max2 внутри max3.',
+    input:v.join('\n'),ans:`${Math.max(...v)}`,
+    sol:'def max2(a, b):\n    if a > b:\n        return a\n    return b\n\ndef max3(a, b, c):\n    return max2(max2(a, b), c)\n\na = int(input())\nb = int(input())\nc = int(input())\nprint(max3(a, b, c))'}},
+  ()=>{const n=ri(5,9);let f=1;for(let i=2;i<=n;i++)f*=i;return {
+    title:'Факториал',
+    sample:'def sum_to(n):\n    s = 0\n    for i in range(1, n + 1):\n        s += i\n    return s\n\nn = int(input())\nprint(sum_to(n))',
+    sampleText:'Функция возвращает сумму чисел от 1 до n.',
+    task:'Напиши функцию factorial(n), которая возвращает произведение чисел от 1 до n.',
+    input:`${n}`,ans:`${f}`,
+    sol:'def factorial(n):\n    p = 1\n    for i in range(1, n + 1):\n        p *= i\n    return p\n\nn = int(input())\nprint(factorial(n))'}},
+  ()=>{const w=pick(WORDS.filter(x=>/[а-я]/.test(x))),chs=[...new Set(w.split(''))],ch=pick(chs);const k=w.split('').filter(x=>x===ch).length;return {
+    title:'Сколько раз встречается символ',
+    sample:"def count_a(s):\n    k = 0\n    for ch in s:\n        if ch == 'а':\n            k += 1\n    return k\n\ns = input()\nprint(count_a(s))",
+    sampleText:'Функция считает, сколько раз в строке встречается буква «а».',
+    task:'Напиши функцию count_char(s, c), которая возвращает, сколько раз символ c встречается в строке s. Программа вводит строку и символ.',
+    input:`${w}\n${ch}`,ans:`${k}`,
+    sol:'def count_char(s, c):\n    k = 0\n    for ch in s:\n        if ch == c:\n            k += 1\n    return k\n\ns = input()\nc = input()\nprint(count_char(s, c))'}},
+  ()=>{const n=ri(3,5),ch=pick(['А','*','#','@']);return {
+    title:'Квадрат из символов',
+    sample:"def stars(n):\n    print('*' * n)\n\nn = int(input())\nstars(n)",
+    sampleText:'Процедура выводит одну строку из n звёздочек.',
+    task:'Напиши процедуру square(n, ch), которая выводит квадрат n × n из символа ch. Программа вводит n и символ.',
+    input:`${n}\n${ch}`,ans:Array(n).fill(ch.repeat(n)).join('\n'),
+    sol:'def square(n, ch):\n    for i in range(n):\n        print(ch * n)\n\nn = int(input())\nch = input()\nsquare(n, ch)'}},
+  ()=>{const km=pick([10,20,50,100,250,1000,42]);return {
+    title:'Километры в мили',
+    sample:'def km_to_m(km):\n    return km * 1000\n\nkm = int(input())\nprint(km_to_m(km))',
+    sampleText:'Функция переводит километры в метры.',
+    task:'Напиши функцию convert_to_miles(km), которая переводит километры в мили по формуле: мили = километры · 0.6214.',
+    input:`${km}`,ans:pyFloat(km*0.6214),
+    sol:'def convert_to_miles(km):\n    return km * 0.6214\n\nnum = int(input())\nprint(convert_to_miles(num))'}},
+  ()=>{const w=pick(WORDS),k=pick(['*','-','#','+']);return {
+    title:'Шифровка строки',
+    sample:"def spaced(s):\n    r = s[0]\n    for ch in s[1:]:\n        r = r + ' ' + ch\n    return r\n\ns = input()\nprint(spaced(s))",
+    sampleText:'Функция возвращает строку, в которой между символами стоят пробелы.',
+    task:'Напиши функцию cipher(s, k), которая вставляет символ-ключ k между символами строки s. Программа вводит строку и ключ.',
+    input:`${w}\n${k}`,ans:w.split('').join(k),
+    sol:'def cipher(s, k):\n    r = s[0]\n    for ch in s[1:]:\n        r = r + k + ch\n    return r\n\ns = input()\nk = input()\nprint(cipher(s, k))'}},
+  ()=>{const n=ri(1000,99999);const ds=String(n).split('').reduce((a,b)=>a+ +b,0);return {
+    title:'Сумма цифр',
+    sample:'def last_digit(n):\n    return n % 10\n\nn = int(input())\nprint(last_digit(n))',
+    sampleText:'Функция возвращает последнюю цифру числа.',
+    task:'Напиши функцию digit_sum(n), которая возвращает сумму цифр натурального числа n.',
+    input:`${n}`,ans:`${ds}`,
+    sol:'def digit_sum(n):\n    s = 0\n    while n > 0:\n        s += n % 10\n        n //= 10\n    return s\n\nn = int(input())\nprint(digit_sum(n))'}},
+  ()=>{const a=ri(2,9);return {
+    title:'Таблица умножения',
+    sample:"def row(a, b):\n    print(a, 'x', b, '=', a * b)\n\na = int(input())\nb = int(input())\nrow(a, b)",
+    sampleText:'Процедура с двумя параметрами выводит одну строку таблицы умножения: a x b = результат.',
+    task:"Напиши процедуру table(a), которая выводит таблицу умножения числа a от 1 до 5 в виде:  a x i = результат",
+    input:`${a}`,ans:[1,2,3,4,5].map(i=>`${a} x ${i} = ${a*i}`).join('\n'),
+    sol:"def table(a):\n    for i in range(1, 6):\n        print(a, 'x', i, '=', a * i)\n\na = int(input())\ntable(a)"}},
+  ()=>{const m=pick(['M','@','#','Ж','7','*']),n=ri(3,8);return {
+    title:'Символ n раз',
+    sample:"def hello():\n    name = input()\n    print('Привет,', name)\n\nhello()",
+    sampleText:'Процедура без параметров сама запрашивает данные и выводит результат.',
+    task:'Напиши процедуру без параметров vivod(), которая запрашивает символ m и число n, а затем печатает символ m n раз в одну строку.',
+    input:`${m}\n${n}`,ans:m.repeat(n),
+    sol:"def vivod():\n    m = input()\n    n = int(input())\n    print(m * n)\n\nvivod()"}},
+  ()=>{const x=ri(0,9),y=ri(1,9);return {
+    title:'Двузначное число из двух цифр',
+    sample:"def summa():\n    a = int(input())\n    b = int(input())\n    print(a + b)\n\nsumma()",
+    sampleText:'Процедура без параметров запрашивает два числа и выводит их сумму.',
+    task:'Напиши процедуру без параметров cifra(), которая запрашивает две цифры x и y, приписывает цифру y слева к цифре x и выводит получившееся двузначное число.',
+    input:`${x}\n${y}`,ans:`${y}${x}`,
+    sol:"def cifra():\n    x = int(input())\n    y = int(input())\n    print(y * 10 + x)\n\ncifra()"}},
+  ()=>{const a=ri(1,9),b=ri(1,9);return {
+    title:'Переставить цифры',
+    sample:"def digits(x):\n    print(x // 10, x % 10)\n\nx = int(input())\ndigits(x)",
+    sampleText:'Процедура с параметром выводит отдельно цифру десятков и цифру единиц.',
+    task:'Напиши процедуру swap(x), которая меняет местами цифры двузначного числа x и выводит результат.',
+    input:`${a}${b}`,ans:`${b}${a}`,
+    sol:"def swap(x):\n    d = x // 10\n    e = x % 10\n    print(e * 10 + d)\n\nx = int(input())\nswap(x)"}},
+  ()=>{const c=ri(5,90)*10,k=ri(2,9),d='- '.repeat(10).trim();return {
+    title:'Чек из магазина',
+    sample:"def ticket(film, row):\n    print('*' * 10)\n    print('Фильм:', film)\n    print('Ряд:', row)\n    print('*' * 10)\n\nfilm = input()\nrow = int(input())\nticket(film, row)",
+    sampleText:'Процедура с параметрами печатает билет в кино.',
+    task:'Напиши процедуру adal(c, k), которая по цене товара c и количеству k печатает чек. Программа вводит цену и количество. Образец чека для цены 20 и количества 3:',
+    fmt:`${d}\nСупермаркет ADAL\n${d}\n60 тенге\n${d}\nСпасибо за покупку!`,
+    input:`${c}\n${k}`,ans:`${d}\nСупермаркет ADAL\n${d}\n${c*k} тенге\n${d}\nСпасибо за покупку!`,
+    sol:"def adal(c, k):\n    print('- ' * 10)\n    print('Супермаркет ADAL')\n    print('- ' * 10)\n    print(c * k, 'тенге')\n    print('- ' * 10)\n    print('Спасибо за покупку!')\n\nc = int(input())\nk = int(input())\nadal(c, k)"}},
+  ()=>{const o=ri(1000,5000),n=o+ri(50,400);return {
+    title:'Оплата за электроэнергию',
+    sample:"def water(m3, price):\n    return m3 * price\n\nm3 = int(input())\nprint(water(m3, 150))",
+    sampleText:'Функция считает оплату за воду: объём × тариф.',
+    task:'Напиши функцию pay(old, new, tariff), которая возвращает сумму оплаты за электроэнергию: (новые показания − старые показания) × тариф. Программа вводит старые и новые показания счётчика, тариф — 25 тенге за 1 кВт·ч.',
+    input:`${o}\n${n}`,ans:`${(n-o)*25}`,
+    sol:"def pay(old, new, tariff):\n    return (new - old) * tariff\n\nold = int(input())\nnew = int(input())\nprint(pay(old, new, 25))"}},
+  ()=>{const km=ri(2,25),mn=ri(0,10);return {
+    title:'Стоимость поездки на такси',
+    sample:"def delivery(km):\n    return 300 + 50 * km\n\nkm = int(input())\nprint(delivery(km))",
+    sampleText:'Доставка стоит 300 тенге плюс 50 тенге за каждый километр.',
+    task:'Напиши функцию taxi(km, minutes), которая возвращает стоимость поездки: посадка 400 тенге, плюс 120 тенге за каждый км, плюс 20 тенге за каждую минуту ожидания. Программа вводит километры и минуты ожидания.',
+    input:`${km}\n${mn}`,ans:`${400+120*km+20*mn}`,
+    sol:"def taxi(km, minutes):\n    return 400 + 120 * km + 20 * minutes\n\nkm = int(input())\nminutes = int(input())\nprint(taxi(km, minutes))"}},
+  ()=>{const n=ri(25,140),k=pick([20,25,30,45]);return {
+    title:'Сколько нужно автобусов',
+    sample:"def boxes(n):\n    return (n + 9) // 10\n\nn = int(input())\nprint(boxes(n))",
+    sampleText:'Функция считает, сколько коробок нужно для n книг, если в коробку входит 10 книг (последняя коробка может быть неполной).',
+    task:'Напиши функцию buses(n, k), которая возвращает, сколько автобусов нужно, чтобы отвезти на экскурсию n учеников, если в автобус помещается k человек. Программа вводит n и k.',
+    input:`${n}\n${k}`,ans:`${Math.ceil(n/k)}`,
+    sol:"def buses(n, k):\n    return (n + k - 1) // k\n\nn = int(input())\nk = int(input())\nprint(buses(n, k))"}},
+];
+const IDLE_GROUPS=[
+  ['Процедуры',['Символ n раз','Двузначное число из двух цифр','Переставить цифры','Квадрат из символов','Таблица умножения']],
+  ['Функции',['Сумма площадей','Чётное или нечётное','Наибольшее из трёх','Факториал','Сколько раз встречается символ','Шифровка строки','Сумма цифр']],
+  ['Практическое применение',['Чек из магазина','Цена со скидкой','Оплата за электроэнергию','Стоимость поездки на такси','Сколько нужно автобусов','Километры в мили']],
+];
+const IDLE_BY_TITLE={};IDLE_GENS.forEach(f=>IDLE_BY_TITLE[f().title]=f);
+function idleGroup(title){const g=IDLE_GROUPS.find(x=>x[1].includes(title));return g?g[0]:''}
+function genIdle(gf){gf=gf||pick(IDLE_GENS);const g=gf();
+  const tests=[{input:g.input,ans:g.ans}];let guard=0;
+  while(tests.length<3&&guard<30){guard++;const x=gf();if(!tests.some(T=>T.input===x.input))tests.push({input:x.input,ans:x.ans})}
+  return Object.assign({type:'idle',q:g.task,correct:g.ans,brief:g.title,group:idleGroup(g.title),tests},g)}
+
+/* ===================== PYTHON В БРАУЗЕРЕ (Pyodide) ===================== */
+const PYODIDE_URL='https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+const PY_DRIVER=`
+def __run(code, inp):
+    import sys, io, builtins, traceback
+    out = io.StringIO()
+    old = (sys.stdout, sys.stdin, builtins.input)
+    sys.stdout = out
+    sys.stdin = io.StringIO(inp + '\\n')
+    def _inp(prompt=''):
+        l = sys.stdin.readline()
+        if l == '':
+            raise EOFError('программе не хватило входных данных')
+        return l.rstrip('\\n')
+    builtins.input = _inp
+    err = ''
+    try:
+        exec(compile(code, 'program', 'exec'), {'__name__': '__main__'})
+    except SyntaxError as e:
+        err = 'Строка ' + str(e.lineno) + ': ' + type(e).__name__ + ': ' + str(e.msg)
+    except BaseException as e:
+        ln = None
+        for fr in traceback.extract_tb(e.__traceback__):
+            if fr.filename == 'program':
+                ln = fr.lineno
+        err = ('Строка ' + str(ln) + ': ' if ln else '') + type(e).__name__ + ': ' + str(e)
+    finally:
+        sys.stdout, sys.stdin, builtins.input = old
+    return [out.getvalue(), err]
+`;
+const py={state:'off',worker:null,waiters:[],jobs:{},seq:0};
+function pyWorkerCode(){
+  return "importScripts("+JSON.stringify(PYODIDE_URL+'pyodide.js')+");\n"+
+  "let P=null;\n"+
+  "loadPyodide({indexURL:"+JSON.stringify(PYODIDE_URL)+"}).then(p=>{P=p;P.runPython("+JSON.stringify(PY_DRIVER)+");postMessage({type:'ready'})}).catch(e=>postMessage({type:'fail',msg:String(e)}));\n"+
+  "onmessage=e=>{const d=e.data;try{const f=P.globals.get('__run');const r=f(d.code,d.inp);const a=r.toJs();r.destroy();f.destroy();postMessage({type:'res',id:d.id,out:a[0],err:a[1]})}catch(x){postMessage({type:'res',id:d.id,out:'',err:String(x)})}};";
+}
+function pyStart(){
+  if(py.state==='ready') return Promise.resolve(true);
+  if(py.state==='fail') return Promise.resolve(false);
+  const p=new Promise(res=>py.waiters.push(res));
+  if(py.state==='loading') return p;
+  py.state='loading';pyStatusUpdate();
+  try{
+    py.worker=new Worker(URL.createObjectURL(new Blob([pyWorkerCode()],{type:'text/javascript'})));
+  }catch(e){pyDone(false);return p}
+  const t=setTimeout(()=>{if(py.state==='loading'){try{py.worker.terminate()}catch(e){}pyDone(false)}},90000);
+  py.worker.onmessage=e=>{const d=e.data;
+    if(d.type==='ready'){clearTimeout(t);pyDone(true)}
+    else if(d.type==='fail'){clearTimeout(t);pyDone(false)}
+    else if(d.type==='res'&&py.jobs[d.id]){py.jobs[d.id](d);delete py.jobs[d.id]}};
+  py.worker.onerror=()=>{clearTimeout(t);if(py.state==='loading')pyDone(false)};
+  return p;
+}
+function pyDone(ok){py.state=ok?'ready':'fail';py.waiters.splice(0).forEach(f=>f(ok));pyStatusUpdate()}
+function runPy(code,inp){
+  return new Promise(res=>{
+    const id=++py.seq;
+    const timer=setTimeout(()=>{ // бесконечный цикл: перезапускаем Python
+      delete py.jobs[id];try{py.worker.terminate()}catch(e){}
+      py.state='off';pyStart();
+      res({out:'',err:'Программа работает слишком долго — возможно, бесконечный цикл.'});
+    },6000);
+    py.jobs[id]=d=>{clearTimeout(timer);res(d)};
+    py.worker.postMessage({id,code,inp});
+  });
+}
+function pyStatusUpdate(){
+  const el=document.getElementById('pyStatus');if(!el)return;
+  const man=document.getElementById('manualBox');
+  if(py.state==='loading'){el.className='pystat wait';el.textContent='⏳ Загружаю Python… (в первый раз до 20–30 секунд, нужен интернет)'}
+  else if(py.state==='ready'){el.className='pystat ok';el.textContent='✓ Python готов. Напиши программу, нажми «▶ Запустить», затем «Проверить».'}
+  else if(py.state==='fail'){el.className='pystat no';el.textContent='Python не загрузился (нет интернета?). Запусти программу в IDLE на данных выше и впиши, что она вывела.'}
+  else {el.className='pystat wait';el.textContent=''}
+  if(man) man.classList.toggle('hidden',py.state!=='fail');
+}
+async function testProgram(t,code){ // все тесты задачи
+  for(let k=0;k<t.tests.length;k++){
+    const T=t.tests[k],r=await runPy(code,T.input);
+    if(r.err) return {ok:false,k,input:T.input,exp:T.ans,got:r.out,err:r.err};
+    if(!sameOutput(r.out,T.ans)) return {ok:false,k,input:T.input,exp:T.ans,got:r.out};
+  }
+  return {ok:true,n:t.tests.length};
+}
+function countComments(code){return code.split('\n').filter(l=>/#/.test(l.replace(/'[^'\n]*'|"[^"\n]*"/g,''))).length}
+function codeLines(code){return code.split('\n').filter(l=>l.trim()).length}
+function editorKeys(ta){
+  ta.addEventListener('keydown',e=>{
+    const s=ta.selectionStart,v=ta.value;
+    if(e.key==='Tab'){e.preventDefault();ta.setRangeText('    ',s,ta.selectionEnd,'end');ta.dispatchEvent(new Event('input'))}
+    else if(e.key==='Enter'){
+      const ls=v.lastIndexOf('\n',s-1)+1,line=v.slice(ls,s),ind=(line.match(/^ */)||[''])[0]+(/:\s*$/.test(line)?'    ':'');
+      e.preventDefault();ta.setRangeText('\n'+ind,s,ta.selectionEnd,'end');ta.dispatchEvent(new Event('input'))}
+  });
+}
+/* выделение имён (функций, переменных) в условиях */
+const IDF_SKIP=new Set(['IDLE','Python','ADAL','File','New','F5']);
+function idf(text){
+  return esc(text).replace(/(^|[^A-Za-zА-Яа-яЁё0-9_])([A-Za-z_][A-Za-z0-9_]*(?:\([^)]*\))?)/g,(m,p,w)=>IDF_SKIP.has(w)?m:p+'<b class="idf">'+w+'</b>');
+}
+
+/* ===================== МОДУЛИ ===================== */
+const STRUCT_KINDS=['def','def','def','def','def','par','arg','type','role','calls'];
+function makeStructure(n){const defs=shuffle(DEF_Q);let di=0;return shuffle(STRUCT_KINDS).slice(0,n).map(k=>genStructure(k==='def'?defs[di++]:k))}
+const MODULES=[
+  {id:'help',name:'Учебник'},
+  {id:'m1',name:'1. Строение',learnN:10,testN:10,make:n=>makeStructure(n)},
+  {id:'m2',name:'2. Что выведет?',learnN:10,testN:8,make:n=>cyc(OUT_GENS,n).map(g=>genOutput(g))},
+  {id:'m3',name:'3. Заполни пропуск',learnN:10,testN:8,make:n=>cyc(FILL_GENS,n).map(g=>genFill(g))},
+  {id:'m4',name:'4. Найди ошибку',learnN:10,testN:8,make:n=>cyc(BUG_GENS,n).map(g=>genBug(g))},
+  {id:'m5',name:'5. Задачи в IDLE',learnN:IDLE_GROUPS.reduce((a,g)=>a+g[1].length,0),testN:4,make:(n,m)=>m==='learn'?allIdle():testIdle()},
+  {id:'res',name:'Результаты'},
+];
+// берём генераторы по кругу в случайном порядке, чтобы задания не повторялись
+function cyc(arr,n){let out=[];while(out.length<n)out=out.concat(shuffle(arr));return out.slice(0,n)}
+function allIdle(){return IDLE_GROUPS.flatMap(g=>g[1].map(t=>genIdle(IDLE_BY_TITLE[t])))}
+function testIdle(){const pr=IDLE_GROUPS[0][1],fn=IDLE_GROUPS[1][1],ap=IDLE_GROUPS[2][1];
+  return [pick(pr),...shuffle(fn).slice(0,2),pick(ap)].map(t=>genIdle(IDLE_BY_TITLE[t]))}
+const HW_NOTE=()=>`<div class="note"><b>Домашнее задание. Задачи на выбор:</b> реши по ${HW_N} задачи из каждой группы — «Процедуры», «Функции», «Практическое применение» (всего ${HW_MAX}). Можно решить больше: в каждой группе засчитываются ${HW_N} верные задачи.</div>`;
+const DESCR={
+  m1:'Термины и строение подпрограммы: параметр, аргумент, вызов, процедура или функция.',
+  m2:'Прочитай программу и запиши, что она выведет. Сомневаешься — проверь в IDLE.',
+  m3:'Впиши пропущенное. Получившаяся программа должна работать в IDLE.',
+  m4:'Найди строку с ошибкой. Потом можно исправить программу в IDLE и убедиться, что она работает.',
+  m5:'Посмотри образец и напиши похожую программу прямо здесь, в окне редактора. «▶ Запустить» — проверить на данных из задания, «Проверить» — программа проверяется ещё на нескольких наборах данных.',
+};
+
+let mode='learn', cur='help';
+const results={learn:{},test:{}};          // результаты контроля: попытки
+const sessions={learn:{},test:{}};         // текущий набор заданий модуля в режиме
+let studentName='', studentClass='';
+const modById=id=>MODULES.find(m=>m.id===id);
+
+function renderNav(){
+  const nav=document.getElementById('nav');
+  nav.innerHTML=MODULES.map(m=>{
+    let r='';
+    if(m.make){const n=mode==='learn'?m.learnN:m.testN;const s=sessions[mode][m.id];
+      const done=s?s.answers.filter(Boolean).length:0;
+      r=` <span class="cnt">${s?done+'/':''}${n}</span>`;}
+    return `<button data-id="${m.id}" class="${m.id===cur?'on':''}">${m.name}${r}</button>`}).join('');
+  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>enter(b.dataset.id));
+}
+document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{
+  mode=b.dataset.m;document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('on',x===b));
+  if(modById(cur).make&&!sessions[mode][cur]) newSession(cur);
+  renderNav();render();
+});
+function enter(id){
+  cur=id;
+  const s=sessions[mode][id];
+  if(modById(id).make&&(!s||(mode==='test'&&s.finished))) newSession(id);
+  renderNav();render();window.scrollTo(0,0);
+}
+function newSession(id){
+  const mod=modById(id),n=mode==='learn'?mod.learnN:mod.testN;
+  const old=sessions[mode][id];
+  if(mode==='learn'&&old&&old.answers.some(Boolean)){const L=results.learn[id]||(results.learn[id]={log:[]});(L.hist||(L.hist=[])).push(setResult(old))}
+  sessions[mode][id]={tasks:mod.make(n,mode),answers:[],i:0,finished:false};
+}
+
+function studentBlock(){
+  return `<div class="student">
+    <label>Фамилия, имя: <input id="fio" name="st_${Date.now()}" autocomplete="off" value="${esc(studentName)}"></label>
+    <label>Класс: <select id="cls"><option value="">—</option>${['10А','10Б'].map(c=>`<option ${c===studentClass?'selected':''}>${c}</option>`).join('')}</select></label>
+    <span class="modelab">Режим: <b>${mode==='learn'?'обучение':'контроль'}</b></span>
+  </div>`;
+}
+function bindStudent(){
+  const f=document.getElementById('fio'),c=document.getElementById('cls');
+  if(f) f.oninput=()=>studentName=f.value;
+  if(c) c.onchange=()=>studentClass=c.value;
+}
+
+function render(){
+  const main=document.getElementById('main');
+  if(cur==='help'){main.innerHTML=HELP;return;}
+  if(cur==='res'){main.innerHTML=studentBlock()+renderResults();bindStudent();bindResults();return;}
+  const mod=modById(cur);
+  if(!sessions[mode][cur]) newSession(cur);
+  const s=sessions[mode][cur];
+  let h=studentBlock()+(mode==='learn'?summaryHTML():sendBlock())+`<div class="card"><h2>${mod.name}</h2>`+(cur==='m5'&&mode==='learn'?HW_NOTE():'')+`<div class="descr">${DESCR[cur]}</div>`;
+  if(mode==='test'&&s.finished) h+=renderFinished(s);
+  else h+=statLine(s)+pillsHTML(s)+`<div class="taskbox">`+taskHTML(s.tasks[s.i])+`<div id="fbox"></div></div>`+buttonsHTML(s);
+  main.innerHTML=h+`</div>`;
+  bindStudent();bindTask();bindSend();
+  if(!(mode==='test'&&s.finished)) restoreState(s);
+}
+function statLine(s){
+  const n=s.tasks.length,done=s.answers.filter(Boolean).length,right=s.answers.filter(a=>a&&a.ok).length;
+  if(mode==='learn'){const L=results.learn[cur],att=(L&&L.hist?L.hist.length:0)+1,b=learnBest(cur);
+    return `<div class="stat"><span>Попытка: <b>${att}</b></span><span>Заданий: <b>${n}</b></span><span>Решено: <b>${done}</b></span><span>Верно: <b>${right}</b></span><span>${cur==='m5'?`Засчитано (лучшая попытка): <b>${hwSummary().r} из ${HW_MAX}</b>`:`Лучший результат модуля: <b>${b?b.right:0} из ${n}</b>`}</span></div>`;}
+  return `<div class="stat"><span>Заданий: <b>${n}</b></span><span>Отвечено: <b>${done}</b></span></div>`;
+}
+function pillsHTML(s){
+  const pill=(t,i)=>{const a=s.answers[i];let c='pill';if(i===s.i)c+=' cur';
+    if(a) c+= mode==='learn'?(a.ok?' ok':' no'):' done';
+    return `<button class="${c}" data-p="${i}" title="${esc(t.brief)}">${i+1}</button>`};
+  if(cur==='m5'&&mode==='learn'){
+    let i=0;return `<div class="pillgroups">`+IDLE_GROUPS.map(g=>`<div class="pg"><div class="pgname">${g[0]} · верно ${s.tasks.map((t,k)=>s.answers[k]&&s.answers[k].ok&&t.group===g[0]).filter(Boolean).length}, нужно ${HW_N}</div><div class="pills">`+g[1].map(()=>{const r=pill(s.tasks[i],i);i++;return r}).join('')+`</div></div>`).join('')+`</div>`;
+  }
+  return `<div class="pills">`+s.tasks.map(pill).join('')+`</div>`;
+}
+function buttonsHTML(s){
+  const a=s.answers[s.i],n=s.tasks.length;
+  let h=`<div class="btns">`;
+  const t0=s.tasks[s.i],retry=(t0.type==='idle'&&mode==='learn'&&a&&!a.ok);
+  h+=`<button class="btn" id="checkBtn" ${a&&!retry?'disabled':''}>${mode==='learn'?'Проверить':'Ответить'}</button>`;
+  h+=`<button class="btn sec" id="prevBtn" ${s.i===0?'disabled':''}>← Предыдущее</button>`;
+  h+=`<button class="btn sec" id="nextBtn" ${s.i===n-1?'disabled':''}>Следующее →</button>`;
+  if(mode==='learn') h+=`<button class="btn lav" id="newSet">Новый набор заданий</button>`;
+  else h+=`<button class="btn lav" id="finishBtn">Завершить контроль</button>`;
+  return h+`</div>`;
+}
+function renderFinished(s){
+  const right=s.answers.filter(x=>x&&x.ok).length,tot=s.tasks.length;
+  return `<div class="fb neutral" style="text-align:center"><div>Контроль завершён</div><div class="grade">${grade(right,tot)} / 10</div><div>Верно ${right} из ${tot}</div></div>
+    <h3>Разбор</h3>`+s.tasks.map((t,i)=>{const a=s.answers[i];return `<div class="fb ${a&&a.ok?'ok':'no'}"><b>${i+1}.</b> ${esc(t.brief)} — ${a?(a.ok?'верно':'неверно'):'нет ответа'}${!(a&&a.ok)?`; правильный ответ: <span class="mono">${esc(t.correct).replace(/\n/g,' ⏎ ')}</span>`:''}</div>`}).join('')+
+    `<div class="btns"><button class="btn" id="againBtn">Пройти заново (новые задания)</button><button class="btn lav" id="toRes">Сохранить результаты в файл</button></div>`;
+}
+
+/* ---------- отрисовка задания ---------- */
+function taskHTML(t){
+  let h=`<div class="q">${t.type==='mc'?idf(t.q):esc(t.q)}</div>`;
+  if(t.type==='mc'){
+    if(t.code) h+=pre(t.code);
+    h+=`<div class="opts">`+t.options.map((o,i)=>`<div class="opt" data-i="${i}"><span>${String.fromCharCode(1040+i)})</span><span class="${!/[А-Яа-яЁё]/.test(o)?'mono':''}">${esc(o)}</span></div>`).join('')+`</div>`;
+  }
+  if(t.type==='out') h+=pre(t.code)+`<textarea class="ans mono" id="ansText" placeholder="Вывод программы" spellcheck="false"></textarea>`;
+  if(t.type==='fill'){
+    const html=t.code.split(/(\{\{\d\}\})/).map(seg=>{const m=seg.match(/\{\{(\d)\}\}/);if(m)return `<input class="blank mono" data-b="${m[1]}" autocomplete="off" spellcheck="false">`;return hlSeg(seg,fnNames(t.code))}).join('');
+    h+=`<pre class="code">${html}</pre><div>Программа должна вывести:</div><div class="out mono">${esc(t.out)}</div>`;
+  }
+  if(t.type==='bug') h+=`<div class="lines mono">`+t.lines.map((l,i)=>`<div class="ln" data-l="${i}"><span class="no">${i+1}</span><span>${hlSeg(l,fnNames(t.lines.join('\n')))||' '}</span></div>`).join('')+`</div>`;
+  if(t.type==='idle'){
+    h=`<div class="grouptag">${esc(t.group)}</div><h3 class="tt">${esc(t.title)}</h3>`;
+    h+=`<div class="sampleHead"><span class="tag">Образец</span>${idf(t.sampleText)}</div>`+pre(t.sample);
+    h+=`<div class="sampleHead"><span class="tag tag2">Твоя задача</span></div><div class="note">${idf(t.task)}</div>`;
+    if(t.fmt) h+=`<div class="out mono">${esc(t.fmt)}</div>`;
+    h+=`<div class="edhead"><b>Твоя программа:</b><span>Входные данные для запуска: <span class="inp mono small">${esc(t.input).replace(/\n/g,'  ⏎  ')}</span></span></div>
+      <textarea class="editor mono" id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" placeholder="def ...:"></textarea>
+      <div class="runrow"><button class="btn sec" id="runBtn">▶ Запустить</button><span id="pyStatus" class="pystat"></span></div>
+      <div id="runOut"></div>
+      <div id="manualBox" class="hidden"><b>Что вывела программа в IDLE?</b><textarea class="ans mono" id="ansText" placeholder="Вывод программы" spellcheck="false"></textarea></div>`;
+  }
+  return h;
+}
+function readAnswer(t){
+  if(t.type==='mc'){const s=document.querySelector('.opt.sel');return s?t.options[+s.dataset.i]:null}
+  if(t.type==='out'){const v=document.getElementById('ansText').value;return v.trim()?v:null}
+  if(t.type==='idle'){const c=document.getElementById('code').value;if(!c.trim())return null;
+    if(py.state==='fail'){const m=document.getElementById('ansText').value;if(!m.trim())return null;return {code:c,manual:m}}
+    return {code:c}}
+  if(t.type==='fill'){const v=[...document.querySelectorAll('input.blank')].map(i=>i.value.trim());return v.some(x=>x==='')?null:v}
+  if(t.type==='bug'){const s=document.querySelector('.ln.sel');return s?+s.dataset.l:null}
+}
+function check(t,a){
+  if(a===null) return false;
+  if(t.type==='mc') return a===t.correct;
+  if(t.type==='out') return sameOutput(a,t.correct);
+  if(t.type==='fill') return a.every((v,i)=>t.answers[i].some(x=>x.replace(/\s/g,'')===v.replace(/\s/g,'')));
+  if(t.type==='bug') return a===t.errLine;
+}
+function applyAnswer(t,a){ // показать ранее данный ответ
+  if(t.type==='mc') document.querySelectorAll('.opt').forEach(o=>o.classList.toggle('sel',t.options[+o.dataset.i]===a));
+  if(t.type==='out') document.getElementById('ansText').value=a;
+  if(t.type==='idle'){document.getElementById('code').value=a.code;if(a.manual)document.getElementById('ansText').value=a.manual}
+  if(t.type==='fill') document.querySelectorAll('input.blank').forEach((inp,i)=>inp.value=a[+inp.dataset.b]);
+  if(t.type==='bug') document.querySelectorAll('.ln').forEach(l=>l.classList.toggle('sel',+l.dataset.l===a));
+}
+function lockTask(){
+  document.querySelector('.taskbox').classList.add('done');
+  document.querySelectorAll('#ansText,input.blank,#code').forEach(x=>x.disabled=true);
+}
+function showCheck(t,a){
+  if(t.type==='mc') document.querySelectorAll('.opt').forEach(o=>{const v=t.options[+o.dataset.i];if(v===t.correct)o.classList.add('good');else if(v===a)o.classList.add('wrong')});
+  if(t.type==='fill') document.querySelectorAll('input.blank').forEach(i=>{const k=+i.dataset.b;i.classList.add(t.answers[k].some(x=>x.replace(/\s/g,'')===i.value.replace(/\s/g,''))?'good':'wrong')});
+  if(t.type==='bug') document.querySelectorAll('.ln').forEach(l=>{const k=+l.dataset.l;if(k===t.errLine)l.classList.add('good');else if(k===a)l.classList.add('wrong')});
+}
+function explainHTML(t,ok){
+  let h=`<div class="fb ${ok?'ok':'no'}"><b>${ok?'Верно!':'Неверно.'}</b> `;
+  if(t.type==='out') h+=(ok?'':`Правильный вывод:<div class="out mono">${esc(t.correct)}</div>`)+esc(t.expl);
+  else if(t.type==='fill') h+=(ok?'':`Правильно: <b class="mono">${esc(t.correct)}</b>. `)+esc(t.expl)+`<div style="margin-top:8px">Готовая программа — проверь её в IDLE:</div>`+pre(t.full);
+  else if(t.type==='bug') h+=`Ошибка в строке ${t.errLine+1}. ${esc(t.expl)}<div style="margin-top:6px">Исправление: <span class="mono">${esc(t.fix)}</span></div>`;
+  else if(t.type==='idle'){const R=t.res||{};
+    if(ok) h+=(R.manual?'Вывод совпал с правильным.':`Программа прошла все проверки (${t.tests.length} набора данных).`)+`<div style="margin-top:6px"><button class="btn sec" id="showSol">Сравнить с решением учителя</button></div><div id="sol" class="hidden">${pre(t.sol)}</div>`;
+    else if(R.manual) h+=`Вывод не совпал. Правильный вывод для этих данных:<div class="out mono">${esc(t.correct)}</div>`;
+    else h+=`Проверка ${R.k+1} из ${t.tests.length} не пройдена.<div>Входные данные:</div><div class="inp mono">${esc(R.input)}</div>`+
+      (R.err?`<div>Ошибка:</div><div class="errbox mono">${esc(R.err)}</div>`:`<div class="two"><div>Ожидалось:<div class="out mono">${esc(R.exp)}</div></div><div>Твоя программа вывела:<div class="out mono">${esc(R.got)||' '}</div></div></div>`)+
+      (mode==='learn'?'<div>Исправь программу и нажми «Проверить» ещё раз.</div>':'');}
+  else h+=esc(t.expl);
+  return h+'</div>';
+}
+function restoreState(s){
+  const t=s.tasks[s.i],a=s.answers[s.i];
+  if(!a) return;
+  applyAnswer(t,a.a);
+  if(t.type==='idle') t.res=a.res;
+  const retry=(t.type==='idle'&&mode==='learn'&&!a.ok);
+  if(!retry) lockTask();
+  if(mode==='learn'){showCheck(t,a.a);document.getElementById('fbox').innerHTML=explainHTML(t,a.ok);
+    const sb=document.getElementById('showSol');if(sb)sb.onclick=()=>document.getElementById('sol').classList.toggle('hidden');}
+  else document.getElementById('fbox').innerHTML=`<div class="fb neutral">Ответ принят. Правильность будет видна после завершения контроля.</div>`;
+}
+function grade(r,t){return Math.round(10*r/t)}
+
+function bindTask(){
+  document.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{if(o.closest('.done'))return;document.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));o.classList.add('sel')});
+  document.querySelectorAll('.ln').forEach(o=>o.onclick=()=>{if(o.closest('.done'))return;document.querySelectorAll('.ln').forEach(x=>x.classList.remove('sel'));o.classList.add('sel')});
+  const s=sessions[mode][cur];
+  const go=i=>{s.i=i;render()};
+  document.querySelectorAll('.pill').forEach(p=>p.onclick=()=>go(+p.dataset.p));
+  const $=id=>document.getElementById(id);
+  if($('prevBtn')) $('prevBtn').onclick=()=>go(s.i-1);
+  if($('nextBtn')) $('nextBtn').onclick=()=>go(s.i+1);
+  if($('newSet')) $('newSet').onclick=()=>{if(confirm('Пройти модуль ещё раз с новыми заданиями? В итоговую оценку пойдёт ЛУЧШИЙ результат.')){newSession(cur);renderNav();render()}};
+  if($('againBtn')) $('againBtn').onclick=()=>{newSession(cur);renderNav();render()};
+  if($('toRes')) $('toRes').onclick=()=>enter('res');
+  if($('finishBtn')) $('finishBtn').onclick=()=>{const left=s.tasks.length-s.answers.filter(Boolean).length;
+    if(confirm(left?`Без ответа осталось заданий: ${left}. Они будут засчитаны как неверные. Завершить контроль?`:'Завершить контроль?'))finishTest()};
+  if($('code')){const ta=$('code');editorKeys(ta);
+    if(s.drafts&&s.drafts[s.i]!==undefined&&!s.answers[s.i]) ta.value=s.drafts[s.i];
+    ta.addEventListener('input',()=>{(s.drafts||(s.drafts={}))[s.i]=ta.value});
+    pyStart();pyStatusUpdate();
+    $('runBtn').onclick=async()=>{const t=s.tasks[s.i],c=ta.value;if(!c.trim()){flash('Сначала напиши программу.');return}
+      const ok=await pyStart();if(!ok){flash('Python недоступен — запусти программу в IDLE.');return}
+      $('runOut').innerHTML='<div class="pystat wait">Выполняю…</div>';
+      const r=await runPy(c,t.input);
+      $('runOut').innerHTML=`<div>Результат запуска:</div><div class="out mono">${esc(r.out)||' '}</div>`+(r.err?`<div class="errbox mono">${esc(r.err)}</div>`:'');};
+  }
+  if($('checkBtn')) $('checkBtn').onclick=async()=>{
+    if(!needName()) return;
+    const t=s.tasks[s.i],a=readAnswer(t);
+    if(a===null){flash(t.type==='idle'?(py.state==='fail'?'Напиши программу и впиши её вывод.':'Сначала напиши программу.'):'Сначала дай ответ.');return}
+    let ok;
+    if(t.type==='idle'){
+      if(a.manual!==undefined){ok=sameOutput(a.manual,t.correct);a.res={manual:true}}
+      else{if(py.state!=='ready'){flash('Подожди, Python ещё загружается…');const r=await pyStart();if(!r){render();return}}
+        $('checkBtn').disabled=true;flash('Проверяю программу…');
+        a.res=await testProgram(t,a.code);ok=a.res.ok;}
+      a.comments=countComments(a.code);a.lines=codeLines(a.code);
+    } else ok=check(t,a);
+    s.answers[s.i]={a,ok,user:fmtUser(t,a),res:a.res};
+    markDirty();if(mode==='learn'){const L=results.learn[cur]||(results.learn[cur]={log:[]});L.log.push({q:t.brief,ok,user:fmtUser(t,a)})}
+    renderNav();
+    if(mode==='test'){
+      const next=s.tasks.findIndex((x,i)=>i>s.i&&!s.answers[i]),any=s.tasks.findIndex((x,i)=>!s.answers[i]);
+      if(any<0){finishTest();return}
+      s.i=next>=0?next:any;
+    }
+    render();
+  };
+}
+function fmtUser(t,a){if(a===null)return '—';if(t.type==='idle')return 'программа, строк: '+codeLines(a.code)+(a.manual?' (вывод введён вручную)':'');if(t.type==='mc')return a;if(t.type==='bug')return 'строка '+(a+1);if(t.type==='fill')return a.join(' | ');return String(a).trim()}
+function finishTest(){
+  markDirty();
+  const s=sessions.test[cur];s.finished=true;
+  const right=s.answers.filter(x=>x&&x.ok).length,tot=s.tasks.length;
+  const r=results.test[cur]||(results.test[cur]={attempts:[]});
+  r.attempts.push({right,total:tot,grade:grade(right,tot),items:s.tasks.map((t,i)=>({q:t.brief,g:t.group||'',ok:!!(s.answers[i]&&s.answers[i].ok),user:s.answers[i]?s.answers[i].user:'нет ответа',code:s.answers[i]&&s.answers[i].a&&s.answers[i].a.code||'',manual:!!(s.answers[i]&&s.answers[i].a&&s.answers[i].a.manual)}))});
+  renderNav();render();window.scrollTo(0,0);
+}
+function needName(){
+  if(!studentName.trim()||!studentClass){flash('Заполни фамилию, имя и выбери класс вверху.');document.getElementById('fio').focus();return false}
+  return true;
+}
+function flash(msg){const b=document.getElementById('fbox');if(b)b.innerHTML=`<div class="fb neutral">${esc(msg)}</div>`}
+
+/* ---------- результаты, отправка и экспорт ---------- */
+// >>> Вставьте сюда адрес веб-приложения Google Apps Script (между кавычками):
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8i5TGyq6dQJO6H5Jjr6d-hKGeTW6GwjRpPITiEg4As6o-XlOjKcv60diKF-pDqryf/exec';
+
+const CW=['m1','m2','m3','m4'];                 // классная работа
+const HW_N=2;                                   // ДЗ: сколько задач засчитывается в каждой группе
+const HW_MAX=HW_N*IDLE_GROUPS.length;           // 12
+function setResult(se){
+  const items=se.tasks.map((t,i)=>({q:t.brief,g:t.group||'',ok:!!(se.answers[i]&&se.answers[i].ok),st:se.answers[i]?(se.answers[i].ok?'верно':'неверно'):'не решено',code:se.answers[i]&&se.answers[i].a&&se.answers[i].a.code||'',manual:!!(se.answers[i]&&se.answers[i].a&&se.answers[i].a.manual)}));
+  return {right:items.filter(x=>x.ok).length,total:se.tasks.length,items};
+}
+function hwGroups(res){return IDLE_GROUPS.map(g=>{const k=res?res.items.filter(x=>x.g===g[0]&&x.ok).length:0;return {name:g[0],solved:k,counted:Math.min(k,HW_N)}})}
+function score(id,res){return id==='m5'?hwGroups(res).reduce((a,g)=>a+g.counted,0):res.right}
+function learnBest(id){
+  const L=results.learn[id],c=(L&&L.hist?L.hist.slice():[]),se=sessions.learn[id];
+  if(se&&se.answers.some(Boolean)) c.push(setResult(se));
+  if(!c.length) return null;
+  return c.reduce((b,x)=>score(id,x)>score(id,b)?x:b);
+}
+function attempts(id){const L=results.learn[id],se=sessions.learn[id];return (L&&L.hist?L.hist.length:0)+(se&&se.answers.some(Boolean)?1:0)}
+function cwSummary(){let r=0,t=0,any=false;CW.forEach(id=>{const b=learnBest(id);if(b){r+=b.right;any=true}t+=modById(id).learnN});return {r,t,g:grade(r,t),any}}
+function hwSummary(){const b=learnBest('m5'),gs=hwGroups(b),r=gs.reduce((a,g)=>a+g.counted,0);return {r,t:HW_MAX,g:grade(r,HW_MAX),any:!!b,groups:gs,best:b}}
+function ctSummary(){ // контроль: последняя попытка каждого модуля
+  let r=0,t=0;const per={};
+  MODULES.filter(x=>x.make).forEach(x=>{const R=results.test[x.id];if(R&&R.attempts.length){const a=R.attempts[R.attempts.length-1];per[x.id]=a;r+=a.right;t+=a.total}});
+  return {r,t,g:t?grade(r,t):null,per};
+}
+
+/* --- состояние отправки --- */
+let dirty=false, lastSent=null, sending=false;
+function markDirty(){dirty=true}
+function sendStatusHTML(){
+  if(sending) return `<div class="send wait">Отправка…</div>`;
+  if(lastSent&&!dirty) return `<div class="send ok">✓ Результаты отправлены учителю в ${lastSent.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</div>`;
+  if(lastSent&&dirty) return `<div class="send no">Есть новые результаты — отправь их учителю ещё раз</div>`;
+  return `<div class="send no">Результаты ещё не отправлены учителю</div>`;
+}
+function sendBlock(){return `<div class="sendbar">${sendStatusHTML()}<button class="btn" id="sendBtn">📤 Отправить результат учителю</button></div>`}
+function bindSend(){const b=document.getElementById('sendBtn');if(b)b.onclick=sendResults}
+function sendResults(){
+  if(!studentName.trim()||!studentClass){alert('Заполни фамилию, имя и выбери класс вверху.');const f=document.getElementById('fio');if(f)f.focus();return}
+  if(SCRIPT_URL.indexOf('PASTE_')===0){alert('Адрес Google-таблицы не указан. Сохрани результаты в файл и скажи учителю.');return}
+  const cw=cwSummary(),hw=hwSummary(),ct=ctSummary();
+  const payload={
+    name:studentName.trim().replace(/\s+/g,' '),cls:studentClass,
+    m1:(learnBest('m1')||{right:0}).right,m2:(learnBest('m2')||{right:0}).right,m3:(learnBest('m3')||{right:0}).right,m4:(learnBest('m4')||{right:0}).right,
+    cw_right:cw.r,cw_total:cw.t,cw_grade:cw.any?cw.g:'',
+    hw_groups:hw.groups.map(g=>g.counted+'/'+HW_N).join('; '),hw_right:hw.r,hw_total:hw.t,hw_grade:hw.any?hw.g:'',
+    ct_m1:ct.per.m1?ct.per.m1.grade:'',ct_m2:ct.per.m2?ct.per.m2.grade:'',ct_m3:ct.per.m3?ct.per.m3.grade:'',ct_m4:ct.per.m4?ct.per.m4.grade:'',ct_m5:ct.per.m5?ct.per.m5.grade:'',
+    ct_right:ct.t?ct.r:'',ct_total:ct.t||'',ct_grade:ct.g===null?'':ct.g,
+    programs:[]
+  };
+  const prog=(md,it)=>{if(it.code)payload.programs.push({mode:md,task:it.q,group:it.g,ok:it.ok?'верно':'неверно',code:it.code,lines:codeLines(it.code),comments:countComments(it.code),manual:it.manual?'да':''})};
+  if(hw.best) hw.best.items.forEach(it=>prog('ДЗ',it));
+  if(ct.per.m5) ct.per.m5.items.forEach(it=>prog('Контроль',it));
+  sending=true;refreshSend();
+  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+    .then(()=>{sending=false;dirty=false;lastSent=new Date();refreshSend();alert('Результаты отправлены учителю.')})
+    .catch(()=>{sending=false;refreshSend();alert('Не удалось отправить: проверь интернет и попробуй ещё раз. На всякий случай сохрани результаты в файл.')});
+}
+function refreshSend(){document.querySelectorAll('.sendbar .send').forEach(x=>x.outerHTML=sendStatusHTML());}
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='Результаты не отправлены учителю!';return e.returnValue}});
+
+/* --- плашки с итогами --- */
+function summaryHTML(){
+  const cw=cwSummary(),hw=hwSummary();
+  const chips=CW.map(id=>{const b=learnBest(id),n=modById(id).learnN;return `<span class="chip ${b&&b.right===n?'full':''}">${modById(id).name.split(' ')[0]} ${b?b.right:0}/${n}</span>`}).join('');
+  const hchips=hw.groups.map(g=>`<span class="chip ${g.counted===HW_N?'full':''}">${g.name} ${g.counted}/${HW_N}</span>`).join('');
+  return `<div class="summary">
+    <div class="sumbox ${CW.includes(cur)?'act':''}"><div class="sumt">Классная работа · модули 1–4</div>
+      <div class="chips">${chips}</div>
+      <div>Заработано <b>${cw.r}</b> из <b>${cw.t}</b> → оценка <span class="sg">${cw.any?cw.g+'<small>/10</small>':'—'}</span></div>
+      <div class="sumhint">Считается лучшая попытка каждого модуля, нерешённые задания — неверные. Модуль можно пройти ещё раз.</div></div>
+    <div class="sumbox ${cur==='m5'?'act':''}"><div class="sumt">Домашнее задание · задачи в IDLE</div>
+      <div class="chips">${hchips}</div>
+      <div>Заработано <b>${hw.r}</b> из <b>${hw.t}</b> → оценка <span class="sg">${hw.any?hw.g+'<small>/10</small>':'—'}</span></div>
+      <div class="sumhint">Задачи на выбор: по ${HW_N} из каждой группы.</div></div>
+  </div>`+sendBlock();
+}
+function renderResults(){
+  const cw=cwSummary(),hw=hwSummary(),ct=ctSummary();
+  let h=`<div class="card"><h2>Результаты</h2>${sendBlock()}
+  <h3>Классная работа (модули 1–4)</h3><table class="cmp"><tr><th>Модуль</th><th>Лучшая попытка</th><th>Попыток</th></tr>`;
+  CW.forEach(id=>{const b=learnBest(id),n=modById(id).learnN;h+=`<tr><td>${modById(id).name}</td><td>${b?b.right:0} из ${n}</td><td>${attempts(id)}</td></tr>`});
+  h+=`<tr><th>Итого</th><th>${cw.r} из ${cw.t}</th><th>Оценка: ${cw.any?cw.g+' / 10':'—'}</th></tr></table>
+  <h3>Домашнее задание (задачи в IDLE, на выбор)</h3><table class="cmp"><tr><th>Группа</th><th>Решено верно</th><th>Засчитано</th></tr>`;
+  hw.groups.forEach(g=>h+=`<tr><td>${g.name}</td><td>${g.solved}</td><td>${g.counted} из ${HW_N}</td></tr>`);
+  h+=`<tr><th>Итого</th><th></th><th>${hw.r} из ${hw.t} · оценка ${hw.any?hw.g+' / 10':'—'}</th></tr></table>
+  <h3>Контроль</h3><table class="cmp"><tr><th>Раздел</th><th>Верно / всего</th><th>Оценка (из 10)</th></tr>`;
+  MODULES.filter(x=>x.make).forEach(x=>{const r=results.test[x.id],at=r&&r.attempts.length?r.attempts:null;
+    h+=`<tr><td>${x.name}</td><td>${at?at.map(a=>a.right+'/'+a.total).join(', '):'—'}</td><td>${at?at.map(a=>a.grade).join(', '):'—'}</td></tr>`});
+  if(ct.t) h+=`<tr><th>Итого (последние попытки)</th><th>${ct.r} из ${ct.t}</th><th>Оценка: ${ct.g} / 10</th></tr>`;
+  return h+`</table><button class="btn lav" id="saveBtn">Сохранить результаты в файл (.txt)</button></div>`;
+}
+function bindResults(){document.getElementById('saveBtn').onclick=exportTxt;bindSend()}
+function exportTxt(){
+  if(!studentName.trim()||!studentClass){alert('Заполни фамилию, имя и класс.');return}
+  const ds=new Date().toLocaleString('ru-RU'),cw=cwSummary(),hw=hwSummary(),ct=ctSummary();
+  let t=`Учебник-тренажёр «Пользовательские процедуры и функции»\nУченик: ${studentName.trim()}\nКласс: ${studentClass}\nДата: ${ds}\n`;
+  t+=`\n=== КЛАССНАЯ РАБОТА (модули 1–4) ===\n`;
+  CW.forEach(id=>{const b=learnBest(id),n=modById(id).learnN;t+=`${modById(id).name}: лучшая попытка ${b?b.right:0} из ${n} (попыток: ${attempts(id)})\n`});
+  t+=`ИТОГО: ${cw.r} из ${cw.t}, оценка ${cw.any?cw.g+'/10':'—'}\n`;
+  t+=`\n=== ДОМАШНЕЕ ЗАДАНИЕ (задачи на выбор, по ${HW_N} из группы) ===\n`;
+  hw.groups.forEach(g=>t+=`${g.name}: решено верно ${g.solved}, засчитано ${g.counted} из ${HW_N}\n`);
+  t+=`ИТОГО: ${hw.r} из ${hw.t}, оценка ${hw.any?hw.g+'/10':'—'}\n`;
+  if(hw.best) hw.best.items.forEach((it,i)=>{t+=`   ${i+1}. ${it.q} (${it.g}): ${it.st}\n`;if(it.code)t+=it.code.split('\n').map(l=>'        | '+l).join('\n')+'\n'});
+  t+=`\n=== КОНТРОЛЬ ===\n`;
+  MODULES.filter(x=>x.make).forEach(x=>{
+    const r=results.test[x.id];
+    if(!r||!r.attempts.length){t+=`${x.name}: не выполнялся\n`;return}
+    r.attempts.forEach((a,k)=>{
+      t+=`${x.name} — попытка ${k+1}: верно ${a.right} из ${a.total}, оценка ${a.grade}/10\n`;
+      a.items.forEach((it,i)=>t+=`   ${i+1}. ${it.q}: ${it.ok?'верно':'неверно'} (ответ: ${String(it.user).replace(/\n/g,' / ')})\n`);
+    });
+  });
+  if(ct.t) t+=`ИТОГО по контролю: ${ct.r} из ${ct.t}, оценка ${ct.g}/10\n`;
+  t+=`\nОтправлено учителю: ${lastSent&&!dirty?'да, '+lastSent.toLocaleTimeString('ru-RU'):'нет'}\n`;
+  const blob=new Blob(['﻿'+t],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`Функции_${studentName.trim().replace(/\s+/g,'_')}_${studentClass}.txt`;
+  document.body.appendChild(a);a.click();a.remove();
+}
+
+/* ===================== УЧЕБНИК ===================== */
+const HELP=`
+<div class="card toc"><b>Содержание:</b>
+<a href="#h1">1. Зачем нужны подпрограммы</a><a href="#h2">2. Как описать подпрограмму</a><a href="#h3">3. Параметры и аргументы</a><a href="#h4">4. Процедура</a><a href="#h5">5. Функция и return</a><a href="#h6">6. return и print</a><a href="#h7">7. Частые ошибки</a><a href="#h8">8. Как проверять в IDLE</a></div>
+
+<div class="card" id="h1"><h2>1. Зачем нужны подпрограммы</h2>
+<p>В тексте песни припев поют несколько раз, а печатают его один раз и пишут: «Припев». Так же и в программе: повторяющийся фрагмент оформляют один раз как <b>подпрограмму</b>, а потом просто <b>вызывают</b> её по имени сколько угодно раз.</p>
+<p>Подпрограммы сокращают код и делают его понятнее. В Python бывают <b>встроенные</b> подпрограммы (print, input, len, max…) и <b>пользовательские</b> — те, которые программист пишет сам.</p>
+<div class="note"><b>Процедура</b> — подпрограмма, которая принимает данные (аргументы) и выполняет с ними действия.<br><b>Функция</b> — подпрограмма, которая принимает данные, выполняет с ними действия и <b>возвращает результат</b>.</div></div>
+
+<div class="card" id="h2"><h2>2. Как описать подпрограмму</h2>
+${pre("def имя(параметр1, параметр2):\n    тело подпрограммы")}
+<ul><li>Описание начинается со служебного слова <b class="mono">def</b>;</li>
+<li>после имени — круглые скобки с параметрами (скобки нужны, даже если параметров нет);</li>
+<li>строка заканчивается <b>двоеточием</b>;</li>
+<li>тело подпрограммы записывается с <b>отступом 4 пробела</b>;</li>
+<li>подпрограмма должна быть описана <b>до</b> первого вызова.</li></ul>
+<p><b>Вызов</b> — имя подпрограммы и аргументы в скобках:</p>${pre("имя(аргумент1, аргумент2)")}
+</div>
+
+<div class="card" id="h3"><h2>3. Параметры и аргументы</h2>
+<div class="two"><div class="note"><b>Параметр</b> — переменная в заголовке подпрограммы, от значения которой зависит её работа. Параметров может быть сколько угодно (или ни одного).</div>
+<div class="note"><b>Аргумент</b> — значение, которое передаётся подпрограмме при вызове.</div></div>
+${pre("def multiply(a, b):     # a, b — параметры\n    print(a * b)\n\nmultiply(3, 4)          # 3, 4 — аргументы")}
+<p>Аргументы передаются <b>по порядку</b>: первый — в первый параметр, второй — во второй. Количество аргументов должно совпадать с количеством параметров.</p>
+<div class="warn">Параметры — локальные переменные: они существуют только внутри подпрограммы.</div></div>
+
+<div class="card" id="h4"><h2>4. Процедура (без return)</h2>
+<div class="two"><div><p><b>Без параметров</b></p>${pre("def user():\n    print('Пользовательские')\n    print('процедуры')\n\nuser()\nuser()")}</div>
+<div><p><b>С параметром</b></p>${pre("def square(x):\n    print('Квадрат числа', x, '=', x ** 2)\n\nsquare(5)")}<div class="out mono">Квадрат числа 5 = 25</div></div></div>
+<p><b>Процедура без параметров может сама запрашивать данные</b></p>${pre("def vivod():\n    m = input()\n    n = int(input())\n    print(m * n)\n\nvivod()")}
+<p>Процедура <b>сама выводит</b> результат на экран. Использовать этот результат дальше в программе нельзя.</p></div>
+
+<div class="card" id="h5"><h2>5. Функция и return</h2>
+${pre("def area(a, b):\n    return a * b\n\ns1 = area(3, 4)\ns2 = area(5, 2)\nprint(s1 + s2)")}<div class="out mono">22</div>
+<p><b class="mono">return</b> возвращает значение в то место, где функцию вызвали. Его можно сохранить в переменную, вывести на экран или использовать в выражении: <span class="mono">print(area(3, 4) + 1)</span>.</p>
+<div class="warn"><b>return сразу завершает работу функции.</b> Строки, записанные после него в теле функции, не выполнятся.</div>
+${pre("def get_sum(x, y, z):\n    return x + y + z\n    print('Сумма равна', x + y + z)   # не выполнится!\n\nprint(get_sum(1, 2, 3))")}<div class="out mono">6</div></div>
+
+<div class="card" id="h6"><h2>6. return и print — в чём разница</h2>
+<table class="cmp"><tr><th>print</th><th>return</th></tr>
+<tr><td>Показывает значение <b>на экране</b></td><td>Передаёт значение <b>в программу</b>, в место вызова</td></tr>
+<tr><td>Можно использовать где угодно</td><td>Используется только внутри функции</td></tr>
+<tr><td>После print подпрограмма продолжает работу</td><td>После return функция заканчивает работу</td></tr>
+<tr><td>Результат нельзя сохранить в переменную</td><td>Результат можно сохранить, сравнить, сложить…</td></tr></table>
+<div class="two"><div>${pre("def sq_p(x):\n    print(x ** 2)\n\ny = sq_p(5)\nprint(y)")}<div class="out mono">25\nNone</div></div>
+<div>${pre("def sq_f(x):\n    return x ** 2\n\ny = sq_f(5)\nprint(y + 1)")}<div class="out mono">26</div></div></div>
+<div class="note">Если в подпрограмме нет return, она возвращает специальное значение <b class="mono">None</b> — «ничего».</div></div>
+
+<div class="card" id="h7"><h2>7. Частые ошибки</h2>
+<table class="cmp err"><colgroup><col style="width:26%"><col style="width:37%"><col style="width:37%"></colgroup><tr><th>Ошибка</th><th>Неправильно</th><th>Правильно</th></tr>
+<tr><td>Нет двоеточия</td><td class="mono">def f(a, b)</td><td class="mono">def f(a, b):</td></tr>
+<tr><td>Нет отступа в теле</td><td class="mono">def f(x):<br>return x * 2</td><td class="mono">def f(x):<br>    return x * 2</td></tr>
+<tr><td>Точка с запятой между параметрами</td><td class="mono">def f(a, b; c):</td><td class="mono">def f(a, b, c):</td></tr>
+<tr><td>Вызов до описания</td><td class="mono">print(f(5))<br>def f(x):<br>    return x * 2</td><td>Сначала def, потом вызов</td></tr>
+<tr><td>Не хватает аргументов</td><td class="mono">def f(a, b, c): …<br>f(2, 3)</td><td class="mono">f(2, 3, 4)</td></tr>
+<tr><td>Безымянный аргумент после именованного</td><td class="mono">f(a = 9, c = 5, 3)</td><td class="mono">f(9, 3, 5)</td></tr>
+<tr><td>Разный регистр имени</td><td class="mono">def Summa(a, b): …<br>summa(2, 3)</td><td>Имя пишется одинаково</td></tr>
+<tr><td>print вместо return, а результат нужен дальше</td><td class="mono">def f(x):<br>    print(x * 2)<br>y = f(3) + 1</td><td class="mono">def f(x):<br>    return x * 2</td></tr></table></div>
+
+<div class="card" id="h8"><h2>8. Как проверять программы в IDLE</h2>
+<ol><li>Открой IDLE, выбери <b>File → New File</b>.</li>
+<li>Напиши программу: сначала <b>описание</b> подпрограммы (def…), ниже — основная программа с вызовом.</li>
+<li>Сохрани файл (Ctrl+S) и запусти — <b>F5</b>.</li>
+<li>Если программа ждёт ввода, введи данные в окне Shell, каждое значение — и нажми Enter.</li>
+<li>Сравни вывод с тем, что требуется в задании.</li></ol>
+<div class="note">В модулях 2–4 сомнения тоже можно проверить в IDLE: перепиши код и запусти.</div></div>
+`;
+
+renderNav();render();
+</script>
+</body>
+</html>
