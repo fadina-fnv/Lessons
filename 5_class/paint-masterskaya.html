@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Мастерская художника: рисуем в Paint</title>
+<style>
+:root{
+  --ink:#2b2f5a; --muted:#5a6088; --coral:#ff6b5e; --sun:#ffd23f; --mint:#3fc28a; --sky:#2f8fe0;
+  --vio:#8a5cf0; --pink:#ff7eb6; --paper:#fff8ec; --line:#f0d9b5; --ok:#1f9a55; --ok-l:#e2f7ea;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:"Times New Roman",Times,serif;font-size:20px;line-height:1.4;
+  background-color:var(--paper);
+  background-image:
+    radial-gradient(circle at 6% 16%, #ffd9e8 0 110px, transparent 112px),
+    radial-gradient(circle at 96% 8%, #d6f3ff 0 150px, transparent 152px),
+    radial-gradient(circle at 90% 62%, #fff0b8 0 130px, transparent 132px),
+    radial-gradient(circle at 4% 78%, #d9f7e6 0 140px, transparent 142px),
+    radial-gradient(circle at 50% 100%, #eadcff 0 170px, transparent 172px);
+  background-attachment:fixed}
+header{padding:14px 18px;border-bottom:4px solid var(--sun);
+  background:linear-gradient(100deg,#ffe1ec 0%,#fff3c4 30%,#d9f7e6 60%,#d6ecff 100%)}
+header h1{margin:0;font-size:34px;line-height:1.1;color:#d6456f}
+header p{margin:4px 0 0;font-size:20px;color:var(--muted)}
+nav{position:sticky;top:0;z-index:30;display:flex;gap:10px;padding:8px 12px;background:rgba(255,248,236,.96);border-bottom:2px solid var(--line);overflow-x:auto}
+nav button{flex:0 0 auto;font:inherit;font-size:21px;font-weight:bold;padding:8px 18px;border-radius:999px;border:3px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+nav button.active{border-color:var(--coral);background:#ffe9e5;color:#c9392c}
+main{max-width:1200px;margin:0 auto;padding:16px 14px 60px}
+.view{display:none}.view.active{display:block}
+.card{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:14px 18px;margin-bottom:22px;box-shadow:7px 7px 0 var(--sun)}
+.card.c2{box-shadow:7px 7px 0 var(--mint)} .card.c3{box-shadow:7px 7px 0 var(--pink)}
+.card h2{margin:0 0 8px;font-size:27px;color:#d6456f;line-height:1.2}
+.card p{margin:6px 0}
+kbd{font-family:inherit;font-weight:bold;font-size:19px;background:#fff;border:2px solid #b9bfe6;border-bottom-width:4px;border-radius:7px;padding:1px 8px;white-space:nowrap;color:var(--ink)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:21px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:34px;height:34px;border-radius:50%;display:inline-block;border:3px solid var(--ink)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 16px}
+.chips button{font:inherit;font-size:20px;padding:8px 14px;border-radius:14px;border:3px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.chips button.active{border-color:var(--vio);background:#f1eaff;font-weight:bold}
+.chips button.done::after{content:" ✓";color:var(--ok);font-weight:bold}
+.btn{font:inherit;font-size:22px;font-weight:bold;padding:10px 20px;border-radius:14px;border:none;background:var(--coral);color:#fff;cursor:pointer;box-shadow:0 4px 0 #d9483a}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #d9483a}
+.btn.sec{background:#fff;color:#c9392c;border:3px solid var(--coral);box-shadow:none}
+.btn.go{background:var(--mint);box-shadow:0 4px 0 #2a9a6a}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.goal{list-style:none;padding:0;margin:8px 0;display:flex;gap:8px;flex-wrap:wrap}
+.goal li{padding:6px 12px;border-radius:10px;background:#f2f0fb;border:2px solid #d9d4f3;font-size:20px}
+.goal li.done{background:var(--ok-l);border-color:var(--ok);color:var(--ok);font-weight:bold}
+.goal li.done::before{content:"✓ "}
+.win{font-size:24px;font-weight:bold;color:var(--ok);background:var(--ok-l);border:3px solid var(--ok);border-radius:14px;padding:10px 14px;margin-top:10px;display:none}
+
+/* ---------- мини-Paint (как в Windows 11) ---------- */
+.sim{position:relative;border:1px solid #b9bcc4;border-radius:9px;background:#f3f3f3;overflow:hidden;user-select:none;-webkit-user-select:none;
+  font-family:"Segoe UI",Arial,sans-serif;font-size:13px;color:#1b1b1b;line-height:1.2;box-shadow:0 6px 18px rgba(40,50,90,.18)}
+.sim button{font:inherit;color:inherit;background:transparent;border:1px solid transparent;border-radius:5px;padding:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.sim button:disabled{cursor:default}
+.sim svg{display:block}
+.sim .pt{display:flex;align-items:center;gap:8px;padding:7px 12px;color:#444;font-size:13px}
+.sim .pt .w{margin-left:auto;display:flex;gap:26px;font-size:14px;color:#555;padding-right:6px}
+.sim .pm{display:flex;align-items:center;gap:4px;padding:2px 8px 6px}
+.sim .pm span.m{padding:6px 11px;font-size:15px}
+.sim .pm i.sep{width:1px;height:22px;background:#d0d0d0;margin:0 6px}
+.sim .pm button{width:34px;height:32px}
+.sim .pm button[data-k]:disabled{opacity:.35}
+.sim .pm .sp{margin-left:auto}
+.sim .pr{display:flex;align-items:stretch;background:#f9f9f9;border-top:1px solid #e3e3e3;border-bottom:1px solid #dcdcdc;padding:6px 4px 3px;overflow-x:auto}
+.sim .g{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:0 10px;border-right:1px solid #e0e0e0;flex:0 0 auto}
+.sim .g:last-child{border-right:none}
+.sim .g>.gc{display:flex;align-items:center;gap:6px;height:84px}
+.sim .g>span{font-size:12.5px;color:#5c5c5c;padding:3px 0 2px}
+.sim .dec{opacity:.9}
+.sim .grid2{display:grid;grid-template-columns:repeat(3,30px);grid-auto-rows:30px;gap:4px;justify-items:center;align-items:center}
+.sim .grid2 button{width:30px;height:30px}
+.sim .gal{display:grid;grid-template-columns:repeat(7,26px);grid-auto-rows:26px;gap:1px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;padding:3px}
+.sim .gal button{width:26px;height:26px}
+.sim .gal button.na{opacity:.38}
+.sim .gal button.on,.sim .grid2 button.on{background:#e3effb;border-color:#3b8ee0}
+.sim .col2{display:flex;flex-direction:column;gap:8px}
+.sim .dd{height:30px;padding:0 3px;gap:2px}
+.sim .dd.open{background:#e3effb;border-color:#3b8ee0}
+.sim .slots{display:flex;flex-direction:column;align-items:center;gap:8px;margin-right:6px}
+.sim .slot{border-radius:50%;padding:3px;border:2px solid transparent}
+.sim .slot i{display:block;border-radius:50%;border:1px solid #8a8a8a}
+.sim .slot.s1 i{width:32px;height:32px}.sim .slot.s2 i{width:28px;height:28px}
+.sim .slot.on{border-color:#3b8ee0}
+.sim .pal{display:grid;grid-template-columns:repeat(10,20px);grid-auto-rows:20px;gap:7px 8px}
+.sim .pal button,.sim .pal i{width:20px;height:20px;border-radius:50%;border:1px solid #8a8a8a;display:block}
+.sim .pal i{border-color:#b5b5b5;background:#fff}
+.sim .wheel{width:30px;height:30px;border-radius:50%;margin-left:8px;background:conic-gradient(#ff3b30,#ffcc00,#34c759,#00c7ff,#5856d6,#ff2d92,#ff3b30)}
+.sim [data-k].hit{box-shadow:0 0 0 4px #ffd23f;background:#fff7cf}
+.sim .pop{position:absolute;z-index:4;background:#fff;border:1px solid #c9c9c9;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.2);padding:4px;display:none;flex-direction:column;min-width:150px}
+.sim .pop.open{display:flex}
+.sim .pop button{justify-content:flex-start;gap:8px;padding:7px 10px;font-size:14px;white-space:nowrap}
+.sim .pop button.on{background:#e3effb}
+.sim .pop button b{display:block;width:44px;background:#1b1b1b;border-radius:2px}
+.sim .pc{background:#e9ecf1;padding:10px;text-align:center}
+.sim canvas{max-width:100%;height:auto;background:#fff;box-shadow:0 0 0 1px #cfd3da;touch-action:none;display:inline-block;vertical-align:top;cursor:crosshair}
+.sim .ps{display:flex;align-items:center;gap:14px;padding:5px 12px;font-size:13px;color:#444;background:#f3f3f3;border-top:1px solid #dcdcdc}
+.sim .ps .r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.sim .ps kbd{font-family:inherit;font-size:13px;font-weight:600;border:1px solid #b5b5b5;border-bottom-width:3px;border-radius:5px;padding:1px 7px;background:#fff}
+.sim .ps kbd.on{background:#ffd23f;border-color:#d9a400}
+.sim .ps .zl{width:90px;height:3px;background:#8a8a8a;border-radius:2px;position:relative}
+.sim .ps .zl::after{content:"";position:absolute;left:8px;top:-5px;width:12px;height:12px;border-radius:50%;background:#1a73d6}
+.sim .pm button.m{width:auto;height:auto;padding:6px 11px;font-size:15px}
+.sim .pm button.m.open{background:#e4e4e4}
+.sim .fmenu,.sim .fsub{position:absolute;z-index:5;background:#dedede;border:1px solid #c4c4c4;border-radius:9px;box-shadow:0 8px 22px rgba(0,0,0,.25);padding:5px;display:none;flex-direction:column;font-size:15px}
+.sim .fmenu{left:6px;top:78px;width:330px}
+.sim .fsub{width:250px}
+.sim .fmenu.open,.sim .fsub.open{display:flex}
+.sim .fmenu>*,.sim .fsub>*{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;justify-content:flex-start;font-size:15px;text-align:left}
+.sim .fmenu .k{margin-left:auto;color:#666;font-size:13px}
+.sim .fmenu .off{color:#9a9a9a}
+.sim .fmenu hr{padding:0;margin:3px 0;border:none;border-top:1px solid #c4c4c4;height:0}
+.sim .fmenu .ic{width:20px;text-align:center}
+.sim .dlg{position:absolute;z-index:5;left:50%;top:96px;transform:translateX(-50%);width:560px;max-width:94%;background:#fff;border:1px solid #9aa0aa;border-radius:9px;box-shadow:0 12px 34px rgba(0,0,0,.35);display:none;font-size:14px;overflow:hidden}
+.sim .dlg.open{display:block}
+.sim .dlg .dt{padding:8px 12px;background:#f3f3f3;border-bottom:1px solid #ddd;display:flex}
+.sim .dlg .dt span{margin-left:auto}
+.sim .dlg .dp{padding:7px 12px;border-bottom:1px solid #e6e6e6;color:#444}
+.sim .dlg .db{display:grid;grid-template-columns:170px 1fr;height:150px}
+.sim .dlg .dn{border-right:1px solid #e6e6e6;padding:6px;display:flex;flex-direction:column;gap:2px}
+.sim .dlg .dn>*{justify-content:flex-start;gap:8px;padding:6px 8px;border-radius:5px;display:flex;align-items:center;font-size:14px}
+.sim .dlg .dn .sel{background:#cfe4fa}
+.sim .dlg .df{padding:10px;color:#888;font-size:13px}
+.sim .dlg .dr{display:grid;grid-template-columns:90px 1fr;gap:6px 8px;align-items:center;padding:10px 12px 4px}
+.sim .dlg input{font:inherit;font-size:14px;padding:4px 7px;border:1px solid #9aa0aa;border-radius:4px;width:100%;color:#1b1b1b;background:#fff}
+.sim .dlg input.hit{box-shadow:0 0 0 4px #ffd23f}
+.sim .dlg .ty{padding:4px 7px;border:1px solid #c9c9c9;border-radius:4px;background:#f7f7f7}
+.sim .dlg .da{display:flex;justify-content:flex-end;gap:8px;padding:10px 12px}
+.sim .dlg .da button{padding:6px 18px;border:1px solid #b5b5b5;border-radius:5px;background:#f7f7f7}
+.sim .dlg .da button.pri{background:#1a73d6;border-color:#1a73d6;color:#fff}
+.sim.demo .fmenu,.sim.demo .fsub,.sim.demo .dlg{pointer-events:none}
+.sim.demo .pm,.sim.demo .pr,.sim.demo .pop,.sim.demo canvas{pointer-events:none}
+.sim .cur{position:absolute;left:0;top:0;width:30px;height:30px;pointer-events:none;z-index:6}
+.sim .cur.down svg{transform:scale(.82)}
+.sim .cur::after{content:"";position:absolute;left:-14px;top:-14px;width:30px;height:30px;border-radius:50%;border:4px solid var(--coral);opacity:0}
+.sim .cur.pulse::after{animation:pl .45s ease-out}
+@keyframes pl{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(1.6)}}
+.say{min-height:64px;margin:8px 0;padding:10px 14px;border-radius:12px;background:#fff7d1;border:3px dashed #e0b000;font-size:23px;font-weight:bold;display:flex;align-items:center}
+
+/* ---------- космическая вкладка ---------- */
+body.space{color:#eaf0ff;background-color:#16205c;
+  background-image:
+    radial-gradient(circle at 12% 18%, #fff 0 1.5px, transparent 2px),
+    radial-gradient(circle at 78% 12%, #ffe9a8 0 2px, transparent 2.5px),
+    radial-gradient(circle at 42% 34%, #fff 0 1.2px, transparent 2px),
+    radial-gradient(circle at 90% 48%, #bfe0ff 0 1.8px, transparent 2.4px),
+    radial-gradient(circle at 24% 66%, #fff 0 1.4px, transparent 2px),
+    radial-gradient(circle at 62% 82%, #ffd6f0 0 1.8px, transparent 2.4px),
+    radial-gradient(circle at 6% 92%, #fff 0 1.3px, transparent 2px),
+    radial-gradient(ellipse at 50% 0%, #3a4fc0 0, #16205c 70%)}
+body.space header{background:linear-gradient(100deg,#2a3a9a,#4a3fb0 60%,#2f6fd6);border-bottom-color:#ffd23f}
+body.space header h1{color:#ffe27a} body.space header p{color:#d6e0ff}
+body.space nav{background:rgba(22,32,92,.96);border-bottom-color:#4a5ad0}
+body.space nav button{background:#24328a;border-color:#4a5ad0;color:#eaf0ff}
+body.space nav button.active{background:#ffd23f;border-color:#fff3b0;color:#2b2f5a}
+body.space .card{background:#24328a;border-color:#7f95ff;box-shadow:7px 7px 0 #4a3fb0;color:#eaf0ff}
+body.space .card h2{color:#ffe27a}
+body.space .say{background:#2f3fa6;border-color:#ffd23f;color:#fff}
+body.space kbd{color:#2b2f5a}
+.shipwrap{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:start}
+.slist{list-style:none;padding:0;margin:0;counter-reset:s}
+.slist li{counter-increment:s;padding:8px 10px 8px 46px;position:relative;border-radius:10px;margin:6px 0;border:2px solid #4a5ad0;background:#1d2a78;font-size:20px}
+.slist li::before{content:counter(s);position:absolute;left:8px;top:7px;width:28px;height:28px;border-radius:50%;background:#7f95ff;color:#16205c;font-weight:bold;display:flex;align-items:center;justify-content:center}
+.slist li.now{border-color:#ffd23f;background:#3a4bc0;font-weight:bold}
+.slist li.was::before{content:"✓";background:#3fc28a}
+.cond{margin:6px 0;padding-left:26px}.cond li{margin:4px 0}
+.note{border:3px solid #ffd23f;border-radius:12px;padding:10px 14px;margin:10px 0;background:#2f3fa6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.box{border:2px solid #7f95ff;border-radius:12px;padding:10px 14px;background:#1d2a78}
+.box b.t{display:block;font-size:22px;color:#ffe27a;margin-bottom:2px}
+.slist{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.slist li{margin:0;font-size:18px;padding:6px 10px 6px 40px}
+.slist li::before{left:6px;top:5px;width:26px;height:26px}
+main{max-width:1300px}
+@media (max-width:760px){.shipwrap,.two{grid-template-columns:1fr} header h1{font-size:27px}}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="hT">🎨 Мастерская художника</h1>
+  <p id="hP">Смотрим, как работает Paint, и повторяем</p>
+</header>
+<nav id="nav">
+  <button data-tab="paint">🖌️ Инструменты Paint</button>
+  <button data-tab="ship">🚀 Космический корабль</button>
+</nav>
+
+<main>
+<!-- ================= ИНСТРУМЕНТЫ ================= -->
+<section class="view" id="v-paint">
+  <div class="card c3">
+    <div class="legend">
+      <span><i style="background:#00a2e8"></i><b>Цвет 1</b> (верхний кружок) — контур</span>
+      <span><i style="background:#fff200"></i><b>Цвет 2</b> (нижний кружок) — заливка</span>
+      <span>Ошиблись — <kbd>Ctrl</kbd> + <kbd>Z</kbd></span>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="card">
+    <h2 id="lT"></h2>
+    <div class="row"><button class="btn" id="playBtn">▶ Запустить показ</button><button class="btn sec" id="pauseBtn" style="display:none">⏸ Пауза</button></div>
+    <div class="say" id="say1"></div>
+    <div id="demoSim"></div>
+  </div>
+
+  <div class="card c2">
+    <h2>✏️ Теперь повторите сами</h2>
+    <ul class="goal" id="goals"></ul>
+    <div id="pracSim"></div>
+    <div class="row"><button class="btn sec" id="clrBtn">Очистить холст</button></div>
+    <div class="win" id="win"></div>
+    <div class="row" id="nextRow" style="display:none"><button class="btn go" id="nextBtn"></button></div>
+  </div>
+</section>
+
+<!-- ================= КОРАБЛЬ ================= -->
+<section class="view" id="v-ship">
+  <div class="card">
+    <h2>Как построить космическую ракету</h2>
+    <div class="row"><button class="btn" id="sPlay">▶ Запустить постройку</button><button class="btn sec" id="sSave">💾 Показать только сохранение</button><button class="btn sec" id="sPause" style="display:none">⏸ Пауза</button></div>
+    <ol class="slist" id="slist">
+      <li>Корпус — скруглённый прямоугольник</li>
+      <li>Нос — треугольник</li>
+      <li>Иллюминатор — овал с Shift</li>
+      <li>Крылья — многоугольники</li>
+      <li>Лишняя фигура? <b>Ctrl + Z</b></li>
+      <li>Полоса — линия с Shift</li>
+      <li>Пламя — ромбы</li>
+      <li>Название — текст</li>
+      <li>Сохранить — PNG, Рабочий стол</li>
+    </ol>
+    <div class="say" id="say2">Нажмите «Запустить постройку». Ракета появится по шагам.</div>
+    <div id="shipSim"></div>
+  </div>
+
+  <div class="card">
+    <h2>Задание</h2>
+    <p style="font-size:22px">Нарисуйте в Paint <b>свой космический летательный аппарат</b>. Повторять пример не нужно — придумайте свою форму и свои цвета!</p>
+    <ul class="cond">
+      <li>ракету рисуйте <b>носом вверх</b> — в космосе она сама повернётся по курсу;</li>
+      <li>фон остаётся <b>белым</b>, размер холста менять не нужно;</li>
+      <li>есть <b>скруглённый прямоугольник или овал</b>, <b>треугольник или многоугольник</b>, <b>линия</b> и <b>текст</b> — название корабля;</li>
+      <li>у фигур есть <b>заливка</b> и <b>контур</b> разных цветов.</li>
+    </ul>
+    <div class="note"><b>Чтобы корабль взлетел:</b> не закрашивайте фон, не рисуйте вплотную к краям холста, контур не делайте белым. Сохраняйте в формате <b>PNG</b>. Имя файла — ваши <b>Фамилия Имя</b>: оно станет подписью корабля в космосе.</div>
+    <p>Ошиблись — <kbd>Ctrl</kbd> + <kbd>Z</kbd>, ластик не нужен.</p>
+  </div>
+
+  <div class="card">
+    <h2>Закончили раньше?</h2>
+    <div class="two">
+      <div class="box"><b class="t">🛰️ Второй аппарат</b>Новый рисунок — аппарат другого вида: спутник, станция, летающая тарелка. Попробуйте фигуры, которых не было в первом: звезду, шестиугольник, «Кривую».</div>
+      <div class="box"><b class="t">✨ Улучшить корабль</b>Двигатель из прямоугольника, полоски, люки, звезда на борту. Украшайте сам корабль, а не фон вокруг.</div>
+      <div class="box"><b class="t">📝 Контрольная ещё раз</b>Можно пройти второй раз и улучшить результат: учитель учтёт лучший.</div>
+      <div class="box"><b class="t">🤝 Инженер-консультант</b>Помогите соседу, если он просит: подсказывайте словами, а его мышку не берите.</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script>
+/* ================= МИНИ-PAINT ================= */
+var PAL=['#000000','#7f7f7f','#880015','#ed1c24','#ff7f27','#fff200','#22b14c','#00a2e8','#3f48cc','#a349a4',
+         '#ffffff','#c3c3c3','#b97a57','#ffaec9','#ffc90e','#efe4b0','#b5e61d','#99d9ea','#7092be','#c8bfe7'];
+var TNAME={line:'Линия',curve:'Кривая',oval:'Овал',rect:'Прямоугольник',rr:'Скруглённый прямоугольник',poly:'Многоугольник',tri:'Треугольник',
+  rtri:'Прямоугольный треугольник',rh:'Ромб',pent:'Пятиугольник',hex:'Шестиугольник',ar:'Стрелка вправо',al:'Стрелка влево',au:'Стрелка вверх',
+  ad:'Стрелка вниз',s4:'Четырёхконечная звезда',s5:'Пятиконечная звезда',s6:'Шестиконечная звезда',c1:'Выноска',c2:'Овальная выноска',c3:'Выноска-облако',text:'Текст'};
+var GAL=['line','curve','oval','rect','rr','poly','tri','rtri','rh','pent','hex','ar','al','au','ad','s4','s5','s6','c1','c2','c3'];
+var IC={
+ line:'<path d="M4 4L16 16"/>',curve:'<path d="M3 14C7 1 12 19 17 5"/>',oval:'<circle cx="10" cy="10" r="6.5"/>',
+ rect:'<rect x="3" y="4.5" width="14" height="11"/>',rr:'<rect x="3" y="4.5" width="14" height="11" rx="3.2"/>',
+ poly:'<polygon points="8,4 14.5,4 12.5,10 16.5,10 16.5,16 3.5,16"/>',tri:'<polygon points="10,3.5 17,16 3,16"/>',rtri:'<polygon points="4,4 4,16 16,16"/>',
+ rh:'<polygon points="10,3 16.5,10 10,17 3.5,10"/>',pent:'<polygon points="10,3 17,8.3 14.3,16.5 5.7,16.5 3,8.3"/>',
+ hex:'<polygon points="6.5,4 13.5,4 17,10 13.5,16 6.5,16 3,10"/>',ar:'<polygon points="3,7.5 10,7.5 10,4 17,10 10,16 10,12.5 3,12.5"/>',
+ al:'<polygon points="17,7.5 10,7.5 10,4 3,10 10,16 10,12.5 17,12.5"/>',au:'<polygon points="7.5,17 7.5,10 4,10 10,3 16,10 12.5,10 12.5,17"/>',
+ ad:'<polygon points="7.5,3 7.5,10 4,10 10,17 16,10 12.5,10 12.5,3"/>',s4:'<polygon points="10,2.5 12,8 17.5,10 12,12 10,17.5 8,12 2.5,10 8,8"/>',
+ s5:'<polygon points="10,2.5 12.2,7.6 17.6,8 13.5,11.6 14.8,17 10,14 5.2,17 6.5,11.6 2.4,8 7.8,7.6"/>',
+ s6:'<polygon points="10,2.5 16.5,13.75 3.5,13.75"/><polygon points="10,17.5 3.5,6.25 16.5,6.25"/>',
+ c1:'<path d="M3 4h14v9H9l-3 3v-3H3z"/>',c2:'<path d="M10 3.5c4 0 7 2.3 7 5.2s-3 5.2-7 5.2c-.8 0-1.500-.1-2.2-.2L4.500 16.500l.8-3.800C3.900 11.700 3 10.300 3 8.700 3 5.800 6 3.500 10 3.500z"/>',
+ c3:'<circle cx="10.5" cy="9" r="6"/><path d="M6.200 13.300L4 17l4.300-1.800"/>'
+};
+function sv(inner,w,extra){return '<svg width="'+(w||20)+'" height="'+(w||20)+'" viewBox="0 0 20 20" fill="none" stroke="#1b1b1b" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" '+(extra||'')+'>'+inner+'</svg>';}
+var DEC={
+ sel:'<rect x="3" y="3" width="14" height="14" stroke-dasharray="2.200 2"/>',
+ crop:'<path d="M6 2v12h12M2 6h12v12" stroke="#777"/>',rot:'<path d="M4 13a6 6 0 1 1 3 4" stroke="#1a73d6"/><path d="M4 9v4h4" stroke="#1a73d6"/>',
+ rez:'<rect x="3" y="7" width="10" height="10" stroke="#777"/><path d="M11 3h6v6M17 3l-6 6" stroke="#777"/>',flip:'<path d="M9 4L3 16h6z" fill="#1a73d6" stroke="#1a73d6"/><path d="M11 4l6 12h-6z"/>',
+ bg:'<rect x="2.500" y="2.500" width="15" height="15" rx="2" stroke="#1a73d6" stroke-dasharray="3 2"/><circle cx="10" cy="8" r="2.500" stroke="#1a73d6"/><path d="M5.500 16c.5-3 2.500-4.500 4.500-4.500s4 1.500 4.500 4.500" stroke="#1a73d6"/>',
+ pen:'<path d="M3.500 16.500l1.200-4.200L13.500 3.500l3 3-8.800 8.800z" fill="#ffd24a"/><path d="M11.800 5.200l3 3"/>',
+ buck:'<path d="M4 10.500l6.500-6.500 5.500 5.500-6.500 6.500z" fill="#6db3f2"/><path d="M8.500 2.500l2 2"/><path d="M17 12.500c.9 1.300 1.300 2.100 1.300 2.800a1.300 1.300 0 0 1-2.600 0c0-.7.4-1.500 1.300-2.800z" fill="#e2574c" stroke="#e2574c"/>',
+ era:'<path d="M3 13l7.500-7.500 5 5L10.500 15.500H6z" fill="#f58aa0"/><path d="M6 15.500h10"/>',
+ pip:'<path d="M4 16l1-3 6.500-6.500 2 2L7 15z" fill="#6db3f2"/><path d="M11 4.500l4.500 4.500M12.500 6l2.200-2.200a1.600 1.600 0 0 1 2.300 2.300L14.800 8.300"/>',
+ zoom:'<circle cx="8.500" cy="8.500" r="5"/><path d="M12.300 12.300L17 17M6.500 8.500h4M8.500 6.500v4"/>',
+ brush:'<path d="M6 3h8l-1 7H7z" fill="#bbb"/><path d="M7.500 10l2.500 6.500L12.500 10" fill="#555"/>',
+ out:'<path d="M3 13l1-3 7-7 2.500 2.500-7 7z" fill="#fff"/><path d="M3.500 16.500h9" stroke="#1a73d6" stroke-width="2"/>',
+ fil:'<rect x="3" y="6" width="11" height="10" rx="1.500" fill="#cfe6fb"/><path d="M10 3l6 6-3 3" />',
+ size:'<path d="M3 5h14" stroke-width="1"/><path d="M3 9h14" stroke-width="2"/><path d="M3 14.500h14" stroke-width="3.500"/>',
+ save:'<path d="M4 3h10l3 3v11H4z"/><path d="M7 3v5h6V3M7 17v-5h7v5"/>',share:'<path d="M4 9v8h12V9M10 13V3M6.500 6.500L10 3l3.500 3.500"/>',
+ undo:'<path d="M5 8h7a4.500 4.500 0 0 1 0 9H8"/><path d="M8.500 4.500L5 8l3.500 3.500"/>',redo:'<path d="M15 8H8a4.500 4.500 0 0 0 0 9h4"/><path d="M11.500 4.500L15 8l-3.500 3.500"/>',
+ gear:'<circle cx="10" cy="10" r="2.500"/><path d="M10 2.500v2.500M10 15v2.500M2.500 10H5M15 10h2.500M4.700 4.700l1.800 1.800M13.500 13.500l1.800 1.800M4.700 15.300l1.800-1.800M13.500 6.500l1.800-1.800"/>',
+ lay:'<path d="M10 3l7 4-7 4-7-4z"/><path d="M3 10.500l7 4 7-4M3 14l7 4 7-4"/>',chev:'<path d="M6 8l4 4 4-4"/>'
+};
+function dec(n,w){return sv(DEC[n],w);}
+var run=0, paused=false;
+function wait(ms,id){return new Promise(function(res,rej){setTimeout(function chk(){ if(id!==run) rej('stop'); else if(paused) setTimeout(chk,120); else res(); },ms);});}
+
+function Sim(root,o){
+  var S=this; S.o=o; S.root=root; S.on=o.on||function(){};
+  root.className='sim'+(o.demo?' demo':'');
+  function tb(k,inner,cls,ttl){return '<button data-k="'+k+'"'+(cls?' class="'+cls+'"':'')+(ttl?' title="'+ttl+'"':'')+'>'+inner+'</button>';}
+  function d(n){return '<button disabled class="dec" tabindex="-1">'+dec(n,22)+'</button>';}
+  var textOn=o.tools.indexOf('text')>=0;
+  var h='<div class="pt">🎨 <span class="ttl">Без имени - Paint</span><span class="w"><span>—</span><span>☐</span><span>✕</span></span></div>'+
+   '<div class="pm">'+tb('file','Файл','m')+'<span class="m">Изменить</span><span class="m">Вид</span><i class="sep"></i>'+d('save')+d('share')+
+     tb('undo',dec('undo',22),'','Отменить (Ctrl+Z)')+tb('redo',dec('redo',22),'','Вернуть (Ctrl+Y)')+'<span class="sp"></span>'+d('gear')+'</div>'+
+   '<div class="pr">'+
+    '<div class="g"><div class="gc"><div class="col2">'+d('sel')+dec('chev',14)+'</div></div><span>Выделение</span></div>'+
+    '<div class="g"><div class="gc"><div class="grid2" style="grid-template-columns:repeat(2,30px)">'+d('crop')+d('rot')+d('rez')+d('flip')+'</div>'+d('bg')+'</div><span>Изображение</span></div>'+
+    '<div class="g"><div class="gc"><div class="grid2">'+d('pen')+d('buck')+
+      (textOn?tb('tool:text','<svg width="22" height="22" viewBox="0 0 20 20"><text x="10" y="16" text-anchor="middle" font-size="17" font-family="Segoe UI,Arial" fill="#1b1b1b">A</text></svg>','','Текст'):'<button disabled class="dec"><svg width="22" height="22" viewBox="0 0 20 20"><text x="10" y="16" text-anchor="middle" font-size="17" font-family="Segoe UI,Arial" fill="#1b1b1b">A</text></svg></button>')+
+      d('era')+d('pip')+d('zoom')+'</div></div><span>Инструменты</span></div>'+
+    '<div class="g"><div class="gc"><div class="col2">'+d('brush')+dec('chev',14)+'</div></div><span>Кисти</span></div>'+
+    '<div class="g"><div class="gc"><div class="gal">'+GAL.map(function(t){var ok=o.tools.indexOf(t)>=0;
+        return '<button '+(ok?'data-k="tool:'+t+'"':'disabled class="na"')+' title="'+TNAME[t]+'">'+sv(IC[t],20)+'</button>';}).join('')+'</div>'+
+      '<div class="col2">'+tb('outmenu',dec('out',22)+dec('chev',12),'dd','Контур')+tb('fillmenu',dec('fil',22)+dec('chev',12),'dd','Заливка')+'</div>'+
+      '<div class="col2">'+tb('sizemenu',dec('size',26),'dd','Размер')+dec('chev',12)+'</div></div><span>Фигуры</span></div>'+
+    '<div class="g"><div class="gc"><div class="slots">'+tb('slot:1','<i></i>','slot s1','Цвет 1 — контур')+tb('slot:2','<i></i>','slot s2','Цвет 2 — заливка')+'</div>'+
+      '<div class="pal">'+PAL.map(function(c){return '<button data-k="col:'+c+'" style="background:'+c+'" aria-label="Цвет"></button>';}).join('')+'<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
+      '<div class="wheel"></div></div><span>Цвета</span></div>'+
+    '<div class="g"><div class="gc">'+d('lay')+'</div><span>Слои</span></div>'+
+   '</div>'+
+   '<div class="pc"><canvas width="'+o.w+'" height="'+o.h+'"></canvas></div>'+
+   '<div class="ps"><span>▢ '+o.w+' × '+o.h+'пкс</span><span class="r">Клавиши: <kbd data-key="shift">Shift</kbd><kbd data-key="z">Ctrl + Z</kbd><kbd data-key="y">Ctrl + Y</kbd><span style="margin-left:14px">100%</span><span class="zl"></span></span></div>'+
+   '<div class="pop" data-pop="outmenu">'+tb('out:0','Без контура')+tb('out:1','Сплошной цвет')+'</div>'+
+   '<div class="pop" data-pop="fillmenu">'+tb('fill:0','Без заливки')+tb('fill:1','Сплошной цвет')+'</div>'+
+   '<div class="pop" data-pop="sizemenu">'+[1,3,5,8].map(function(z){return tb('size:'+z,'<b style="height:'+z+'px"></b>'+z+' пкс');}).join('')+'</div>'+
+   '<div class="fmenu"><div><span class="ic">📄</span>Создать<span class="k">Ctrl+N</span></div><div><span class="ic">📂</span>Открыть<span class="k">Ctrl+O</span></div>'+
+     '<div><span class="ic">🖼️</span>Импортировать на холст<span class="k">›</span></div><div class="off"><span class="ic">🕒</span>Последние<span class="k">›</span></div>'+
+     '<div><span class="ic">💾</span>Сохранить<span class="k">Ctrl+S</span></div>'+tb('saveas','<span class="ic">💾</span>Сохранить как<span class="k">›</span>')+
+     '<div><span class="ic">💾</span>Сохранить как проект<span class="k">Ctrl+Shift+S</span></div><hr><div><span class="ic">🖨️</span>Печать<span class="k">›</span></div><div><span class="ic">↗</span>Поделиться</div><hr>'+
+     '<div><span class="ic">🖥️</span>Сделать фоном рабочего стола<span class="k">›</span></div><hr><div><span class="ic">⚙</span>Свойства изображения<span class="k">Ctrl+E</span></div><div><span class="ic">✕</span>Выйти</div></div>'+
+   '<div class="fsub">'+tb('png','Изображение в формате PNG')+'<div>Изображение в формате JPEG</div><div>Изображение в формате BMP</div><div>Изображение в формате GIF</div><div>Другой формат</div></div>'+
+   '<div class="dlg"><div class="dt">Сохранить как<span>✕</span></div><div class="dp">📁 <span class="path">Этот компьютер › Изображения</span></div>'+
+     '<div class="db"><div class="dn">'+tb('desk','🖥️ Рабочий стол')+'<div>📄 Документы</div><div>🖼️ Изображения</div><div>⬇️ Загрузки</div></div><div class="df">Здесь будут видны файлы PNG из этой папки.</div></div>'+
+     '<div class="dr"><span>Имя файла:</span><input data-k="fname" type="text" spellcheck="false" autocomplete="off"><span>Тип файла:</span><span class="ty">PNG (*.png)</span></div>'+
+     '<div class="da">'+tb('dosave','Сохранить','pri')+tb('nosave','Отмена')+'</div></div>'+
+   (o.demo?'<div class="cur"><svg width="30" height="30" viewBox="0 0 30 30"><path d="M3 2 L3 24 L9 18 L13.5 28 L17.5 26 L13 16.5 L22 16.5 Z" fill="#fff" stroke="#2b2f5a" stroke-width="2.2" stroke-linejoin="round"/></svg></div>':'');
+  root.innerHTML=h;
+  S.cv=root.querySelector('canvas'); S.g=S.cv.getContext('2d'); S.cur=root.querySelector('.cur');
+  root.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){S.act(b.dataset.k);};});
+  S.fn=root.querySelector('input[data-k="fname"]');
+  S.reset();
+  if(!o.demo) S.bind();
+}
+Sim.prototype.reset=function(){
+  var S=this; S.shapes=[];S.redo=[];S.pend=null;S.draft=null;S.poly=null;S.polyTmp=null;
+  S.tool=S.o.tools[0];S.slot=1;S.c1='#000000';S.c2='#ffffff';S.fill=false;S.out=true;S.size=3;
+  S.key('shift',false);S.key('z',false);S.key('y',false);S.openPop(null);S.fileUI(null);S.root.querySelector('.ttl').textContent='Без имени - Paint';
+  if(S.cur){S.cx=S.root.clientWidth-80;S.cy=S.root.clientHeight-70;S.place();}
+  S.ui();S.render();
+};
+Sim.prototype.el=function(k){return this.root.querySelector('[data-k="'+k+'"]');};
+Sim.prototype.key=function(n,on){var e=this.root.querySelector('[data-key="'+n+'"]'); if(e) e.classList.toggle('on',!!on);};
+Sim.prototype.openPop=function(k){
+  var S=this;S.pop=k;
+  S.root.querySelectorAll('.pop').forEach(function(p){
+    var on=p.dataset.pop===k;p.classList.toggle('open',on);
+    if(on){var b=S.el(k).getBoundingClientRect(),r=S.root.getBoundingClientRect();p.style.left=Math.max(4,b.left-r.left-20)+'px';p.style.top=(b.bottom-r.top+4)+'px';}
+  });
+  S.root.querySelectorAll('.dd').forEach(function(b){b.classList.toggle('open',b.dataset.k===k);});
+};
+Sim.prototype.fileUI=function(st){            // null | 'menu' | 'sub' | 'dlg'
+  var S=this,q=function(s){return S.root.querySelector(s);};S.fst=st;
+  q('.fmenu').classList.toggle('open',st==='menu'||st==='sub');
+  q('.fsub').classList.toggle('open',st==='sub');
+  q('.dlg').classList.toggle('open',st==='dlg');
+  S.el('file').classList.toggle('open',st==='menu'||st==='sub');
+  if(st==='sub'){var a=S.el('saveas').getBoundingClientRect(),r=S.root.getBoundingClientRect(),f=q('.fmenu').getBoundingClientRect();
+    q('.fsub').style.left=(f.right-r.left-4)+'px';q('.fsub').style.top=(a.top-r.top-4)+'px';}
+  if(st==='dlg'){S.fn.value='Без имени';S.el('desk').classList.remove('sel');q('.path').textContent='Этот компьютер › Изображения';}
+};
+Sim.prototype.act=function(k){
+  var S=this,p=k.split(':');
+  if(k==='file'){S.openPop(null);S.commit();S.fileUI(S.fst==='menu'||S.fst==='sub'?null:'menu');return;}
+  if(k==='saveas'){S.fileUI('sub');return;}
+  if(k==='png'){S.fileUI('dlg');return;}
+  if(k==='desk'){S.el('desk').classList.add('sel');S.root.querySelector('.path').textContent='Этот компьютер › Рабочий стол';return;}
+  if(k==='fname'){S.fn.select();return;}
+  if(k==='nosave'){S.fileUI(null);return;}
+  if(k==='dosave'){var nm=S.fn.value.trim()||'Без имени';S.fileUI(null);S.root.querySelector('.ttl').textContent=nm+'.png - Paint';S.on('save');return;}
+  if(S.fst) S.fileUI(null);
+  if(k==='undo'){S.openPop(null);return S.undo();}
+  if(k==='redo'){S.openPop(null);return S.redoIt();}
+  if(k.slice(-4)==='menu'){S.openPop(S.pop===k?null:k);return;}
+  if(p[0]==='tool'){S.poly=null;S.polyTmp=null;S.commit();S.tool=p[1];}
+  else if(p[0]==='fill'){S.fill=p[1]==='1'; if(S.pend) S.pend.fill=S.fill;}
+  else if(p[0]==='out'){S.out=p[1]==='1'; if(S.pend) S.pend.out=S.out;}
+  else if(p[0]==='size'){S.size=+p[1]; if(S.pend) S.pend.size=S.size;}
+  else if(p[0]==='slot'){S.slot=+p[1];}
+  else if(p[0]==='col'){S['c'+S.slot]=p[1]; if(S.pend) S.pend['c'+S.slot]=p[1];}
+  S.openPop(null);S.ui();S.render();
+};
+Sim.prototype.ui=function(){
+  var S=this;
+  S.root.querySelectorAll('[data-k]').forEach(function(b){
+    var p=b.dataset.k.split(':'),on=false;
+    if(p[0]==='tool') on=p[1]===S.tool; else if(p[0]==='fill') on=(p[1]==='1')===S.fill; else if(p[0]==='out') on=(p[1]==='1')===S.out;
+    else if(p[0]==='size') on=+p[1]===S.size; else if(p[0]==='slot') on=+p[1]===S.slot;
+    b.classList.toggle('on',on);
+  });
+  S.el('slot:1').querySelector('i').style.background=S.c1;
+  S.el('slot:2').querySelector('i').style.background=S.c2;
+  S.el('undo').disabled=!(S.pend||S.shapes.length||S.poly);
+  S.el('redo').disabled=!S.redo.length;
+};
+Sim.prototype.box=function(s){
+  var g=this.g;
+  if(s.t==='poly'){var xs=s.pts.map(function(p){return p[0];}),ys=s.pts.map(function(p){return p[1];});
+    var x=Math.min.apply(0,xs),y=Math.min.apply(0,ys);return {x:x,y:y,w:Math.max.apply(0,xs)-x,h:Math.max.apply(0,ys)-y};}
+  if(s.t==='text'){g.font='bold '+s.fs+'px Arial';return {x:s.x1,y:s.y1-s.fs,w:Math.max(12,g.measureText(s.text).width),h:s.fs*1.2};}
+  return {x:Math.min(s.x1,s.x2),y:Math.min(s.y1,s.y2),w:Math.abs(s.x2-s.x1),h:Math.abs(s.y2-s.y1)};
+};
+Sim.prototype.draw=function(s){
+  var g=this.g,b=this.box(s);
+  g.lineWidth=s.size;g.strokeStyle=s.c1;g.fillStyle=s.c2;g.lineJoin='round';g.lineCap='round';g.setLineDash([]);
+  if(s.t==='text'){g.font='bold '+s.fs+'px Arial';g.fillStyle=s.c1;g.textBaseline='alphabetic';g.fillText(s.text,s.x1,s.y1);return;}
+  g.beginPath();
+  if(s.t==='line'){g.moveTo(s.x1,s.y1);g.lineTo(s.x2,s.y2);g.stroke();return;}
+  if(s.t==='rect') g.rect(b.x,b.y,b.w,b.h);
+  else if(s.t==='rr'){var r=Math.min(b.w,b.h)*0.22;
+    g.moveTo(b.x+r,b.y);g.arcTo(b.x+b.w,b.y,b.x+b.w,b.y+b.h,r);g.arcTo(b.x+b.w,b.y+b.h,b.x,b.y+b.h,r);g.arcTo(b.x,b.y+b.h,b.x,b.y,r);g.arcTo(b.x,b.y,b.x+b.w,b.y,r);g.closePath();}
+  else if(s.t==='oval') g.ellipse(b.x+b.w/2,b.y+b.h/2,b.w/2,b.h/2,0,0,Math.PI*2);
+  else if(s.t==='tri'){g.moveTo(b.x+b.w/2,b.y);g.lineTo(b.x+b.w,b.y+b.h);g.lineTo(b.x,b.y+b.h);g.closePath();}
+  else if(s.t==='rh'){g.moveTo(b.x+b.w/2,b.y);g.lineTo(b.x+b.w,b.y+b.h/2);g.lineTo(b.x+b.w/2,b.y+b.h);g.lineTo(b.x,b.y+b.h/2);g.closePath();}
+  else if(s.t==='poly'){s.pts.forEach(function(p,i){if(i)g.lineTo(p[0],p[1]);else g.moveTo(p[0],p[1]);});g.closePath();}
+  if(s.fill) g.fill();
+  if(s.out!==false) g.stroke();
+};
+Sim.prototype.render=function(){
+  var S=this,g=S.g;
+  g.setLineDash([]);g.fillStyle='#fff';g.fillRect(0,0,S.cv.width,S.cv.height);
+  S.shapes.forEach(function(s){S.draw(s);});
+  if(S.draft) S.draw(S.draft);
+  if(S.poly&&S.poly.length){
+    g.lineWidth=S.size;g.strokeStyle=S.c1;g.lineJoin='round';g.lineCap='round';g.beginPath();
+    S.poly.forEach(function(p,i){if(i)g.lineTo(p[0],p[1]);else g.moveTo(p[0],p[1]);});
+    if(S.polyTmp) g.lineTo(S.polyTmp[0],S.polyTmp[1]);
+    g.stroke();
+    g.fillStyle='#ff6b5e';S.poly.forEach(function(p){g.beginPath();g.arc(p[0],p[1],4,0,7);g.fill();});
+  }
+  if(S.pend){
+    S.draw(S.pend);var b=S.box(S.pend),m=6;
+    g.setLineDash([5,4]);g.lineWidth=1.5;g.strokeStyle='#1a73d6';g.strokeRect(b.x-m,b.y-m,b.w+2*m,b.h+2*m);g.setLineDash([]);
+    if(S.resizable(S.pend)) S.handles(b).forEach(function(p){g.fillStyle='#fff';g.fillRect(p[0]-4,p[1]-4,8,8);g.strokeStyle='#555';g.lineWidth=1;g.strokeRect(p[0]-4,p[1]-4,8,8);});
+  }
+};
+Sim.prototype.resizable=function(s){return s.t!=='line'&&s.t!=='poly'&&s.t!=='text';};
+Sim.prototype.handles=function(b){var m=6;return [[b.x-m,b.y-m],[b.x+b.w+m,b.y-m],[b.x+b.w+m,b.y+b.h+m],[b.x-m,b.y+b.h+m]];};
+Sim.prototype.setEnd=function(s,x,y,shift){
+  var dx=x-s.x1,dy=y-s.y1;
+  if(shift){
+    if(s.t==='line'){var a=Math.round(Math.atan2(dy,dx)/(Math.PI/4))*(Math.PI/4),l=Math.sqrt(dx*dx+dy*dy);dx=Math.round(Math.cos(a)*l);dy=Math.round(Math.sin(a)*l);}
+    else{var d=Math.max(Math.abs(dx),Math.abs(dy));dx=(dx<0?-1:1)*d;dy=(dy<0?-1:1)*d;}
+  }
+  s.x2=s.x1+dx;s.y2=s.y1+dy;
+};
+Sim.prototype.newShape=function(x,y){var S=this;return {t:S.tool,x1:x,y1:y,x2:x,y2:y,c1:S.c1,c2:S.c2,fill:S.fill,out:S.out,size:S.size};};
+Sim.prototype.polyShape=function(pts){var S=this;return {t:'poly',pts:pts,c1:S.c1,c2:S.c2,fill:S.fill,out:S.out,size:S.size};};
+Sim.prototype.commit=function(){var S=this;if(!S.pend)return;S.shapes.push(S.pend);S.pend=null;S.ui();S.render();S.on('commit');};
+Sim.prototype.undo=function(){
+  var S=this;if(S.draft)return;
+  if(S.poly){S.poly=null;S.polyTmp=null;S.ui();S.render();return;}
+  if(S.pend){S.redo.push(S.pend);S.pend=null;} else if(S.shapes.length) S.redo.push(S.shapes.pop()); else return;
+  S.ui();S.render();S.on('undo');
+};
+Sim.prototype.redoIt=function(){
+  var S=this;if(S.draft||!S.redo.length)return;
+  var r=S.redo.pop(); if(S.pend){S.shapes.push(S.pend);S.pend=null;}
+  S.shapes.push(r);S.ui();S.render();S.on('redo');
+};
+Sim.prototype.bind=function(){
+  var S=this,cv=S.cv,mode=null,last=null;
+  function pt(e){var r=cv.getBoundingClientRect();return {x:Math.round((e.clientX-r.left)*cv.width/r.width),y:Math.round((e.clientY-r.top)*cv.height/r.height)};}
+  function polyDone(){
+    S.polyTmp=null;mode=null;
+    if(S.poly&&S.poly.length>=3){S.pend=S.polyShape(S.poly);S.poly=null;S.redo=[];S.on('pend');}
+    S.ui();S.render();
+  }
+  cv.addEventListener('pointerdown',function(e){
+    var p=pt(e);S.openPop(null);if(S.fst==='menu'||S.fst==='sub')S.fileUI(null);
+    if(S.pend){
+      var b=S.box(S.pend),hi=-1;
+      if(S.resizable(S.pend)) S.handles(b).forEach(function(h,i){if(Math.abs(h[0]-p.x)<=9&&Math.abs(h[1]-p.y)<=9)hi=i;});
+      if(hi>=0){mode='rs';var opp=[[b.x+b.w,b.y+b.h],[b.x,b.y+b.h],[b.x,b.y],[b.x+b.w,b.y]][hi];S.pend.x1=opp[0];S.pend.y1=opp[1];try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
+      if(p.x>=b.x-7&&p.x<=b.x+b.w+7&&p.y>=b.y-7&&p.y<=b.y+b.h+7){mode='mv';last=p;try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
+      S.commit();
+      if(S.tool==='poly') return;
+    }
+    if(S.tool==='poly'){
+      try{cv.setPointerCapture(e.pointerId);}catch(x){}
+      if(!S.poly){S.poly=[[p.x,p.y]];}
+      else{var f=S.poly[0];if(S.poly.length>=3&&Math.abs(f[0]-p.x)<8&&Math.abs(f[1]-p.y)<8){polyDone();return;}}
+      mode='pl';S.polyTmp=[p.x,p.y];
+      S.ui();S.render();return;
+    }
+    try{cv.setPointerCapture(e.pointerId);}catch(x){}
+    mode='dr';S.draft=S.newShape(p.x,p.y);
+  });
+  cv.addEventListener('dblclick',function(){ if(S.tool==='poly') polyDone(); });
+  cv.addEventListener('pointermove',function(e){
+    if(!mode)return;var p=pt(e);
+    if(mode==='pl') S.polyTmp=[p.x,p.y];
+    else if(mode==='dr') S.setEnd(S.draft,p.x,p.y,e.shiftKey);
+    else if(mode==='rs') S.setEnd(S.pend,p.x,p.y,e.shiftKey);
+    else if(mode==='mv'){var dx=p.x-last.x,dy=p.y-last.y;last=p;
+      if(S.pend.t==='poly') S.pend.pts.forEach(function(q){q[0]+=dx;q[1]+=dy;}); else{S.pend.x1+=dx;S.pend.x2+=dx;S.pend.y1+=dy;S.pend.y2+=dy;}}
+    S.render();
+  });
+  function up(){
+    if(mode==='pl'&&S.poly){
+      var t=S.polyTmp,l=S.poly[S.poly.length-1];S.polyTmp=null;
+      if(t&&(Math.abs(l[0]-t[0])>4||Math.abs(l[1]-t[1])>4)) S.poly.push(t);
+    }
+    if(mode==='dr'&&S.draft){
+      var d=S.draft;S.draft=null;
+      if(Math.abs(d.x2-d.x1)>=5||Math.abs(d.y2-d.y1)>=5){S.pend=d;S.redo=[];S.on('pend');}
+    }
+    mode=null;S.ui();S.render();
+  }
+  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+};
+/* ----- управление показом (только для demo) ----- */
+Sim.prototype.place=function(){this.cur.style.transform='translate('+this.cx+'px,'+this.cy+'px)';};
+Sim.prototype.where=function(t){
+  var S=this,rr=S.root.getBoundingClientRect(),r;
+  if(typeof t==='string'){r=S.el(t).getBoundingClientRect();return [r.left-rr.left+r.width/2,r.top-rr.top+r.height/2];}
+  r=S.cv.getBoundingClientRect();
+  return [r.left-rr.left+t[0]*r.width/S.cv.width,r.top-rr.top+t[1]*r.height/S.cv.height];
+};
+Sim.prototype.moveTo=async function(t,ms){
+  var S=this,to=S.where(t),fx=S.cx,fy=S.cy,n=Math.max(1,Math.round((ms||650)/20));
+  for(var i=1;i<=n;i++){var k=i/n;k=k*k*(3-2*k);S.cx=fx+(to[0]-fx)*k;S.cy=fy+(to[1]-fy)*k;S.place();await wait(20,S.id);}
+};
+Sim.prototype.pulse=async function(){var c=this.cur;c.classList.remove('pulse');void c.offsetWidth;c.classList.add('pulse','down');await wait(220,this.id);c.classList.remove('down');};
+Sim.prototype.press=async function(k){
+  var S=this,b=S.el(k);await S.moveTo(k);await S.pulse();b.classList.add('hit');S.act(k);await wait(700,S.id);b.classList.remove('hit');
+};
+Sim.prototype.dragShape=async function(x1,y1,x2,y2,shift){
+  var S=this;await S.moveTo([x1,y1]);S.cur.classList.add('down');await wait(250,S.id);
+  S.draft=S.newShape(x1,y1);var n=48;
+  for(var i=1;i<=n;i++){var k=i/n,x=x1+(x2-x1)*k,y=y1+(y2-y1)*k;S.setEnd(S.draft,Math.round(x),Math.round(y),shift);S.render();
+    var w=S.where([x,y]);S.cx=w[0];S.cy=w[1];S.place();await wait(20,S.id);}
+  S.pend=S.draft;S.draft=null;S.redo=[];S.cur.classList.remove('down');S.ui();S.render();await wait(350,S.id);
+};
+Sim.prototype.dragMove=async function(dx,dy){
+  var S=this,b=S.box(S.pend),sx=b.x+b.w/2,sy=b.y+b.h/2;await S.moveTo([sx,sy]);S.cur.classList.add('down');await wait(250,S.id);
+  var n=30,px=0,py=0;
+  for(var i=1;i<=n;i++){var ax=Math.round(dx*i/n),ay=Math.round(dy*i/n);S.pend.x1+=ax-px;S.pend.x2+=ax-px;S.pend.y1+=ay-py;S.pend.y2+=ay-py;px=ax;py=ay;S.render();
+    var w=S.where([sx+ax,sy+ay]);S.cx=w[0];S.cy=w[1];S.place();await wait(20,S.id);}
+  S.cur.classList.remove('down');await wait(300,S.id);
+};
+Sim.prototype.clickAway=async function(x,y){var S=this;await S.moveTo([x,y]);await S.pulse();S.commit();await wait(400,S.id);};
+Sim.prototype.polyDemo=async function(pts){
+  var S=this,a=pts[0],b=pts[1];
+  await S.moveTo(a,520);S.cur.classList.add('down');await wait(250,S.id);S.poly=[a];
+  for(var j=1;j<=30;j++){var x=a[0]+(b[0]-a[0])*j/30,y=a[1]+(b[1]-a[1])*j/30;S.polyTmp=[x,y];S.render();var w=S.where([x,y]);S.cx=w[0];S.cy=w[1];S.place();await wait(20,S.id);}
+  S.polyTmp=null;S.poly.push(b);S.cur.classList.remove('down');S.render();await wait(350,S.id);
+  for(var i=2;i<pts.length;i++){await S.moveTo(pts[i],520);await S.pulse();if(i===pts.length-1){await wait(90,S.id);await S.pulse();}S.poly.push(pts[i]);S.render();await wait(260,S.id);}
+  S.pend=S.polyShape(pts.map(function(p){return p.slice();}));S.poly=null;S.redo=[];S.ui();S.render();await wait(450,S.id);
+};
+Sim.prototype.typeName=async function(str){
+  var S=this;await S.moveTo('fname');await S.pulse();S.fn.classList.add('hit');S.fn.value='';
+  for(var i=0;i<str.length;i++){await wait(170,S.id);S.fn.value+=str[i];}
+  await wait(600,S.id);S.fn.classList.remove('hit');
+};
+Sim.prototype.typeText=async function(x,y,str,fs){
+  var S=this;await S.moveTo([x,y]);await S.pulse();
+  S.pend={t:'text',x1:x,y1:y,text:'',fs:fs||24,c1:S.c1,c2:S.c2,size:S.size};S.ui();S.render();
+  for(var i=0;i<str.length;i++){await wait(260,S.id);S.pend.text+=str[i];S.render();}
+  await wait(500,S.id);
+};
+
+/* ================= ВКЛАДКИ ================= */
+var tab='paint';
+function showTab(t){
+  tab=t;stopAll();
+  document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('active',v.id==='v-'+t);});
+  document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t);});
+  document.body.classList.toggle('space',t==='ship');
+  document.getElementById('hT').textContent=t==='ship'?'🚀 Космическая верфь':'🎨 Мастерская художника';
+  document.getElementById('hP').textContent=t==='ship'?'Строим космический летательный аппарат из фигур':'Смотрим, как работает Paint, и повторяем';
+  if(location.hash.slice(1)!==t){try{history.replaceState(null,'','#'+t);}catch(e){}}
+  demo.reset();ship.reset();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('#nav button').forEach(function(b){b.onclick=function(){showTab(b.dataset.tab);};});
+
+/* ================= УРОКИ ================= */
+var say1=document.getElementById('say1'),say2=document.getElementById('say2');
+function tell(el,t){el.textContent=t;}
+var AW=[690,290];
+var LESSONS=[
+ {name:'Контур и заливка',title:'1. Скруглённый прямоугольник: контур и заливка',
+  goals:['Скруглённый прямоугольник','Заливка «Сплошной цвет»','Контур и заливка разных цветов','Щёлкнуть мимо — рамка исчезла'],
+  check:function(P){var r=P.shapes.filter(function(s){return s.t==='rr';}),a=P.pend&&P.pend.t==='rr'?r.concat([P.pend]):r;
+    function ok(s){return s.fill&&s.c1!==s.c2&&s.c2!=='#ffffff';}
+    return [a.length>0,a.some(function(s){return s.fill;}),a.some(ok),r.some(ok)];},
+  play:async function(D,say){
+    say('В группе «Фигуры» выбираем «Скруглённый прямоугольник».');await D.press('tool:rr');
+    say('Верхний кружок — Цвет 1, это контур. Выбираем голубой.');await D.press('slot:1');await D.press('col:#00a2e8');
+    say('Нижний кружок — Цвет 2, это заливка. Выбираем жёлтый.');await D.press('slot:2');await D.press('col:#fff200');
+    say('Открываем список «Заливка» и выбираем «Сплошной цвет».');await D.press('fillmenu');await D.press('fill:1');
+    say('Список «Размер» — толщина контура.');await D.press('sizemenu');await D.press('size:5');
+    say('Нажимаем кнопку мыши и тянем по холсту.');await D.dragShape(150,50,420,180,false);
+    say('Пока есть рамка, фигуру можно двигать.');await D.dragMove(70,35);
+    say('И даже поменять цвет заливки!');await D.press('col:#ffaec9');await wait(500,D.id);
+    say('Щёлкаем мимо — рамка исчезла. Фигура превратилась в пиксели.');await D.clickAway(AW[0],AW[1]);
+    say('Готово! Теперь повторите в окне ниже.');
+  }},
+ {name:'Shift: ровный круг',title:'2. Овал с клавишей Shift — ровный круг. Разная заливка',
+  goals:['Круг без заливки (овал + Shift)','Круг с заливкой (овал + Shift)'],
+  check:function(P){var c=P.shapes.filter(function(s){return s.t==='oval'&&Math.abs(Math.abs(s.x2-s.x1)-Math.abs(s.y2-s.y1))<2;});
+    return [c.some(function(s){return !s.fill;}),c.some(function(s){return s.fill;})];},
+  play:async function(D,say){
+    say('Выбираем фигуру «Овал». Контур (Цвет 1) — зелёный.');await D.press('tool:oval');await D.press('slot:1');await D.press('col:#22b14c');
+    say('В списке «Заливка» стоит «Без заливки» — внутри фигура пустая.');await D.press('fillmenu');await D.press('fill:0');
+    say('Без Shift получается овал.');await D.dragShape(50,70,250,190,false);await D.clickAway(AW[0],AW[1]);
+    say('Удерживаем Shift и тянем — получается ровный круг!');D.key('shift',true);await D.dragShape(300,40,430,170,true);D.key('shift',false);await D.clickAway(AW[0],AW[1]);
+    say('Теперь «Заливка» → «Сплошной цвет» и выбираем Цвет 2.');await D.press('fillmenu');await D.press('fill:1');await D.press('slot:2');await D.press('col:#ff7f27');
+    say('Снова Shift — круг с заливкой.');D.key('shift',true);await D.dragShape(500,130,630,260,true);D.key('shift',false);await D.clickAway(AW[0],AW[1]-10);
+    say('С клавишей Shift прямоугольник станет квадратом. Повторите!');
+  }},
+ {name:'Линия и толщина',title:'3. Линия: толщина и клавиша Shift',
+  goals:['Ровная линия с Shift','Две линии разной толщины'],
+  check:function(P){var l=P.shapes.filter(function(s){return s.t==='line';});
+    return [l.some(function(s){var dx=Math.abs(s.x2-s.x1),dy=Math.abs(s.y2-s.y1);return dx<1||dy<1||Math.abs(dx-dy)<2;}),
+      l.some(function(a){return l.some(function(b){return a.size!==b.size;});})];},
+  play:async function(D,say){
+    say('Выбираем фигуру «Линия». Цвет линии — Цвет 1.');await D.press('tool:line');await D.press('slot:1');await D.press('col:#ed1c24');
+    say('Без Shift трудно провести ровно.');await D.dragShape(50,60,400,86,false);await D.clickAway(AW[0],AW[1]);
+    say('Удерживаем Shift — линия идеально ровная.');D.key('shift',true);await D.dragShape(50,150,400,157,true);D.key('shift',false);await D.clickAway(AW[0],AW[1]);
+    say('Список «Размер» меняет толщину линии и контура.');await D.press('sizemenu');await D.press('size:8');await D.press('col:#a349a4');
+    say('Толстая линия с Shift — вертикальная.');D.key('shift',true);await D.dragShape(540,40,544,250,true);D.key('shift',false);await D.clickAway(AW[0],AW[1]);
+    say('Теперь повторите: ровная линия и линии разной толщины.');
+  }},
+ {name:'Многоугольник',title:'4. Многоугольник: фигура любой формы',
+  goals:['Многоугольник, у которого 4 угла или больше','С заливкой «Сплошной цвет»','Щёлкнуть мимо — рамка исчезла'],
+  check:function(P){var r=P.shapes.filter(function(s){return s.t==='poly'&&s.pts.length>=4;}),a=P.pend&&P.pend.t==='poly'&&P.pend.pts.length>=4?r.concat([P.pend]):r;
+    return [a.length>0,a.some(function(s){return s.fill;}),r.some(function(s){return s.fill;})];},
+  play:async function(D,say){
+    say('Выбираем фигуру «Многоугольник». Контур синий, заливка зелёная.');await D.press('tool:poly');await D.press('slot:1');await D.press('col:#3f48cc');
+    await D.press('slot:2');await D.press('col:#b5e61d');await D.press('fillmenu');await D.press('fill:1');
+    say('Первую сторону проводим, не отпуская кнопку мыши.');await wait(600,D.id);
+    say('Дальше просто щёлкаем там, где будут углы. Последний угол — двойной щелчок.');
+    await D.polyDemo([[120,60],[270,40],[330,150],[230,250],[90,200]]);
+    say('Фигура замкнулась сама. Пока есть рамка, её можно подвинуть.');await wait(1500,D.id);await D.clickAway(AW[0],AW[1]);
+    say('Так можно нарисовать крыло ракеты: четыре угла.');await D.press('col:#ed1c24');
+    await D.polyDemo([[520,60],[430,130],[435,250],[520,180]]);await D.clickAway(AW[0],AW[1]);
+    say('Теперь повторите: проведите первую сторону, потом щёлкайте в углах.');
+  }},
+ {name:'Отмена действий',title:'5. Ошиблись? Отмена вместо ластика',
+  goals:['Нарисовать две фигуры','Отменить одну: Ctrl + Z','Вернуть её: Ctrl + Y'],
+  check:function(P,L){return [L.max>=2,L.un>=1,L.re>=1];},
+  play:async function(D,say){
+    say('Рисуем прямоугольник с заливкой.');await D.press('tool:rect');await D.press('fillmenu');await D.press('fill:1');await D.press('slot:2');await D.press('col:#22b14c');
+    await D.dragShape(80,70,330,230,false);await D.clickAway(AW[0],AW[1]);
+    say('Ой! Нарисовали лишний овал прямо поверх.');await D.press('tool:oval');await D.press('col:#ed1c24');await D.dragShape(200,30,560,270,false);await D.clickAway(AW[0],AW[1]);
+    say('Ластиком стирать долго, и сотрётся нужное. Нажимаем Ctrl + Z или стрелку вверху окна!');D.key('z',true);await D.press('undo');D.key('z',false);
+    say('Лишняя фигура исчезла целиком.');await wait(1400,D.id);
+    say('Отменили зря? Ctrl + Y вернёт действие.');D.key('y',true);await D.press('redo');D.key('y',false);
+    say('Ctrl + Z можно нажимать несколько раз подряд.');D.key('z',true);await D.press('undo');await D.press('undo');D.key('z',false);
+    say('Холст снова чистый. Повторите: две фигуры, отмена, возврат.');
+  }}
+];
+var TOOLS=['line','oval','rect','rr','poly','tri','rh'];
+var li=0,done=LESSONS.map(function(){return false;}),got=[],log={max:0,un:0,re:0};
+var demo=new Sim(document.getElementById('demoSim'),{demo:true,w:720,h:300,tools:TOOLS});
+var prac=new Sim(document.getElementById('pracSim'),{w:720,h:300,tools:TOOLS,on:function(ev){
+  var n=prac.shapes.length+(prac.pend?1:0); if(n>log.max) log.max=n;
+  if(ev==='undo'&&log.max>=2) log.un++;
+  if(ev==='redo'&&log.un>=1) log.re++;
+  evalGoals();
+}});
+function evalGoals(){
+  var L=LESSONS[li],r=L.check(prac,log);
+  r.forEach(function(v,i){if(v)got[i]=true;});
+  var all=true;
+  document.querySelectorAll('#goals li').forEach(function(e,i){e.classList.toggle('done',!!got[i]);if(!got[i])all=false;});
+  if(all&&!done[li]){done[li]=true;renderChips();}
+  var w=document.getElementById('win'),nr=document.getElementById('nextRow'),nb=document.getElementById('nextBtn');
+  w.style.display=done[li]?'block':'none';nr.style.display=done[li]?'flex':'none';
+  if(done[li]){
+    var lastL=li===LESSONS.length-1;
+    w.textContent=lastL?'Отлично! Вы готовы рисовать в настоящем Paint.':'Получилось! В Paint всё работает так же.';
+    nb.textContent=lastL?'🚀 К космическому кораблю →':'Следующий показ →';
+    nb.onclick=function(){ if(lastL) showTab('ship'); else setLesson(li+1); };
+  }
+}
+function renderChips(){
+  var c=document.getElementById('chips');c.innerHTML='';
+  LESSONS.forEach(function(L,i){var b=document.createElement('button');b.textContent=(i+1)+'. '+L.name;b.className=(i===li?'active':'')+(done[i]?' done':'');b.onclick=function(){setLesson(i);};c.appendChild(b);});
+}
+function setLesson(i){
+  stopAll();li=i;got=[];log={max:0,un:0,re:0};
+  var L=LESSONS[i];
+  document.getElementById('lT').textContent='👀 '+L.title;
+  document.getElementById('goals').innerHTML=L.goals.map(function(g){return '<li>'+g+'</li>';}).join('');
+  tell(say1,'Нажмите «Запустить показ» и смотрите, что делает мышь.');
+  demo.reset();prac.reset();renderChips();
+  if(done[i]) got=L.goals.map(function(){return true;});
+  evalGoals();
+  window.scrollTo(0,0);
+}
+document.getElementById('clrBtn').onclick=function(){prac.reset();};
+
+/* ----- запуск и пауза ----- */
+function setBtns(pl,pa,playing,txt){pl.textContent=playing?'⟲ Сначала':txt;pa.style.display=playing?'':'none';pa.textContent='⏸ Пауза';}
+function stopAll(){
+  run++;paused=false;
+  setBtns(document.getElementById('playBtn'),document.getElementById('pauseBtn'),false,'▶ Запустить показ');
+  setBtns(document.getElementById('sPlay'),document.getElementById('sPause'),false,'▶ Запустить постройку');
+}
+async function play(sim,fn,sayEl,pl,pa,txt){
+  stopAll();var id=run;sim.id=id;sim.reset();setBtns(pl,pa,true,txt);
+  try{await wait(300,id);await fn(sim,function(t){tell(sayEl,t);});}
+  catch(e){if(e!=='stop')throw e;return;}
+  if(id===run) setBtns(pl,pa,false,'▶ Показать ещё раз');
+}
+function pauseBtn(pa){pa.onclick=function(){paused=!paused;pa.textContent=paused?'▶ Продолжить':'⏸ Пауза';};}
+document.getElementById('playBtn').onclick=function(){play(demo,LESSONS[li].play,say1,this,document.getElementById('pauseBtn'),'▶ Запустить показ');};
+pauseBtn(document.getElementById('pauseBtn'));
+
+/* ================= КОРАБЛЬ ================= */
+var ship=new Sim(document.getElementById('shipSim'),{demo:true,w:640,h:470,tools:TOOLS.concat(['text'])});
+function stepNow(i){document.querySelectorAll('#slist li').forEach(function(e,k){e.classList.toggle('now',k===i);e.classList.toggle('was',k<i);});}
+async function buildShip(D,say){
+  var a=[40,440];
+  stepNow(0);say('Корпус: скруглённый прямоугольник. Контур синий, заливка голубая.');
+  await D.press('tool:rr');await D.press('slot:1');await D.press('col:#3f48cc');await D.press('slot:2');await D.press('col:#00a2e8');
+  await D.press('fillmenu');await D.press('fill:1');await D.press('sizemenu');await D.press('size:5');
+  await D.dragShape(255,150,385,340,false);await D.clickAway(a[0],a[1]);
+  stepNow(1);say('Нос: фигура «Треугольник». Ракета смотрит носом вверх.');
+  await D.press('tool:tri');await D.press('col:#ff7f27');await D.dragShape(262,55,378,150,false);await D.clickAway(a[0],a[1]);
+  stepNow(2);say('Иллюминатор: овал с клавишей Shift — ровный круг.');
+  await D.press('tool:oval');await D.press('col:#99d9ea');D.key('shift',true);await D.dragShape(294,172,346,224,true);D.key('shift',false);await D.clickAway(a[0],a[1]);
+  stepNow(3);say('Крылья: «Многоугольник». Первую сторону проводим, дальше щёлкаем в углах, в конце — двойной щелчок.');
+  await D.press('tool:poly');await D.press('col:#a349a4');
+  await D.polyDemo([[255,255],[185,312],[190,402],[255,345]]);await D.clickAway(a[0],a[1]);
+  await D.polyDemo([[385,255],[455,312],[450,402],[385,345]]);await D.clickAway(a[0],a[1]);
+  stepNow(4);say('Ой! Лишний прямоугольник закрыл ракету.');
+  await D.press('tool:rect');await D.dragShape(205,110,440,300,false);await D.clickAway(a[0],a[1]);
+  say('Не ластик, а Ctrl + Z — и ракета снова целая.');D.key('z',true);await D.press('undo');D.key('z',false);await wait(900,D.id);
+  stepNow(5);say('Полоса на корпусе: линия с клавишей Shift. Цвет линии — Цвет 1.');
+  await D.press('tool:line');await D.press('slot:1');await D.press('col:#fff200');D.key('shift',true);await D.dragShape(262,252,378,254,true);D.key('shift',false);await D.clickAway(a[0],a[1]);
+  stepNow(6);say('Пламя: три ромба. Контур оранжевый, заливка жёлтая.');
+  await D.press('tool:rh');await D.press('col:#ff7f27');await D.press('slot:2');await D.press('col:#fff200');
+  await D.dragShape(272,352,300,412,false);await D.clickAway(a[0],a[1]);
+  await D.dragShape(340,352,368,412,false);await D.clickAway(a[0],a[1]);
+  await D.dragShape(306,388,334,452,false);await D.clickAway(a[0],a[1]);
+  stepNow(7);say('Название: инструмент «Текст» (буква А). Цвет букв — Цвет 1, выбираем белый.');
+  await D.press('tool:text');await D.press('slot:1');await D.press('col:#ffffff');await D.typeText(278,305,'ЗАРЯ',28);await D.clickAway(a[0],a[1]);
+  say('Ракета готова! Нос смотрит вверх, фон белый.');await wait(1500,D.id);
+  await saveDemo(D,say);
+}
+async function saveDemo(D,say){
+  stepNow(8);say('Сохраняем рисунок: открываем меню «Файл».');await D.press('file');
+  say('«Сохранить как» → «Изображение в формате PNG».');await D.press('saveas');await D.press('png');
+  say('Слева выбираем папку «Рабочий стол».');await D.press('desk');
+  say('В поле «Имя файла» пишем свои фамилию и имя.');await D.typeName('Фамилия Имя');
+  say('Нажимаем «Сохранить».');await D.press('dosave');
+  stepNow(9);say('Готово! Файл «Фамилия Имя.png» лежит на Рабочем столе. Теперь нарисуйте свой аппарат в Paint.');
+}
+function quickShip(D){
+  function b(t,x1,y1,x2,y2,c1,c2){return {t:t,x1:x1,y1:y1,x2:x2,y2:y2,c1:c1,c2:c2,fill:true,out:true,size:5};}
+  function pg(pts,c1,c2){return {t:'poly',pts:pts,c1:c1,c2:c2,fill:true,out:true,size:5};}
+  var I='#3f48cc',O='#ff7f27',Y='#fff200';
+  D.shapes=[b('rr',255,150,385,340,I,'#00a2e8'),b('tri',262,55,378,150,I,O),b('oval',294,172,346,224,I,'#99d9ea'),
+    pg([[255,255],[185,312],[190,402],[255,345]],I,'#a349a4'),pg([[385,255],[455,312],[450,402],[385,345]],I,'#a349a4'),
+    b('line',262,252,378,252,Y,'#a349a4'),b('rh',272,352,300,412,O,Y),b('rh',340,352,368,412,O,Y),b('rh',306,388,334,452,O,Y),
+    {t:'text',x1:278,y1:305,text:'ЗАРЯ',fs:28,c1:'#ffffff',c2:Y,size:5}];
+  D.ui();D.render();
+}
+document.getElementById('sPlay').onclick=function(){stepNow(-1);play(ship,buildShip,say2,this,document.getElementById('sPause'),'▶ Запустить постройку');};
+pauseBtn(document.getElementById('sPause'));
+document.getElementById('sSave').onclick=function(){stepNow(8);play(ship,async function(D,say){quickShip(D);await saveDemo(D,say);},say2,document.getElementById('sPlay'),document.getElementById('sPause'),'▶ Запустить постройку');};
+
+/* ================= КЛАВИШИ ================= */
+document.addEventListener('keydown',function(e){
+  if(tab!=='paint'||e.target.tagName==='INPUT')return;
+  if(e.key==='Shift') prac.key('shift',true);
+  if(!e.ctrlKey)return;
+  if(e.code==='KeyZ'){e.preventDefault();prac.key('z',true);prac.undo();setTimeout(function(){prac.key('z',false);},300);}
+  else if(e.code==='KeyY'){e.preventDefault();prac.key('y',true);prac.redoIt();setTimeout(function(){prac.key('y',false);},300);}
+});
+document.addEventListener('keyup',function(e){if(e.key==='Shift')prac.key('shift',false);});
+window.addEventListener('hashchange',function(){var h=location.hash.slice(1);if((h==='ship'||h==='paint')&&h!==tab)showTab(h);});
+
+/* ================= СТАРТ ================= */
+setLesson(0);
+showTab(location.hash==='#ship'?'ship':'paint');
+</script>
+</body>
+</html>
