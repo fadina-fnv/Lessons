@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<script>
+// ===== GOOGLE_SHEET_URL: адрес веб-приложения Google Apps Script (тот же, что в файле панели) =====
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxnTgdNZayYdQgWvCTRTXgk60wb9e2Uy4e-NJ8hiaGSso_4W-XFmv9LaIwvy_KcMTcX/exec';
+// ==================================================================================================
+</script>
+<title>ЦУП · Подготовка к старту</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--c1:#1683c9;--c1l:#e3f3fd;--c2:#d98a0b;--c2l:#fff3dc;--team:#1683c9;--teaml:#e3f3fd;--ok:#22955a;--okl:#e2f7ea;--warn:#d9821b;--warnl:#fff2df;--ink:#1b2d4f}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#edf3fa;color:var(--ink);font-family:"Times New Roman",Times,serif}
+.math{font-family:"Cambria Math","Segoe UI Symbol","DejaVu Sans","Times New Roman",serif}
+header{background:#d9e8f8;border-bottom:4px solid var(--team);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{margin:0;font-size:28px;letter-spacing:1px;color:#17407e}
+#teamTag{font-size:22px;font-weight:bold;color:var(--team)}
+#net{margin-left:auto;font-size:16px;color:#5a6f92}
+main{max-width:980px;margin:0 auto;padding:22px}
+.screen{display:none}.screen.show{display:block}
+h2{font-size:30px;margin:6px 0 18px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.big{font:inherit;font-size:26px;padding:22px 18px;border-radius:16px;border:3px solid #b8cbe6;background:#fff;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .1s,border-color .2s}
+.big:hover{border-color:var(--team);transform:translateY(-2px)}
+.big .ic{width:54px;height:54px;border-radius:12px;background:var(--teaml);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:bold;color:var(--team);flex:none}
+.team1{--team:var(--c1);--teaml:var(--c1l)}
+.team2{--team:var(--c2);--teaml:var(--c2l)}
+.sysbar{display:flex;align-items:center;gap:14px;background:#fff;border-radius:14px;padding:12px 18px;border:2px solid #c9d8ee;margin-bottom:16px;flex-wrap:wrap}
+.sysbar .nm{font-size:26px;font-weight:bold}
+.segs{display:flex;gap:6px;margin-left:auto;align-items:center}
+.segs span{width:44px;height:20px;border-radius:5px;background:#dbe5f2;border:1px solid #b9c9e0;transition:background .4s}
+.segs span.on{background:var(--team)}
+.segs b{font-size:22px;margin-left:8px;min-width:30px;text-align:center}
+.card{background:#fff;border-radius:18px;border:2px solid #c9d8ee;padding:22px 26px;box-shadow:0 4px 14px rgba(30,60,120,.07)}
+.qnum{font-size:18px;color:#5a6f92;margin-bottom:6px}
+.q{font-size:28px;margin-bottom:18px}
+.expr{font-size:46px;text-align:center;padding:18px 8px;background:#f5f9fe;border-radius:14px;margin-bottom:18px;line-height:1.5;word-break:keep-all}
+.expr .v{font-style:italic;margin:0 2px}
+.expr .o{margin:0 10px}
+.expr .n{margin:0 2px 0 6px}
+.expr .clk{cursor:pointer;border:2px dashed #8fb0dc;border-radius:10px;padding:0 8px;transition:background .2s,border-color .2s}
+.expr .clk:hover{background:#e3f0ff;border-color:var(--team)}
+.expr .clk.bad{background:var(--warnl);border-color:var(--warn)}
+.expr .clk.good{background:var(--okl);border-color:var(--ok)}
+.vals{font-size:32px;text-align:center;margin-bottom:18px}
+.vals span{display:inline-block;margin:0 14px;padding:4px 16px;border-radius:10px;background:#eef4fb}
+.ans{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.ans button{font:inherit;font-size:40px;min-width:110px;padding:10px 26px;border-radius:14px;border:3px solid #b8cbe6;background:#fff;cursor:pointer;color:var(--ink)}
+.ans button:hover{border-color:var(--team)}
+.ans button.bad{background:var(--warnl);border-color:var(--warn)}
+.ans button.good{background:var(--okl);border-color:var(--ok)}
+table.tt{border-collapse:collapse;margin:0 auto 20px;font-size:32px}
+table.tt th,table.tt td{border:2px solid #b9c9e0;padding:6px 30px;text-align:center}
+table.tt th{background:#eef4fb}
+table.tt td.f,table.tt th.f{background:#fff7e6;font-weight:bold}
+#fb{min-height:56px;margin-top:16px;font-size:26px;text-align:center;padding:10px;border-radius:12px}
+#fb.ok{background:var(--okl);color:#17663d}
+#fb.warn{background:var(--warnl);color:#8a4d06}
+#hint{display:none;margin-top:12px;font-size:21px;background:#f1f6fd;border-left:5px solid var(--team);padding:10px 14px;border-radius:8px}
+#hint.show{display:block}
+.done{text-align:center;padding:30px}
+.done .one{font-size:150px;font-weight:bold;color:var(--ok);line-height:1}
+.done .t{font-size:34px;margin:10px 0}
+.done .s{font-size:24px;color:#4a5f82}
+.login{max-width:620px;margin:0 auto}
+.login label{display:block;font-size:22px;margin:14px 0 6px}
+.login input,.login select{width:100%;font:inherit;font-size:26px;padding:10px 14px;border-radius:12px;border:2px solid #b8cbe6;background:#fff;color:var(--ink)}
+.login input:focus,.login select:focus{outline:none;border-color:var(--team)}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.teams button{font:inherit;font-size:22px;padding:14px;border-radius:12px;border:3px solid #b8cbe6;background:#fff;cursor:pointer;color:var(--ink)}
+.teams button.sel1{border-color:var(--c1);background:var(--c1l)}
+.teams button.sel2{border-color:var(--c2);background:var(--c2l)}
+.go{font:inherit;font-size:28px;margin-top:22px;width:100%;padding:14px;border-radius:14px;border:none;background:var(--team);color:#fff;cursor:pointer}
+.err{color:#a5560a;font-size:20px;min-height:26px;margin-top:10px}
+.big.taken{opacity:.45;cursor:not-allowed;transform:none}
+.big .by{display:block;font-size:17px;color:#6b7c99}
+.big .tx{text-align:left}
+.whoami{font-size:20px;color:#4a5f82;text-align:center;margin:-8px 0 14px}
+.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>ЦУП · Подготовка к старту</h1>
+  <span id="teamTag"></span>
+  <span id="net"></span>
+</header>
+<main>
+  <section id="scLogin" class="screen">
+    <div class="card login">
+      <h2>Вход в Центр управления полётами</h2>
+      <label for="fam">Фамилия</label>
+      <input id="fam" autocomplete="off" autocorrect="off" spellcheck="false">
+      <label for="nam">Имя</label>
+      <input id="nam" autocomplete="off" autocorrect="off" spellcheck="false">
+      <label for="cls">Класс</label>
+      <select id="cls"><option value="">— выберите класс —</option><option>9А</option><option>9Б</option><option>9В</option></select>
+      <div id="teamPick">
+        <label>Расчёт</label>
+        <div class="teams"><button id="tp1" onclick="pickTeam(1)">Расчёт 1 · Ракета</button><button id="tp2" onclick="pickTeam(2)">Расчёт 2 · Стартовый комплекс</button></div>
+      </div>
+      <button class="go" onclick="login()">Далее</button>
+      <div class="err" id="loginErr"></div>
+    </div>
+  </section>
+
+  <section id="scSys" class="screen">
+    <h2>Выберите свою систему</h2>
+    <div class="whoami" id="whoami"></div>
+    <div class="err" id="sysErr" style="text-align:center"></div>
+    <div class="grid" id="sysGrid"></div>
+  </section>
+
+  <section id="scTask" class="screen">
+    <div class="sysbar"><span class="nm" id="sysName"></span>
+      <div class="segs"><span></span><span></span><span></span><b id="sysVal" class="math">0</b></div>
+    </div>
+    <div class="card" id="card">
+      <div class="qnum" id="qnum"></div>
+      <div class="q" id="qtext"></div>
+      <div id="qbody"></div>
+      <div id="fb"></div>
+      <div id="hint"></div>
+    </div>
+  </section>
+
+  <section id="scDone" class="screen">
+    <div class="card done">
+      <div class="one math">1</div>
+      <div class="t" id="doneName"></div>
+      <div class="s">Система готова к старту. Смотрите на экран ЦУП!</div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const configured=/^https?:\/\//.test(GOOGLE_SHEET_URL);
+
+const SYS={
+ 1:[{id:'R1',name:'Боковой блок Б',ic:'Б'},{id:'R2',name:'Боковой блок В',ic:'В'},{id:'R3',name:'Боковой блок Г',ic:'Г'},
+    {id:'R4',name:'Боковой блок Д',ic:'Д'},{id:'R5',name:'Центральный блок А',ic:'А'},{id:'R6',name:'Корабль «Союз»',ic:'🛰'}],
+ 2:[{id:'S1',name:'Заправка',ic:'⛽'},{id:'S2',name:'Электропитание',ic:'⚡'},{id:'S3',name:'Связь',ic:'📡'},
+    {id:'S4',name:'Телеметрия',ic:'📈'},{id:'S5',name:'Прожекторы',ic:'💡'},{id:'S6',name:'Фермы обслуживания',ic:'🏗'}]
+};
+SYS[1].push({id:'R7',name:'Система управления',ic:'🧭'},{id:'R8',name:'Двигатели',ic:'🔥'});
+SYS[2].push({id:'S7',name:'Метеослужба',ic:'🌬'},{id:'S8',name:'Служба спасения',ic:'🚒'});
+
+let TEAM=0,STUDENT='',CLS='',sysTimer=null,SYSOBJ=null,progress=0,taskNo=0,cur=null,busy=false,wrong=0;
+
+/* ================= ЛОГИКА ================= */
+const PRI={'¬':5,'∧':4,'∨':3,'⊕':3,'→':2,'↔':1};
+const BIN=['∧','∨','⊕','→','↔'];
+const NAMES={'∧':'конъюнкция (И)','∨':'дизъюнкция (ИЛИ)','⊕':'исключающее ИЛИ','→':'импликация','↔':'эквивалентность','¬':'инверсия (НЕ)'};
+function calc(op,a,b){switch(op){case'∧':return a&b;case'∨':return a|b;case'⊕':return a^b;case'→':return(a===1&&b===0)?0:1;case'↔':return a===b?1:0;}}
+function genTree(n,leaves){
+  if(n===0)return{t:'v',n:leaves.shift()};
+  const l=Math.floor(Math.random()*n);
+  return{t:'b',op:pick(BIN),l:genTree(l,leaves),r:genTree(n-1-l,leaves)};
+}
+function addNeg(tree){
+  const nodes=[];
+  (function walk(n,p,k){nodes.push({n,p,k});if(n.t==='b'){walk(n.l,n,'l');walk(n.r,n,'r');}})(tree,null,null);
+  const it=pick(nodes),neg={t:'n',c:it.n};
+  if(!it.p)return neg;it.p[it.k]=neg;return tree;
+}
+function valid(n){
+  if(n.t==='v')return true;
+  if(n.t==='n')return valid(n.c);
+  for(const c of[n.l,n.r]){if(c.t==='b'&&PRI[n.op]<=2&&PRI[c.op]===PRI[n.op])return false;}
+  if(n.l.t==='v'&&n.r.t==='v'&&n.l.n===n.r.n)return false;
+  return valid(n.l)&&valid(n.r);
+}
+function needP(c,pop,right){if(c.t!=='b')return false;const pc=PRI[c.op],pp=PRI[pop];return pc<pp||(pc===pp&&right);}
+let opId=0;
+function tok(n,out){
+  if(n.t==='v'){out.push({k:'v',s:n.n});return;}
+  if(n.t==='n'){const id=++opId;n.id=id;out.push({k:'not',s:'¬',id});if(n.c.t==='b'){out.push({k:'(',s:'('});tok(n.c,out);out.push({k:')',s:')'});}else tok(n.c,out);return;}
+  const pl=needP(n.l,n.op,false),pr=needP(n.r,n.op,true);
+  if(pl)out.push({k:'(',s:'('});tok(n.l,out);if(pl)out.push({k:')',s:')'});
+  n.id=++opId;out.push({k:'op',s:n.op,id:n.id});
+  if(pr)out.push({k:'(',s:'('});tok(n.r,out);if(pr)out.push({k:')',s:')'});
+}
+function ev(n,V){if(n.t==='v')return V[n.n];if(n.t==='n')return 1-ev(n.c,V);return calc(n.op,ev(n.l,V),ev(n.r,V));}
+// порядок: ( ), ¬, ∧, ∨ и ⊕, →, ↔; одинаковые — слева направо
+function execOrder(tokens){
+  const a=tokens.map(t=>Object.assign({},t)),order=[];
+  function reduce(lo,hi){
+    while(hi-lo>1){
+      let idx=-1;
+      for(let i=lo;i<hi-1;i++)if(a[i].k==='not'&&a[i+1].k==='v'){idx=i;break;}
+      if(idx>=0){order.push(a[idx].id);a.splice(idx,2,{k:'v'});hi-=1;continue;}
+      let best=-1,bp=-1;
+      for(let i=lo+1;i<hi-1;i++)if(a[i].k==='op'&&a[i-1].k==='v'&&a[i+1].k==='v'){const p=PRI[a[i].s];if(p>bp){bp=p;best=i;}}
+      if(best<0)break;
+      order.push(a[best].id);a.splice(best-1,3,{k:'v'});hi-=2;
+    }
+  }
+  for(let guard=0;guard<50&&a.length>1;guard++){
+    let s=-1,e=-1;
+    for(let i=0;i<a.length;i++){if(a[i].k==='(')s=i;else if(a[i].k===')'){e=i;break;}}
+    if(e>=0){reduce(s+1,e);a.splice(s,3,{k:'v'});}
+    else{reduce(0,a.length);break;}
+  }
+  return order;
+}
+function depthAt(toks,i){let d=0;for(let j=0;j<i;j++){if(toks[j].k==='(')d++;if(toks[j].k===')')d--;}return d;}
+
+function genOrderTask(){
+  for(let t=0;t<2000;t++){
+    opId=0;
+    const nb=pick([3,3,4]);
+    const leaves=shuffle(['A','B','C','D']).concat(shuffle(['A','B','C','D']));
+    let tree=genTree(nb,leaves);
+    if(nb===3&&Math.random()<.55)tree=addNeg(tree);
+    if(!valid(tree))continue;
+    const toks=[];tok(tree,toks);
+    const np=toks.filter(x=>x.k==='(').length;
+    if(np>1)continue;
+    if(np===1&&toks.some((x,i)=>x.k==='not'&&toks[i+1].k==='v'&&depthAt(toks,i)===0))continue;
+    const order=execOrder(toks);
+    const ops=toks.filter(x=>x.k==='op'||x.k==='not');
+    if(order.length!==ops.length)continue;
+    const ask=Math.random()<.5?'first':'last';
+    const target=ask==='first'?order[0]:order[order.length-1];
+    if(ask==='first'&&ops[0].id===target)continue;
+    if(ask==='last'&&(ops[ops.length-1].id===target||ops[0].id===target)&&Math.random()<.6)continue;
+    return{type:1,toks,ask,target};
+  }
+}
+function genValueTask(){
+  const want=Math.random()<.5?0:1;
+  for(let t=0;t<2000;t++){
+    opId=0;
+    const nb=pick([2,2,3]);
+    const leaves=shuffle(['A','B','C']).concat([pick(['A','B','C'])]);
+    let tree=genTree(nb,shuffle(leaves));
+    if(Math.random()<.6)tree=addNeg(tree);
+    if(!valid(tree))continue;
+    const toks=[];tok(tree,toks);
+    if(toks.filter(x=>x.k==='(').length>2)continue;
+    const vars=new Set(toks.filter(x=>x.k==='v').map(x=>x.s));
+    if(vars.size<3)continue;
+    const V={A:Math.round(Math.random()),B:Math.round(Math.random()),C:Math.round(Math.random())};
+    const ans=ev(tree,V);
+    if(ans!==want)continue;
+    return{type:2,toks,V,ans};
+  }
+}
+function genTableTask(){
+  const op=pick(BIN);
+  return{type:3,op,rows:[[0,0],[0,1],[1,0],[1,1]].map(([a,b])=>[a,b,calc(op,a,b)])};
+}
+
+/* ================= ОТРИСОВКА ================= */
+function exprHTML(toks,clickable){
+  return toks.map((t,i)=>{
+    if(t.k==='v')return`<span class="v">${t.s}</span>`;
+    if(t.k==='('||t.k===')')return`<span>${t.s}</span>`;
+    const cls=t.k==='not'?'n':'o';
+    if(clickable)return`<span class="${cls} clk" data-id="${t.id}">${t.s}</span>`;
+    return`<span class="${cls}">${t.s}</span>`;
+  }).join('');
+}
+const HINT_ORDER='Порядок действий: 1) ( )&nbsp; 2) ¬&nbsp; 3) ∧&nbsp; 4) ∨, ⊕&nbsp; 5) →&nbsp; 6) ↔.<br>Одинаковые по старшинству — слева направо.';
+function showTask(){
+  wrong=0;busy=false;
+  $('fb').textContent='';$('fb').className='';$('hint').className='';$('hint').innerHTML='';
+  $('qnum').textContent=`Задание ${taskNo+1} из 3`;
+  const body=$('qbody');
+  if(taskNo===0){
+    cur=genOrderTask();
+    $('qtext').innerHTML=`Нажмите на операцию, которая выполнится <b>${cur.ask==='first'?'первой':'последней'}</b>:`;
+    body.innerHTML=`<div class="expr math">${exprHTML(cur.toks,true)}</div>`;
+    body.querySelectorAll('.clk').forEach(e=>e.onclick=()=>answer(+e.dataset.id===cur.target,e));
+    $('hint').innerHTML=HINT_ORDER;
+  }else if(taskNo===1){
+    cur=genValueTask();
+    $('qtext').innerHTML='Найдите значение выражения:';
+    body.innerHTML=`<div class="expr math">${exprHTML(cur.toks,false)}</div>
+      <div class="vals math"><span><i>A</i> = ${cur.V.A}</span><span><i>B</i> = ${cur.V.B}</span><span><i>C</i> = ${cur.V.C}</span></div>
+      <div class="ans math"><button data-v="0">0</button><button data-v="1">1</button></div>`;
+    body.querySelectorAll('.ans button').forEach(b=>b.onclick=()=>answer(+b.dataset.v===cur.ans,b));
+    $('hint').innerHTML=HINT_ORDER+'<br>Подставьте значения и выполняйте операции по порядку.';
+  }else{
+    cur=genTableTask();
+    $('qtext').innerHTML='Какая операция задана этой таблицей истинности?';
+    body.innerHTML=`<table class="tt math"><tr><th><i>A</i></th><th><i>B</i></th><th class="f"><i>A</i> ? <i>B</i></th></tr>
+      ${cur.rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td class="f">${r[2]}</td></tr>`).join('')}</table>
+      <div class="ans math">${BIN.map(o=>`<button data-o="${o}">${o}</button>`).join('')}</div>`;
+    body.querySelectorAll('.ans button').forEach(b=>b.onclick=()=>answer(b.dataset.o===cur.op,b));
+    $('hint').innerHTML='Посмотрите, в каких строках результат равен 0, а в каких 1.<br>∧ — 1 только когда оба 1; ∨ — 0 только когда оба 0; ⊕ — 1 когда значения разные; → — 0 только при 1 → 0; ↔ — 1 когда значения одинаковые.';
+  }
+}
+function qText(){
+  const ex=cur.toks?cur.toks.map(t=>t.s).join(' ').replace(/\( /g,'(').replace(/ \)/g,')').replace(/¬ /g,'¬'):'';
+  if(cur.type===1)return`${cur.ask==='first'?'первая':'последняя'}: ${ex}`;
+  if(cur.type===2)return`${ex}  при A=${cur.V.A}, B=${cur.V.B}, C=${cur.V.C}`;
+  return'таблица: '+cur.rows.map(r=>r[2]).join('');
+}
+function opLabel(id){const ops=cur.toks.filter(t=>t.k==='op'||t.k==='not');const i=ops.findIndex(t=>t.id===id);return`${ops[i].s} (${i+1}-й знак слева)`;}
+function ansText(elx){if(cur.type===1)return opLabel(+elx.dataset.id);if(cur.type===2)return elx.dataset.v;return elx.dataset.o;}
+function rightText(){if(cur.type===1)return opLabel(cur.target);if(cur.type===2)return String(cur.ans);return cur.op;}
+async function answer(ok,elx){
+  if(busy)return;
+  const det={t:taskNo+1,q:qText(),a:ansText(elx),c:rightText()};
+  if(!ok)send('err',det);
+  if(ok){
+    busy=true;elx.classList.add('good');
+    progress++;updateBar();send('set',Object.assign({p:progress},det));
+    $('fb').className='ok';
+    $('fb').textContent=progress<3?`Верно! Готовность системы: ${progress} из 3`:'Верно! Система = 1';
+    await sleep(1300);
+    taskNo++;
+    if(taskNo>=3)finish();else showTask();
+  }else{
+    wrong++;elx.classList.add('bad');
+    $('card').classList.remove('shake');void $('card').offsetWidth;$('card').classList.add('shake');
+    $('fb').className='warn';
+    if(cur.type===2){
+      busy=true;
+      $('fb').textContent='Не совсем. Вот новое выражение — попробуйте ещё раз!';
+      $('hint').classList.add('show');
+      await sleep(1700);
+      const h=$('hint').innerHTML;showTask();$('hint').innerHTML=h;$('hint').classList.add('show');
+    }else{
+      $('fb').textContent='Не совсем. Попробуйте ещё раз!';
+      $('hint').classList.add('show');
+      setTimeout(()=>elx.classList.remove('bad'),900);
+    }
+  }
+}
+function updateBar(){
+  document.querySelectorAll('.segs span').forEach((s,i)=>s.classList.toggle('on',i<progress));
+  $('sysVal').textContent=progress>=3?'1':'0';
+}
+function finish(){
+  $('doneName').textContent=`Система «${SYSOBJ.name}» = 1`;
+  show('scDone');
+}
+
+/* ================= ЭКРАНЫ ================= */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show',s.id===id));}
+function pickTeam(t){
+  TEAM=t;document.body.className='team'+t;
+  $('tp1').className=t===1?'sel1':'';$('tp2').className=t===2?'sel2':'';
+}
+function cap(x){x=x.trim().replace(/\s+/g,' ');return x?x.charAt(0).toUpperCase()+x.slice(1):'';}
+function login(){
+  const f=cap($('fam').value),n=cap($('nam').value),c=$('cls').value;
+  if(!f||!n){$('loginErr').textContent='Введите фамилию и имя.';return;}
+  if(!c){$('loginErr').textContent='Выберите класс.';return;}
+  if(!TEAM){$('loginErr').textContent='Выберите расчёт.';return;}
+  STUDENT=f+' '+n;CLS=c;
+  $('teamTag').textContent=(TEAM===1?'Расчёт 1 · Ракета':'Расчёт 2 · Стартовый комплекс')+' · '+STUDENT+', '+CLS;
+  $('whoami').textContent=STUDENT+', '+CLS;
+  show('scSys');loadSystems();
+  sysTimer=setInterval(loadSystems,3000);
+}
+let lastData=null;
+async function loadSystems(){
+  let cfg=null,taken={};
+  if(configured){
+    try{const d=await jsonp({action:'state'});lastData=d;cfg=d.cfg;taken=d.taken||{};net(true);}
+    catch(e){net(false);if(lastData){cfg=lastData.cfg;taken=lastData.taken||{};}}
+  }
+  const list=SYS[TEAM].filter(s=>cfg?cfg[s.id]==='s':(+s.id.slice(1)<=6));
+  const me=STUDENT+' | '+CLS;
+  $('sysGrid').innerHTML=list.map(s=>{
+    const tk=taken[s.id],busyBy=tk&&tk.who!==me;
+    return`<button class="big${busyBy?' taken':''}" data-id="${s.id}" ${busyBy?'disabled':''}><span class="ic">${s.ic}</span><span class="tx">${s.name}${busyBy?`<span class="by">занято: ${tk.name}</span>`:''}</span></button>`;
+  }).join('')||'<p style="text-align:center;font-size:22px">Учитель ещё не настроил систем для этого расчёта.</p>';
+  $('sysGrid').querySelectorAll('button:not([disabled])').forEach(b=>b.onclick=()=>claim(SYS[TEAM].find(s=>s.id===b.dataset.id)));
+}
+async function claim(s){
+  $('sysErr').textContent='';
+  if(configured){
+    try{
+      const d=await jsonp({action:'claim',sys:s.id,name:STUDENT,cls:CLS});
+      if(d.ok===false&&d.taken){$('sysErr').textContent=`Эту систему уже выбрал(а) ${d.by}. Выберите другую.`;loadSystems();return;}
+      net(true);
+    }catch(e){$('sysErr').textContent='Нет связи с ЦУП. Попробуйте ещё раз.';net(false);return;}
+  }
+  clearInterval(sysTimer);startSys(s);
+}
+function startSys(s){
+  SYSOBJ=s;progress=0;taskNo=0;updateBar();
+  $('sysName').textContent=/^[А-Я]$/.test(s.ic)?s.name:`${s.ic}  ${s.name}`;
+  show('scTask');showTask();
+}
+
+/* ================= СВЯЗЬ ================= */
+function jsonp(params){
+  return new Promise((res,rej)=>{
+    const cb='cup_cb_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+    const s=document.createElement('script');let done=false;
+    window[cb]=d=>{done=true;res(d);window[cb]=()=>{};s.remove();};
+    s.onerror=()=>{if(!done){done=true;rej('err');s.remove();}};
+    setTimeout(()=>{if(!done){done=true;rej('timeout');window[cb]=()=>{};s.remove();}},8000);
+    s.src=GOOGLE_SHEET_URL+'?'+new URLSearchParams(Object.assign({},params,{callback:cb,_:Date.now()})).toString();
+    document.body.appendChild(s);
+  });
+}
+function net(st){$('net').textContent=st===true?'● связь с ЦУП есть':st===false?'● нет связи с ЦУП, повторяем…':'● тренировочный режим';$('net').style.color=st===true?'#22955a':st===false?'#d9821b':'#5a6f92';}
+async function send(action,det){
+  if(!configured){net('test');return;}
+  const prm=Object.assign({action,sys:SYSOBJ.id,name:STUDENT,cls:CLS},det);
+  for(let i=0;i<6;i++){
+    try{await jsonp(prm);net(true);return;}
+    catch(e){net(false);await sleep(1200+i*500);}
+  }
+}
+
+/* ================= СТАРТ ================= */
+net(configured?'':'test');if(configured)$('net').textContent='';
+$('fam').value='';$('nam').value='';$('cls').value='';
+const r=new URLSearchParams(location.search).get('r');
+if(r==='1'||r==='2'){pickTeam(+r);$('teamPick').style.display='none';}
+show('scLogin');
+</script>
+</body>
+</html>
