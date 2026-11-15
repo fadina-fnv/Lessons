@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<script>
+// ===== GOOGLE_SHEET_URL: адрес веб-приложения Google Apps Script (тот же, что в файле панели города) =====
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyudgwehTO2aW9LJ3RuW9C-6J3QgV7ZoNI1xw0vV92MbV5akIiD6ATilHbxmsizQy_fWA/exec';
+// =========================================================================================================
+</script>
+<title>Умный город · Пульт управления</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--c1:#1683c9;--c1l:#e3f3fd;--c2:#c2700a;--c2l:#fff3dc;--team:#1683c9;--teaml:#e3f3fd;--ok:#22955a;--okl:#e2f7ea;--warn:#d9821b;--warnl:#fff2df;--ink:#1b2d4f;--xl:#1e7145}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#edf3fa;color:var(--ink);font-family:"Times New Roman",Times,serif}
+.mono{font-family:"JetBrains Mono",Consolas,"Courier New",monospace}
+header{background:#d9e8f8;border-bottom:4px solid var(--team);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{margin:0;font-size:28px;letter-spacing:1px;color:#17407e}
+#teamTag{font-size:22px;font-weight:bold;color:var(--team)}
+#net{margin-left:auto;font-size:16px;color:#5a6f92}
+main{max-width:1000px;margin:0 auto;padding:22px}
+.screen{display:none}.screen.show{display:block}
+h2{font-size:30px;margin:6px 0 18px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.big{font:inherit;font-size:25px;padding:20px 18px;border-radius:16px;border:3px solid #b8cbe6;background:#fff;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform .1s,border-color .2s}
+.big:hover{border-color:var(--team);transform:translateY(-2px)}
+.big .ic{width:54px;height:54px;border-radius:12px;background:var(--teaml);display:flex;align-items:center;justify-content:center;font-size:30px;flex:none}
+.big.taken{opacity:.45;cursor:not-allowed;transform:none}
+.big .by{display:block;font-size:17px;color:#6b7c99}
+.big .tx{text-align:left}
+.team1{--team:var(--c1);--teaml:var(--c1l)}
+.team2{--team:var(--c2);--teaml:var(--c2l)}
+.login{max-width:620px;margin:0 auto}
+.login label{display:block;font-size:22px;margin:14px 0 6px}
+.login input,.login select{width:100%;font:inherit;font-size:26px;padding:10px 14px;border-radius:12px;border:2px solid #b8cbe6;background:#fff;color:var(--ink)}
+.login input:focus,.login select:focus{outline:none;border-color:var(--team)}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.teams button{font:inherit;font-size:21px;padding:14px;border-radius:12px;border:3px solid #b8cbe6;background:#fff;cursor:pointer;color:var(--ink)}
+.teams button.sel1{border-color:var(--c1);background:var(--c1l)}
+.teams button.sel2{border-color:var(--c2);background:var(--c2l)}
+.go{font:inherit;font-size:28px;margin-top:22px;width:100%;padding:14px;border-radius:14px;border:none;background:var(--team);color:#fff;cursor:pointer}
+.err{color:#a5560a;font-size:20px;min-height:26px;margin-top:10px}
+.whoami{font-size:20px;color:#4a5f82;text-align:center;margin:-8px 0 14px}
+.sysbar{display:flex;align-items:center;gap:14px;background:#fff;border-radius:14px;padding:12px 18px;border:2px solid #c9d8ee;margin-bottom:16px;flex-wrap:wrap}
+.sysbar .nm{font-size:26px;font-weight:bold}
+.segs{display:flex;gap:6px;margin-left:auto;align-items:center}
+.segs span{width:44px;height:20px;border-radius:5px;background:#dbe5f2;border:1px solid #b9c9e0;transition:background .4s}
+.segs span.on{background:var(--team)}
+.segs b{font-size:20px;margin-left:8px}
+.card{background:#fff;border-radius:18px;border:2px solid #c9d8ee;padding:22px 26px;box-shadow:0 4px 14px rgba(30,60,120,.07)}
+.qnum{font-size:18px;color:#5a6f92;margin-bottom:6px}
+.q{font-size:27px;margin-bottom:16px;line-height:1.35}
+.q code{font-family:"JetBrains Mono",Consolas,monospace;font-size:26px;background:#eef6f0;color:#14532d;padding:1px 8px;border-radius:6px;white-space:nowrap}
+.ans{display:grid;grid-template-columns:repeat(2,minmax(200px,1fr));gap:14px;margin-top:6px}
+.ans button{font-family:"JetBrains Mono",Consolas,monospace;font-size:28px;padding:12px 16px;border-radius:14px;border:3px solid #b8cbe6;background:#fff;cursor:pointer;color:var(--ink)}
+.ans button:hover{border-color:var(--team)}
+.ans button.bad{background:var(--warnl);border-color:var(--warn)}
+.ans button.good{background:var(--okl);border-color:var(--ok)}
+/* мини-Excel */
+.xl{border-collapse:collapse;margin:0 auto 14px;font-family:Calibri,"Segoe UI",Arial,sans-serif;font-size:21px}
+.xl th{background:#eef1f5;color:#4b5563;font-weight:normal;border:1px solid #c8ced8;padding:3px 10px;min-width:44px}
+.xl td{border:1px solid #d5dae2;padding:4px 12px;min-width:70px;text-align:right;background:#fff}
+.xl td.t{text-align:left}
+.xl td.hl{background:#cfe8d6;border-color:#1e7145}
+.xl td.hd{background:#f3f7fb;font-weight:bold;text-align:center}
+.xl.small td{min-width:44px;height:34px;padding:0}
+.fbar{display:flex;align-items:center;gap:0;max-width:640px;margin:0 auto 14px;border:1px solid #c8ced8;border-radius:6px;overflow:hidden;font-size:24px;background:#fff}
+.fbar .nb{background:#eef1f5;padding:6px 14px;border-right:1px solid #c8ced8;font-family:Calibri,Arial,sans-serif;min-width:70px;text-align:center}
+.fbar .fx{padding:6px 12px;color:#6b7280;font-style:italic;border-right:1px solid #c8ced8}
+.fbar .fm{padding:6px 14px;font-family:"JetBrains Mono",Consolas,monospace;color:#14532d}
+.copy{text-align:center;font-size:22px;color:#4a5f82;margin:-4px 0 14px}
+#fb{min-height:52px;margin-top:16px;font-size:25px;text-align:center;padding:10px;border-radius:12px}
+#fb.ok{background:var(--okl);color:#17663d}
+#fb.warn{background:var(--warnl);color:#8a4d06}
+#hint{display:none;margin-top:12px;font-size:20px;background:#f1f6fd;border-left:5px solid var(--team);padding:10px 14px;border-radius:8px;line-height:1.4}
+#hint.show{display:block}
+.done{text-align:center;padding:30px}
+.done .one{font-size:120px;line-height:1}
+.done .t{font-size:34px;margin:10px 0}
+.done .s{font-size:24px;color:#4a5f82}
+.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Умный город · Пульт управления</h1>
+  <span id="teamTag"></span>
+  <span id="net"></span>
+</header>
+<main>
+  <section id="scLogin" class="screen">
+    <div class="card login">
+      <h2>Вход в систему управления городом</h2>
+      <label for="fam">Фамилия</label>
+      <input id="fam" autocomplete="off" autocorrect="off" spellcheck="false">
+      <label for="nam">Имя</label>
+      <input id="nam" autocomplete="off" autocorrect="off" spellcheck="false">
+      <label for="cls">Класс</label>
+      <select id="cls"><option value="">— выберите класс —</option><option>8А</option><option>8Б</option><option>8В</option></select>
+      <div id="teamPick">
+        <label>Команда</label>
+        <div class="teams"><button id="tp1" onclick="pickTeam(1)">Команда 1 · Энергосеть</button><button id="tp2" onclick="pickTeam(2)">Команда 2 · Городские службы</button></div>
+      </div>
+      <button class="go" onclick="login()">Далее</button>
+      <div class="err" id="loginErr"></div>
+    </div>
+  </section>
+
+  <section id="scSys" class="screen">
+    <h2>Выберите свою систему</h2>
+    <div class="whoami" id="whoami"></div>
+    <div class="err" id="sysErr" style="text-align:center"></div>
+    <div class="grid" id="sysGrid"></div>
+  </section>
+
+  <section id="scTask" class="screen">
+    <div class="sysbar"><span class="nm" id="sysName"></span>
+      <div class="segs"><span></span><span></span><span></span><b id="sysVal"></b></div>
+    </div>
+    <div class="card" id="card">
+      <div class="qnum" id="qnum"></div>
+      <div id="qbody"></div>
+      <div id="fb"></div>
+      <div id="hint"></div>
+    </div>
+  </section>
+
+  <section id="scDone" class="screen">
+    <div class="card done">
+      <div class="one" id="doneIc">✅</div>
+      <div class="t" id="doneName"></div>
+      <div class="s">Система включена и работает. Смотрите на экран города!</div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const configured=/^https?:\/\//.test(GOOGLE_SHEET_URL);
+
+const SYS={
+ 1:[{id:'R1',name:'Солнечная электростанция',ic:'☀️'},{id:'R2',name:'Ветряки',ic:'🌀'},{id:'R3',name:'Подстанция',ic:'⚡'},
+    {id:'R4',name:'Уличные фонари',ic:'💡'},{id:'R5',name:'Жилой дом',ic:'🏢'},{id:'R6',name:'Школа',ic:'🏫'},
+    {id:'R7',name:'Больница',ic:'🏥'},{id:'R8',name:'Телебашня',ic:'🗼'}],
+ 2:[{id:'S1',name:'Светофоры',ic:'🚦'},{id:'S2',name:'Трамвай',ic:'🚋'},{id:'S3',name:'Фонтан',ic:'⛲'},
+    {id:'S4',name:'Камеры безопасности',ic:'📹'},{id:'S5',name:'Вышка связи',ic:'📡'},{id:'S6',name:'Парк',ic:'🌳'},
+    {id:'S7',name:'Электрозаправка',ic:'🔋'},{id:'S8',name:'Мост',ic:'🌉'}]
+};
+let TEAM=0,STUDENT='',CLS='',sysTimer=null,SYSOBJ=null,progress=0,taskNo=0,cur=null,busy=false;
+
+/* ================= EXCEL-ПОМОЩНИКИ ================= */
+const L='ABCDEFGH';
+const ref=(c,r,fc,fr)=>(fc?'$':'')+L[c]+(fr?'$':'')+r;
+function grid(cols,rows,isHl){
+  let h='<table class="xl small"><tr><th></th>'+[...Array(cols)].map((_,c)=>`<th>${L[c]}</th>`).join('')+'</tr>';
+  for(let r=1;r<=rows;r++){h+=`<tr><th>${r}</th>`+[...Array(cols)].map((_,c)=>`<td class="${isHl(c,r)?'hl':''}"></td>`).join('')+'</tr>';}
+  return h+'</table>';
+}
+function distinctOpts(correct,cands,n=4){
+  const out=[String(correct)];
+  for(const c of shuffle(cands)){const s=String(c);if(!out.includes(s)&&out.length<n)out.push(s);}
+  return out;
+}
+
+/* ===== Задание 1: диапазоны ===== */
+function genRange(){
+  const kind=pick(['count','name','member']);
+  const c1=rnd(0,2),c2=c1+rnd(1,3),r1=rnd(1,4),r2=r1+rnd(1,4);
+  const rng=`${L[c1]}${r1}:${L[c2]}${r2}`,R=r2-r1+1,C=c2-c1+1;
+  if(kind==='count'){
+    const ans=R*C;
+    const opts=distinctOpts(ans,[R+C,(R-1)*(C-1),(r2-r1)*(c2-c1)||R*C+R,R*C+C,R*C-R,2*(R+C)].filter(x=>x>0));
+    return{type:1,html:`<div class="q">Сколько ячеек в диапазоне <code>${rng}</code>?</div>`,ans:String(ans),opts:shuffle(opts),log:`сколько ячеек в ${rng}`};
+  }
+  if(kind==='name'){
+    const opts=distinctOpts(rng,[`${L[c1]}${r1};${L[c2]}${r2}`,`${L[c1]}${r1}-${L[c2]}${r2}`,`${L[c1+1]}${r1}:${L[c2+1]}${r2}`,`${L[c1]}${r1+1}:${L[c2]}${r2+1}`,`${L[c1]}${r1}:${L[c2]}${r2-1}`]);
+    return{type:1,html:`<div class="q">Как записать выделенный диапазон?</div>${grid(Math.max(6,c2+2),Math.max(6,r2+1),(c,r)=>c>=c1&&c<=c2&&r>=r1&&r<=r2)}`,ans:rng,opts:shuffle(opts),log:`запись выделенного диапазона ${rng}`};
+  }
+  // member
+  const inside=`${L[rnd(c1,c2)]}${rnd(r1,r2)}`;
+  const outs=[`${L[c2+1]}${r1}`,`${L[c1]}${r2+1}`,`${L[c2+1]}${r2}`,r1>1?`${L[c1]}${r1-1}`:`${L[c2+1]}${r2+1}`,c1>0?`${L[c1-1]}${r2}`:`${L[c2]}${r2+1}`,`${L[c2]}${r1+R+1}`];
+  const opts=distinctOpts(inside,outs);
+  return{type:1,html:`<div class="q">Какая ячейка <b>входит</b> в диапазон <code>${rng}</code>?</div>`,ans:inside,opts:shuffle(opts),log:`какая ячейка входит в ${rng}`};
+}
+
+/* ===== Задание 2: ссылки ===== */
+const TYPES=[[0,0],[1,1],[0,1],[1,0]]; // [закреплён столбец, закреплена строка]
+function genRefs(){
+  for(let t=0;t<200;t++){
+    const sc=rnd(2,4),sr=rnd(1,4);
+    let ty1=pick(TYPES),ty2=pick(TYPES);
+    if(ty1===ty2)continue;
+    if(ty1===TYPES[0]&&ty2===TYPES[0])continue;
+    const a={c:rnd(0,sc-1),r:rnd(1,5),fc:ty1[0],fr:ty1[1]},b={c:rnd(0,sc-1),r:rnd(1,5),fc:ty2[0],fr:ty2[1]};
+    if(a.c===b.c&&a.r===b.r)continue;
+    const dr=rnd(0,3),dc=rnd(0,2);
+    if(!dr&&!dc)continue;
+    const op=pick(['+','*','-']);
+    const f=(x,y)=>`=${ref(x.c,x.r,x.fc,x.fr)}${op}${ref(y.c,y.r,y.fc,y.fr)}`;
+    const sh=(x,mc,mr)=>({c:x.c+mc,r:x.r+mr,fc:x.fc,fr:x.fr});
+    const shift=(x,how)=>{
+      if(how==='ok')return sh(x,x.fc?0:dc,x.fr?0:dr);
+      if(how==='all')return sh(x,dc,dr);
+      if(how==='inv')return sh(x,x.fc?dc:0,x.fr?dr:0);
+      if(how==='swap')return sh(x,x.fc?0:dr,x.fr?0:dc);
+      if(how==='first')return x;
+    };
+    const correct=f(shift(a,'ok'),shift(b,'ok'));
+    const orig=f(a,b);
+    const cands=[f(shift(a,'all'),shift(b,'all')),orig,f(shift(a,'inv'),shift(b,'inv')),f(shift(a,'swap'),shift(b,'swap')),f(shift(a,'ok'),b),f(a,shift(b,'ok'))];
+    const opts=distinctOpts(correct,cands);
+    if(opts.length<4)continue;
+    if(opts.some(o=>/[A-Z]\$?0\b|[I-Z]/.test(o.replace(/^=/,''))))continue;
+    const src=`${L[sc]}${sr}`,dst=`${L[sc+dc]}${sr+dr}`;
+    const mv=[dr?`вниз на ${dr}`:'',dc?`вправо на ${dc}`:''].filter(Boolean).join(', ');
+    return{type:2,html:`<div class="q">В ячейке <code>${src}</code> записана формула <code>${orig}</code>.<br>Её скопировали в ячейку <code>${dst}</code>. Какая формула будет в <code>${dst}</code>?</div>
+      <div class="copy">${src} → ${dst} (${mv})</div>`,ans:correct,opts:shuffle(opts),log:`${orig} из ${src} в ${dst}`};
+  }
+}
+
+/* ===== Задание 3: функции ===== */
+const DIST=['Север','Юг','Центр','Запад','Восток'];
+function cityTable(sumif){
+  const names=sumif?(()=>{const two=shuffle(DIST).slice(0,2);return shuffle([two[0],two[0],two[1],two[1],pick(two)]);})():shuffle(DIST);
+  return names.map(n=>({a:n,b:rnd(5,40),c:rnd(-15,12)}));
+}
+function tableHTML(rows,hlCol,hlRows){
+  let h='<table class="xl"><tr><th></th><th>A</th><th>B</th><th>C</th></tr>';
+  h+='<tr><th>1</th><td class="hd">Район</td><td class="hd">Энергия, кВт·ч</td><td class="hd">Температура, °C</td></tr>';
+  rows.forEach((r,i)=>{const n=i+2,hl=k=>hlCol.includes(k)&&hlRows.includes(n)?' hl':'';
+    h+=`<tr><th>${n}</th><td class="t${hl('A')}">${r.a}</td><td class="${hl('B').trim()}">${r.b}</td><td class="${hl('C').trim()}">${r.c}</td></tr>`;});
+  return h+'</table>';
+}
+function genFunc(){
+  const fn=pick(['СУММ','ABS','КОРЕНЬ','СТЕПЕНЬ','СУММЕСЛИ']);
+  for(let t=0;t<300;t++){
+    let rows=cityTable(fn==='СУММЕСЛИ'),formula,ans,cands,hlC=[],hlR=[];
+    if(fn==='СУММ'){
+      const r1=rnd(2,3),r2=rnd(r1+2,6),vals=rows.slice(r1-2,r2-1).map(r=>r.b);
+      ans=vals.reduce((s,x)=>s+x,0);formula=`=СУММ(B${r1}:B${r2})`;
+      cands=[ans-vals[vals.length-1],ans-vals[0],r2<6?ans+rows[r2-1].b:ans+rows[0].b,rows.reduce((s,r)=>s+r.b,0),vals.length];
+      hlC=['B'];hlR=[...Array(r2-r1+1)].map((_,i)=>r1+i);
+    }else if(fn==='ABS'){
+      const i=rnd(0,4);rows[i].c=-rnd(3,15);const r=i+2,v=rows[i].c;
+      ans=Math.abs(v);formula=`=ABS(C${r})`;
+      cands=[v,rows[i].b,Math.abs(rows[(i+1)%5].c)||ans+1,ans+10];
+    }else if(fn==='КОРЕНЬ'){
+      const i=rnd(0,4),k=rnd(3,12);rows[i].b=k*k;const r=i+2;
+      ans=k;formula=`=КОРЕНЬ(B${r})`;
+      cands=[k*k,k*2,(k*k)/2,k+1].filter(x=>Number.isInteger(x));
+    }else if(fn==='СТЕПЕНЬ'){
+      const i=rnd(0,4),n=pick([2,2,3]);rows[i].b=n===2?rnd(3,12):rnd(2,5);const r=i+2,x=rows[i].b;
+      ans=x**n;formula=`=СТЕПЕНЬ(B${r};${n})`;
+      cands=[x*n,x+n,n===2?x**3:x**2,n**x];
+    }else{
+      if(Math.random()<.55){
+        const name=rows[0].a;const m=rows.filter(r=>r.a===name);
+        ans=m.reduce((s,r)=>s+r.b,0);formula=`=СУММЕСЛИ(A2:A6;"${name}";B2:B6)`;
+        const tot=rows.reduce((s,r)=>s+r.b,0);
+        cands=[tot,tot-ans,m.length,m[0].b];
+      }else{
+        const lim=pick([15,20,25]);const i=rnd(0,4);rows[i].b=lim;
+        const m=rows.filter(r=>r.b>lim),ge=rows.filter(r=>r.b>=lim);
+        if(!m.length)continue;
+        ans=m.reduce((s,r)=>s+r.b,0);formula=`=СУММЕСЛИ(B2:B6;">${lim}")`;
+        const tot=rows.reduce((s,r)=>s+r.b,0);
+        cands=[ge.reduce((s,r)=>s+r.b,0),tot,tot-ans,m.length];
+      }
+    }
+    const opts=distinctOpts(ans,cands.filter(x=>x!==undefined&&!Number.isNaN(x)));
+    if(opts.length<4)continue;
+    const cell='D'+rnd(2,6);
+    return{type:3,html:`<div class="q">Какое значение появится в ячейке <code>${cell}</code>?</div>
+      <div class="fbar"><span class="nb">${cell}</span><span class="fx">fx</span><span class="fm">${formula}</span></div>
+      ${tableHTML(rows,hlC,hlR)}`,ans:String(ans),opts:shuffle(opts),
+      log:`${formula}; B=${rows.map(r=>r.b).join(',')}; C=${rows.map(r=>r.c).join(',')}${fn==='СУММЕСЛИ'?'; A='+rows.map(r=>r.a).join(','):''}`};
+  }
+  return genFunc();
+}
+
+/* ================= ОТРИСОВКА ЗАДАНИЙ ================= */
+const HINTS=[
+  'Диапазон записывают через двоеточие: <b>левая верхняя : правая нижняя</b> ячейка (B2:D4).<br>Ячеек в диапазоне = число строк × число столбцов.',
+  'Знак <b>$</b> закрепляет то, перед чем стоит: <b>$B</b> — столбец не меняется, <b>$1</b> — строка не меняется.<br>Без $ при копировании буква сдвигается вправо, число — вниз на столько же клеток, на сколько сдвинули формулу.',
+  '<b>СУММ</b> — сумма диапазона; <b>ABS</b> — модуль (число без минуса); <b>КОРЕНЬ</b> — квадратный корень; <b>СТЕПЕНЬ(x;n)</b> — x в степени n;<br><b>СУММЕСЛИ(диапазон; условие; [диапазон суммирования])</b> — складывает только те числа, для которых выполнено условие.'
+];
+const TITLES=['Диапазоны','Виды ссылок','Математические функции'];
+function showTask(keepHint){
+  busy=false;
+  $('fb').textContent='';$('fb').className='';
+  if(!keepHint){$('hint').className='';}
+  $('hint').innerHTML=HINTS[taskNo];
+  $('qnum').textContent=`Задание ${taskNo+1} из 3 · ${TITLES[taskNo]}`;
+  cur=[genRange,genRefs,genFunc][taskNo]();
+  $('qbody').innerHTML=cur.html+`<div class="ans">${cur.opts.map(o=>`<button data-v="${o.replace(/"/g,'&quot;')}">${o}</button>`).join('')}</div>`;
+  $('qbody').querySelectorAll('.ans button').forEach(b=>b.onclick=()=>answer(b));
+}
+async function answer(btn){
+  if(busy)return;busy=true;
+  const ok=btn.dataset.v===cur.ans;
+  const det={t:taskNo+1,q:cur.log,a:btn.dataset.v,c:cur.ans};
+  if(ok){
+    btn.classList.add('good');
+    progress++;updateBar();send('set',Object.assign({p:progress},det));
+    $('fb').className='ok';
+    $('fb').textContent=progress<3?`Верно! Система включена на ${progress} из 3`:'Верно! Система полностью работает';
+    await sleep(1300);
+    taskNo++;
+    if(taskNo>=3)finish();else showTask();
+  }else{
+    send('err',det);
+    btn.classList.add('bad');
+    $('card').classList.remove('shake');void $('card').offsetWidth;$('card').classList.add('shake');
+    $('fb').className='warn';
+    $('fb').textContent='Не совсем. Прочитайте подсказку — сейчас будет новое задание.';
+    $('hint').classList.add('show');
+    await sleep(2200);
+    showTask(true);
+  }
+}
+function updateBar(){
+  document.querySelectorAll('.segs span').forEach((s,i)=>s.classList.toggle('on',i<progress));
+  $('sysVal').textContent=progress+' / 3';
+}
+function finish(){
+  $('doneIc').textContent=SYSOBJ.ic;
+  $('doneName').textContent=`«${SYSOBJ.name}» — работает!`;
+  show('scDone');
+}
+
+/* ================= ЭКРАНЫ ================= */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show',s.id===id));}
+function pickTeam(t){
+  TEAM=t;document.body.className='team'+t;
+  $('tp1').className=t===1?'sel1':'';$('tp2').className=t===2?'sel2':'';
+}
+function cap(x){x=x.trim().replace(/\s+/g,' ');return x?x.charAt(0).toUpperCase()+x.slice(1):'';}
+function login(){
+  const f=cap($('fam').value),n=cap($('nam').value),c=$('cls').value;
+  if(!f||!n){$('loginErr').textContent='Введите фамилию и имя.';return;}
+  if(!c){$('loginErr').textContent='Выберите класс.';return;}
+  if(!TEAM){$('loginErr').textContent='Выберите команду.';return;}
+  STUDENT=f+' '+n;CLS=c;
+  $('teamTag').textContent=(TEAM===1?'Команда 1 · Энергосеть':'Команда 2 · Городские службы')+' · '+STUDENT+', '+CLS;
+  $('whoami').textContent=STUDENT+', '+CLS;
+  show('scSys');loadSystems();
+  sysTimer=setInterval(loadSystems,3000);
+}
+let lastData=null;
+async function loadSystems(){
+  let cfg=null,taken={};
+  if(configured){
+    try{const d=await jsonp({action:'state'});lastData=d;cfg=d.cfg;taken=d.taken||{};net(true);}
+    catch(e){net(false);if(lastData){cfg=lastData.cfg;taken=lastData.taken||{};}}
+  }
+  const list=SYS[TEAM].filter(s=>cfg?cfg[s.id]==='s':(+s.id.slice(1)<=6));
+  const me=STUDENT+' | '+CLS;
+  $('sysGrid').innerHTML=list.map(s=>{
+    const tk=taken[s.id],busyBy=tk&&tk.who!==me;
+    return`<button class="big${busyBy?' taken':''}" data-id="${s.id}" ${busyBy?'disabled':''}><span class="ic">${s.ic}</span><span class="tx">${s.name}${busyBy?`<span class="by">занято: ${tk.name}</span>`:''}</span></button>`;
+  }).join('')||'<p style="text-align:center;font-size:22px">Учитель ещё не настроил систем для этой команды.</p>';
+  $('sysGrid').querySelectorAll('button:not([disabled])').forEach(b=>b.onclick=()=>claim(SYS[TEAM].find(s=>s.id===b.dataset.id)));
+}
+async function claim(s){
+  $('sysErr').textContent='';
+  if(configured){
+    try{
+      const d=await jsonp({action:'claim',sys:s.id,name:STUDENT,cls:CLS});
+      if(d.ok===false&&d.taken){$('sysErr').textContent=`Эту систему уже выбрал(а) ${d.by}. Выберите другую.`;loadSystems();return;}
+      net(true);
+    }catch(e){$('sysErr').textContent='Нет связи с городом. Попробуйте ещё раз.';net(false);return;}
+  }
+  clearInterval(sysTimer);
+  SYSOBJ=s;progress=0;taskNo=0;updateBar();
+  $('sysName').textContent=`${s.ic}  ${s.name}`;
+  show('scTask');showTask();
+}
+
+/* ================= СВЯЗЬ ================= */
+function jsonp(params){
+  return new Promise((res,rej)=>{
+    const cb='city_cb_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+    const s=document.createElement('script');let done=false;
+    window[cb]=d=>{done=true;res(d);window[cb]=()=>{};s.remove();};
+    s.onerror=()=>{if(!done){done=true;rej('err');s.remove();}};
+    setTimeout(()=>{if(!done){done=true;rej('timeout');window[cb]=()=>{};s.remove();}},8000);
+    s.src=GOOGLE_SHEET_URL+'?'+new URLSearchParams(Object.assign({},params,{callback:cb,_:Date.now()})).toString();
+    document.body.appendChild(s);
+  });
+}
+function net(st){$('net').textContent=st===true?'● связь с городом есть':st===false?'● нет связи, повторяем…':'● тренировочный режим';$('net').style.color=st===true?'#22955a':st===false?'#d9821b':'#5a6f92';}
+async function send(action,det){
+  if(!configured){net('test');return;}
+  const prm=Object.assign({action,sys:SYSOBJ.id,name:STUDENT,cls:CLS},det);
+  for(let i=0;i<6;i++){
+    try{await jsonp(prm);net(true);return;}
+    catch(e){net(false);await sleep(1200+i*500);}
+  }
+}
+
+/* ================= СТАРТ ================= */
+if(!configured)net('test');
+$('fam').value='';$('nam').value='';$('cls').value='';
+const r=new URLSearchParams(location.search).get('r');
+if(r==='1'||r==='2'){pickTeam(+r);$('teamPick').style.display='none';}
+show('scLogin');
+</script>
+</body>
+</html>
