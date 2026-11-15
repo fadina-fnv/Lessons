@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<script>
+// ===== GOOGLE_SHEET_URL: адрес веб-приложения Google Apps Script (тот же, что в файле учеников города) =====
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxbYoZjBPtv3eBRLRtjv3GMzoWB17Vm1KgdlmLBv31f8Ne_wczACC2MpMcXspYL1IPPLQ/exec';
+// ==========================================================================================================
+</script>
+<title>Умный город · Пульт управления</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+html,body{margin:0;height:100%;background:#071330;overflow:hidden;font-family:"Times New Roman",Times,serif;user-select:none}
+svg#scene{width:100vw;height:100vh;display:block}
+text{font-family:"Times New Roman",Times,serif}
+.xlf{font-family:Calibri,"Segoe UI",Arial,sans-serif}
+.monof{font-family:"JetBrains Mono",Consolas,"Courier New",monospace}
+.star{fill:#fff;animation:tw 3s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bl{50%{opacity:.15}}
+@keyframes flow{to{stroke-dashoffset:-20}}
+/* общие индикаторы */
+.tl{fill:#22396a;transition:fill .5s}
+.tl.on{fill:#ffd35a;filter:url(#glow)}
+.win{fill:#16284f;transition:fill .6s}
+.win.on{fill:#ffd36a}
+.party .win.on{fill:#ffe79a}
+.blink{fill:#22396a}
+.blink.on{fill:#ff6b7a;animation:bl 1s steps(2) infinite}
+/* солнечные панели */
+.sp{fill:#13254d;stroke:#3d5f99;stroke-width:1.2;transition:fill .6s,stroke .6s}
+.sp.on{fill:url(#solarG);stroke:#bff4ff}
+.full .glint{animation:glint 2.4s ease-in-out infinite}
+.glint{opacity:0}
+@keyframes glint{0%,100%{opacity:0}50%{opacity:.9}}
+/* ветряки */
+.tb line{stroke:#3d5f99;transition:stroke .5s}
+.tb.on line{stroke:#d6f4ff}
+.tb{transform-box:view-box}
+.tb.on{animation:spin 4s linear infinite}
+.wind.full .tb.on{animation-duration:1.6s}
+/* подстанция */
+.bolt{fill:#22396a;transition:fill .5s}
+.bolt.on{fill:#ffe066;filter:url(#glow)}
+.arc{fill:none;stroke:#bff4ff;stroke-width:2;stroke-dasharray:4 8;opacity:0}
+.arc.on{opacity:1;animation:flow .4s linear infinite}
+/* фонари */
+.sl{fill:#22396a;transition:fill .5s}
+.sl.on{fill:#fff1b8;filter:url(#glow)}
+.cone{opacity:0;transition:opacity .8s}
+.cone.on{opacity:1}
+/* башня */
+.pod{fill:#13254d;stroke:#5b86c9;stroke-width:2;transition:fill .6s}
+.pod.on{fill:#3fd8ff;filter:url(#glow)}
+.sign{fill:#2a3d66;transition:fill .6s}
+.sign.on{fill:#9ff7c4;filter:url(#glow)}
+.cross{fill:#2a3d66;transition:fill .6s}
+.cross.on{fill:#ff6b7a;filter:url(#glow)}
+/* светофоры */
+.tlamp{fill:#22314f;transition:fill .4s}
+.tlamp.on{fill:var(--c);filter:url(#glow)}
+.tfull .tlamp.on{animation:tcyc 3s steps(1) infinite}
+@keyframes tcyc{0%{fill:var(--c)}33.3%{fill:#22314f}100%{fill:#22314f}}
+/* трамвай */
+#tram{transform-box:view-box}
+#tram.drive{animation:drive 9s ease-in-out infinite alternate}
+@keyframes drive{0%,8%{transform:translateX(0)}92%,100%{transform:translateX(640px)}}
+/* фонтан */
+.jet{opacity:0;transition:opacity .6s;transform-box:fill-box;transform-origin:50% 100%}
+.jet.on{opacity:1}
+.fount.full .jet.on{animation:jetp 1.2s ease-in-out infinite alternate}
+@keyframes jetp{from{transform:scaleY(.85)}to{transform:scaleY(1.1)}}
+/* камеры */
+.led{fill:#22396a}
+.led.on{fill:#7dff9e;animation:bl 1.2s steps(2) infinite}
+.scan{opacity:0;transform-box:view-box;transition:opacity .8s}
+.cams.full .scan{opacity:1;animation:sweep 3s ease-in-out infinite alternate}
+@keyframes sweep{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+/* связь */
+.wave{fill:none;stroke:#3d5f99;stroke-width:3.5;stroke-linecap:round;transition:stroke .5s}
+.wave.on{stroke:#ffd35a}
+.tower5g.full .wave{animation:wv 1.4s ease-in-out infinite}
+@keyframes wv{0%{opacity:.25}35%{opacity:1}100%{opacity:.25}}
+/* парк */
+.gl{fill:#22396a;transition:fill .5s}
+.gl.on{fill:#ffe27a}
+.park.full .gl.on{animation:tw 1.6s ease-in-out infinite}
+/* зарядка */
+.bat{fill:#18305f;stroke:#5b86c9;transition:fill .5s}
+.bat.on{fill:#6dffa6}
+.flow{fill:none;stroke-width:3;stroke-dasharray:6 14;opacity:0;transition:opacity .6s}
+.flow.on{opacity:1;animation:flow .8s linear infinite}
+/* мост */
+.bl{fill:#22396a;transition:fill .5s}
+.bl.on{fill:#ffd36a;filter:url(#glow)}
+.bridge line.cab{stroke:#3d5f99;transition:stroke .6s}
+.bridge.full line.cab{stroke:#9fe8ff}
+/* панели и формула */
+.ptitle{font-size:24px;font-weight:bold;letter-spacing:2px;text-anchor:middle}
+.psub{font-size:17px;fill:#bcd2f5;text-anchor:middle;letter-spacing:1px}
+.pname{font-size:21px;fill:#e6f0ff}
+.pauto{font-size:15px;fill:#8fa3c8}
+.seg{fill:#18305f;stroke:#3d5f99;stroke-width:1;transition:fill .4s}
+.seg.on1{fill:#3fd8ff}.seg.on2{fill:#ffc24a}.seg.auto{fill:#4a5f86}
+.badge{fill:#1a2f60;stroke:#5b78ad;stroke-width:2;transition:fill .4s,stroke .4s}
+.badge.one{fill:#1f8f55;stroke:#7dffb2;filter:url(#glow)}
+.badge.auto{fill:#34466b;stroke:#7d8fb3}
+.btxt{font-size:22px;font-weight:bold;fill:#ffb35c;text-anchor:middle;pointer-events:none}
+.btxt.one{fill:#fff}
+.row-hit{fill:transparent}
+.manual .row-hit{cursor:pointer}
+.manual .row-hit:hover{fill:rgba(255,255,255,.07)}
+.cell{fill:#0f2350;stroke:#4f6fa8;stroke-width:1.2;transition:fill .4s}
+.cell.one{fill:#1d6b45;stroke:#7dffb2}
+.cell.auto{fill:#3a4a6a}
+.cval{font-size:24px;font-weight:bold;fill:#ffb35c;text-anchor:middle}
+.cval.one{fill:#ffffff}
+.cval.auto{fill:#c7d2e6}
+.chd{font-size:14px;fill:#9fb3d8;text-anchor:middle}
+.clab{font-size:12px;text-anchor:middle}
+.res{fill:#13254d;stroke:#ffd35a;stroke-width:2}
+.res.go{fill:#1d6b45;stroke:#7dffb2;filter:url(#glow)}
+#panels{transition:opacity 1.2s}
+.cd{font-size:230px;font-weight:bold;fill:#ffd76a;text-anchor:middle;filter:url(#glowBig);opacity:0;transform-box:fill-box;transform-origin:center}
+.cd.pop{animation:pop .95s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:scale(1.6)}20%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(.9)}}
+#banner{font-size:24px;font-weight:bold;fill:#ffe9a8;text-anchor:middle;letter-spacing:2px;filter:url(#glow)}
+#ready{font-size:26px;fill:#cfe0ff;text-anchor:middle;letter-spacing:2px}
+#final{opacity:0;transition:opacity 1.5s}
+#final.show{opacity:1}
+#ctrl{position:fixed;right:10px;bottom:6px;display:flex;gap:6px;opacity:.12;transition:opacity .3s}
+#ctrl:hover,#ctrl.vis{opacity:1}
+#ctrl button{font:16px "Times New Roman",serif;padding:6px 12px;border-radius:8px;border:1px solid #6d8fd0;background:#16306a;color:#e8f0ff;cursor:pointer}
+#ctrl button.act{background:#2f7d55;border-color:#8ff0b8}
+#hint{position:fixed;left:10px;bottom:8px;color:#9fb8e6;font-size:14px;opacity:0;transition:opacity .3s}
+#ctrl:hover ~ #hint{opacity:.9}
+.ov{position:fixed;inset:0;background:rgba(3,10,30,.82);display:none;align-items:center;justify-content:center;z-index:10;color:#e8f0ff}
+.ov.show{display:flex}
+.ov .box{background:#0f2350;border:2px solid #4f78c0;border-radius:16px;padding:20px 26px;max-width:1200px;width:94vw;max-height:92vh;overflow:auto}
+.ov h3{margin:0 0 12px;font-size:26px;color:#ffe9a8}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.cols h4{margin:4px 0 10px;font-size:21px}
+.srow{display:flex;align-items:center;gap:6px;margin:5px 0;font-size:19px}
+.srow span{flex:1}
+.ov button{font:17px "Times New Roman",serif;padding:5px 11px;border-radius:7px;border:1px solid #6d8fd0;background:#16306a;color:#e8f0ff;cursor:pointer}
+.ov button.sel{background:#2f7d55;border-color:#8ff0b8}
+.ov .note{font-size:16px;color:#a9bde3}
+.ov table{border-collapse:collapse;width:100%;font-size:18px}
+.ov th,.ov td{border:1px solid #3d5f99;padding:5px 8px;text-align:center}
+.ov th{background:#16306a}
+.ov tr.t1 td:first-child{color:#7fdcff}.ov tr.t2 td:first-child{color:#ffcf6a}
+.ov td.bad{color:#ffb35c;font-weight:bold}
+</style>
+</head>
+<body>
+<svg id="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid meet">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#040b22"/><stop offset=".6" stop-color="#0c2154"/><stop offset="1" stop-color="#1c3f84"/>
+  </linearGradient>
+  <linearGradient id="solarG" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#9ff3ff"/><stop offset="1" stop-color="#1689d6"/>
+  </linearGradient>
+  <linearGradient id="coneG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff1b8" stop-opacity=".55"/><stop offset="1" stop-color="#fff1b8" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="jetG" x1="0" y1="1" x2="0" y2="0">
+    <stop offset="0" stop-color="#3fd8ff" stop-opacity=".9"/><stop offset="1" stop-color="#e2fbff" stop-opacity=".3"/>
+  </linearGradient>
+  <linearGradient id="scanG" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#7dff9e" stop-opacity=".45"/><stop offset="1" stop-color="#7dff9e" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glowBig" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+
+<rect width="1600" height="900" fill="url(#sky)"/>
+<g id="stars"></g>
+<circle cx="1180" cy="150" r="28" fill="#fff4d6" opacity=".9" filter="url(#glow)"/>
+<circle cx="1192" cy="142" r="26" fill="#0d2256"/>
+<g id="skyline"></g>
+<g id="sysS8" class="bridge"></g>
+<g id="sysR2" class="wind"></g>
+<path d="M20 780 Q175 680 335 780 Z" fill="#0c1d46"/>
+<rect x="0" y="780" width="1600" height="120" fill="#060f28"/>
+<rect x="0" y="780" width="1600" height="35" fill="#0d1838"/>
+<line x1="0" y1="797" x2="1600" y2="797" stroke="#3d5f99" stroke-width="2" stroke-dasharray="26 22" opacity=".6"/>
+<line x1="0" y1="811" x2="1600" y2="811" stroke="#2c4a85" stroke-width="2"/>
+<rect x="0" y="815" width="1600" height="7" fill="#132a5c"/>
+<g id="sysR1"></g>
+<g id="sysR3"></g>
+<g id="sysR5"></g>
+<g id="sysR8"></g>
+<g id="sysR6"></g>
+<g id="sysR7"></g>
+<g id="sysS1"></g>
+<g id="sysS3" class="fount"></g>
+<g id="sysS6" class="park"></g>
+<g id="sysS5" class="tower5g"></g>
+<g id="sysS7"></g>
+<g id="sysS4" class="cams"></g>
+<g id="sysS2"></g>
+<g id="sysR4"></g>
+<g id="fireworks"></g>
+
+<text x="30" y="40" style="font-size:22px;letter-spacing:3px;font-weight:bold" fill="#cfe0ff">УМНЫЙ ГОРОД</text>
+<text x="30" y="64" style="font-size:16px;letter-spacing:1px" fill="#8fb0e6">пульт управления</text>
+<g id="conn"><circle id="connDot" cx="1440" cy="34" r="6" fill="#6b7fa6"/><text id="connTxt" x="1454" y="40" style="font-size:15px" fill="#8fb0e6">нет адреса</text></g>
+<g id="xl"></g>
+<g id="panels"></g>
+
+<text id="ready" x="800" y="855">РАБОТАЕТ СИСТЕМ: 0 из 12</text>
+<text id="banner" x="800" y="890"></text>
+<text id="cdL" class="cd" x="290" y="480"></text>
+<text id="cdR" class="cd" x="1310" y="480"></text>
+<g id="final">
+  <text x="800" y="300" style="font-size:96px;font-weight:bold;letter-spacing:4px" fill="#ffffff" text-anchor="middle" filter="url(#glowBig)">ГОРОД ЗАПУЩЕН!</text>
+  <text id="finalF" x="800" y="360" class="monof" style="font-size:32px" fill="#9ff7c4" text-anchor="middle"></text>
+</g>
+</svg>
+
+<div id="ctrl">
+  <button id="bSet" title="S">Настройка</button>
+  <button id="bTeach" title="T">Учитель</button>
+  <button id="bDemo" title="D">Демо</button>
+  <button id="bManual" title="M">Ручной</button>
+  <button id="bLaunch" title="L">Пуск</button>
+  <button id="bReset" title="R">Сброс</button>
+  <button id="bFull" title="F">⛶</button>
+</div>
+<div id="hint">Настройка — сколько учеников · Учитель — ошибки и итоги · Демо — проверка без сети · Ручной — клик по строке · Пуск — включить всё · Сброс — новый запуск (два раза)</div>
+
+<div id="settings" class="ov"><div class="box">
+  <h3>Настройка урока</h3>
+  <div class="cols"><div id="set1"></div><div id="set2"></div></div>
+  <p class="note"><b>Ученик</b> — систему выбирает ученик · <b>Авто</b> — ученика нет, система сразу = 1 · <b>Нет</b> — система не используется (только 7-я и 8-я).<br>Кнопки «Учеников: 4…8» расставляют всё сразу. Настройка сохраняется в таблице и сразу видна ученикам.</p>
+  <button id="sClose">Готово</button>
+</div></div>
+<div id="teacher" class="ov"><div class="box">
+  <h3>Экран учителя</h3>
+  <table><thead><tr><th>Система</th><th>Ученик</th><th>Класс</th><th>Готовность</th><th>Ошибки:<br>диапазоны</th><th>Ошибки:<br>ссылки</th><th>Ошибки:<br>функции</th><th>С 1-й попытки</th><th>Время</th><th></th></tr></thead><tbody id="tBody"></tbody></table>
+  <p class="note">Подробный журнал (какое задание и что ответил ученик) и итоги — в Google-таблице, листы «Журнал» и «Итоги». «Освободить» — если ученик выбрал не ту систему.</p>
+  <button id="tClose">Закрыть (T)</button>
+</div></div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+const rand=(a,b)=>a+Math.random()*(b-a);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let seed=7;const srand=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
+
+const SYS=[
+  {id:'R1',team:1,num:1,short:'Солн. станция',name:'Солнечная электростанция',lab:'Сол'},
+  {id:'R2',team:1,num:2,short:'Ветряки',name:'Ветряки',lab:'Вет'},
+  {id:'R3',team:1,num:3,short:'Подстанция',name:'Подстанция',lab:'Под'},
+  {id:'R4',team:1,num:4,short:'Фонари',name:'Уличные фонари',lab:'Фон'},
+  {id:'R5',team:1,num:5,short:'Жилой дом',name:'Жилой дом',lab:'Дом'},
+  {id:'R6',team:1,num:6,short:'Школа',name:'Школа',lab:'Шк'},
+  {id:'R7',team:1,num:7,short:'Больница',name:'Больница',lab:'Бол'},
+  {id:'R8',team:1,num:8,short:'Телебашня',name:'Телебашня',lab:'ТВ'},
+  {id:'S1',team:2,num:1,short:'Светофоры',name:'Светофоры',lab:'Свф'},
+  {id:'S2',team:2,num:2,short:'Трамвай',name:'Трамвай',lab:'Трм'},
+  {id:'S3',team:2,num:3,short:'Фонтан',name:'Фонтан',lab:'Фнт'},
+  {id:'S4',team:2,num:4,short:'Камеры',name:'Камеры безопасности',lab:'Кам'},
+  {id:'S5',team:2,num:5,short:'Вышка связи',name:'Вышка связи',lab:'5G'},
+  {id:'S6',team:2,num:6,short:'Парк',name:'Парк',lab:'Парк'},
+  {id:'S7',team:2,num:7,short:'Электрозаправка',name:'Электрозаправка',lab:'Зар'},
+  {id:'S8',team:2,num:8,short:'Мост',name:'Мост',lab:'Мост'}
+];
+const state={};SYS.forEach(s=>state[s.id]=0);
+const configured=/^https?:\/\//.test(GOOGLE_SHEET_URL);
+
+/* ================== СЦЕНА ================== */
+(function stars(){const g=$('stars');for(let i=0;i<150;i++){const c=el('circle',{cx:rand(0,1600),cy:rand(0,520),r:rand(.5,1.8),class:'star'},g);c.style.animationDelay=rand(0,3)+'s';c.style.animationDuration=rand(2,5)+'s';}})();
+(function skyline(){
+  const g=$('skyline');let x=0;
+  while(x<1600){const w=30+srand()*60,h=70+srand()*170;
+    el('rect',{x,y:780-h,width:w,height:h,fill:'#0c1f4e'},g);
+    for(let yy=780-h+10;yy<770;yy+=16)for(let xx=x+6;xx<x+w-8;xx+=12)if(srand()<.12)el('rect',{x:xx,y:yy,width:5,height:6,fill:'#3d5584',opacity:.7},g);
+    x+=w+2+srand()*8;}
+})();
+function windows(g,x0,y0,cols,rows,w,h,dx,dy,offP){
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const rb=rows-1-r,k=Math.floor(rb*3/rows)+1;
+    const a={x:x0+c*dx,y:y0+r*dy,width:w,height:h,class:'win'};
+    if(srand()>offP)a['data-k']=k;
+    el('rect',a,g);
+  }
+}
+/* R1 солнечная станция */
+(function(){const g=$('sysR1');
+  [362,416,470].forEach((x,i)=>{
+    [[0,742],[0,761]].forEach(([dx,y])=>{
+      el('line',{x1:x+10,y1:y+14,x2:x+10,y2:y+18,stroke:'#3d5f99'},g);
+      el('polygon',{points:`${x},${y+14} ${x+44},${y+14} ${x+49},${y} ${x+5},${y}`,class:'sp','data-k':i+1},g);
+      el('line',{x1:x+8,y1:y+3,x2:x+20,y2:y+3,stroke:'#fff',class:'glint','stroke-width':2},g).style.animationDelay=(i*.5)+'s';
+    });
+  });
+})();
+/* R2 ветряки */
+(function(){const g=$('sysR2');
+  [[110,652],[188,628],[266,656]].forEach(([x,y],i)=>{
+    el('line',{x1:x,y1:780,x2:x,y2:y,stroke:'#5b86c9','stroke-width':3.5},g);
+    el('rect',{x:x-6,y:y-4,width:12,height:8,rx:3,fill:'#16305f',stroke:'#8fb3e8'},g);
+    const b=el('g',{class:'tb','data-k':i+1,style:`transform-origin:${x}px ${y}px`},g);
+    [0,120,240].forEach(d=>{const r=(d-90)*Math.PI/180;el('line',{x1:x,y1:y,x2:x+40*Math.cos(r),y2:y+40*Math.sin(r),'stroke-width':3.5,'stroke-linecap':'round'},b);});
+    el('circle',{cx:x,cy:y,r:3.5,fill:'#8fb3e8'},g);
+  });
+})();
+/* R3 подстанция */
+(function(){const g=$('sysR3');
+  el('rect',{x:535,y:732,width:76,height:48,fill:'#102552',stroke:'#5b86c9','stroke-width':1.5},g);
+  for(let x=541;x<611;x+=8)el('line',{x1:x,y1:732,x2:x,y2:780,stroke:'#3d5f99','stroke-width':1},g);
+  el('rect',{x:545,y:752,width:22,height:28,fill:'#16305f',stroke:'#8fb3e8'},g);
+  el('rect',{x:579,y:752,width:22,height:28,fill:'#16305f',stroke:'#8fb3e8'},g);
+  el('path',{d:'M567 760 Q573 748 579 760',class:'arc',id:'arcR3'},g);
+  el('path',{d:'M574 712 L566 726 L573 726 L568 738 L580 721 L573 721 L579 712 Z',class:'bolt',id:'boltR3'},g);
+  [549,573,597].forEach((x,i)=>el('circle',{cx:x,cy:742,r:4,class:'tl','data-k':i+1},g));
+})();
+/* R5 жилой дом */
+(function(){const g=$('sysR5');
+  el('rect',{x:645,y:380,width:96,height:400,fill:'#0f2250',stroke:'#5b86c9','stroke-width':1.5},g);
+  el('rect',{x:660,y:366,width:66,height:14,fill:'#132a5c',stroke:'#5b86c9'},g);
+  windows(g,655,392,4,14,13,15,21,27,.18);
+})();
+/* R8 телебашня */
+(function(){const g=$('sysR8');
+  el('path',{d:'M770 780 L792 340 L808 340 L830 780 Z',fill:'#102552',stroke:'#5b86c9','stroke-width':1.5},g);
+  for(let y=760;y>360;y-=40){const t=(780-y)/440,hw=30-22*t;el('line',{x1:800-hw,y1:y,x2:800+hw,y2:y,stroke:'#3d5f99'},g);}
+  el('rect',{x:795,y:200,width:10,height:110,fill:'#102552',stroke:'#5b86c9'},g);
+  el('line',{x1:800,y1:200,x2:800,y2:150,stroke:'#8fb3e8','stroke-width':2.5},g);
+  el('ellipse',{cx:800,cy:322,rx:30,ry:14,class:'pod',id:'pod'},g);
+  el('circle',{cx:800,cy:146,r:4.5,class:'blink',id:'tvBeacon'},g);
+  [[640,1],[490,2],[340,3]].forEach(([y,k])=>{const t=(780-y)/440,hw=30-22*t;
+    [-hw-4,0,hw+4].forEach(dx=>el('circle',{cx:800+dx,cy:y,r:4,class:'tl','data-k':k},g));});
+})();
+/* R6 школа */
+(function(){const g=$('sysR6');
+  el('rect',{x:870,y:650,width:170,height:130,fill:'#0f2250',stroke:'#5b86c9','stroke-width':1.5},g);
+  el('rect',{x:864,y:644,width:182,height:8,fill:'#132a5c',stroke:'#5b86c9'},g);
+  windows(g,880,666,7,3,14,18,22,36,0);
+  el('rect',{x:944,y:752,width:22,height:28,fill:'#16305f',stroke:'#8fb3e8'},g);
+  el('text',{x:955,y:638,class:'sign',id:'schoolSign','text-anchor':'middle',style:'font-size:18px;font-weight:bold;letter-spacing:3px'},g).textContent='ШКОЛА';
+  el('line',{x1:1032,y1:644,x2:1032,y2:596,stroke:'#8fb3e8','stroke-width':2},g);
+  el('rect',{x:1032,y:596,width:26,height:16,fill:'#3fb4e6',id:'flag',opacity:.35},g);
+})();
+/* R7 больница */
+(function(){const g=$('sysR7');
+  el('rect',{x:1062,y:570,width:110,height:210,fill:'#0f2250',stroke:'#5b86c9','stroke-width':1.5},g);
+  windows(g,1073,588,4,6,14,16,25,30,.1);
+  el('path',{d:'M1110 536 h12 v12 h12 v12 h-12 v12 h-12 v-12 h-12 v-12 h12 Z',class:'cross',id:'cross'},g);
+})();
+/* S1 светофоры */
+(function(){const g=$('sysS1');
+  [625,1052].forEach((x,j)=>{
+    const t=el('g',{class:'tlight'},g);
+    el('line',{x1:x,y1:780,x2:x,y2:752,stroke:'#5b86c9','stroke-width':3},t);
+    el('rect',{x:x-9,y:708,width:18,height:44,rx:4,fill:'#0b1530',stroke:'#8fb3e8'},t);
+    [['#ff4d5e',718],['#ffd35a',730],['#5dff9a',742]].forEach(([c,y],i)=>{
+      const l=el('circle',{cx:x,cy:y,r:4.6,class:'tlamp','data-k':i+1,style:`--c:${c}`},t);
+      l.style.animationDelay=[0,-1,-2][i]+'s';
+    });
+  });
+})();
+/* S3 фонтан */
+(function(){const g=$('sysS3');
+  [[1386,'M1388 772 Q1368 712 1352 770',1],[1400,'M1394 772 Q1400 650 1406 772 Z',2],[1414,'M1412 772 Q1432 712 1448 770',3]].forEach(([x,d,k])=>{
+    el('path',{d,class:'jet','data-k':k,fill:k===2?'url(#jetG)':'none',stroke:k===2?'none':'#bff4ff','stroke-width':5,filter:'url(#glow)','stroke-linecap':'round'},g);
+  });
+  el('ellipse',{cx:1400,cy:774,rx:44,ry:8,fill:'#16305f',stroke:'#8fb3e8','stroke-width':1.5},g);
+})();
+/* S6 парк */
+(function(){const g=$('sysS6');
+  [[1298,738,24,1],[1348,728,22,2],[1472,734,26,3]].forEach(([x,y,r,k])=>{
+    el('rect',{x:x-3,y:y+r-6,width:6,height:780-(y+r-6),fill:'#2a3f6a'},g);
+    el('circle',{cx:x,cy:y,r,fill:'#0f2a4a',stroke:'#3d6f8c','stroke-width':1.5},g);
+    for(let i=0;i<9;i++){const a=i/9*Math.PI*2,rr=r*(.45+.45*((i*7)%3)/2);
+      const c=el('circle',{cx:x+rr*Math.cos(a),cy:y+rr*Math.sin(a),r:2.6,class:'gl','data-k':k},g);c.style.animationDelay=(i*.17)+'s';}
+  });
+})();
+/* S5 вышка связи */
+(function(){const g=$('sysS5'),x=1535;
+  el('line',{x1:x-10,y1:780,x2:x-3,y2:610,stroke:'#5b86c9','stroke-width':2.5},g);
+  el('line',{x1:x+10,y1:780,x2:x+3,y2:610,stroke:'#5b86c9','stroke-width':2.5},g);
+  for(let y=780,k=0;y>620;y-=24,k++){const t=(780-y)/170,hw=10-7*t,t2=(780-y+24)/170,hw2=10-7*t2;el('line',{x1:x+(k%2?hw:-hw),y1:y,x2:x+(k%2?-hw2:hw2),y2:y-24,stroke:'#3d5f99'},g);}
+  el('rect',{x:x-6,y:612,width:12,height:16,fill:'#16305f',stroke:'#8fb3e8'},g);
+  const cx=x,cy=612;
+  [20,34,48].forEach((r,i)=>{const a1=-150*Math.PI/180,a2=-30*Math.PI/180;
+    const p=el('path',{d:`M${cx+r*Math.cos(a1)} ${cy+r*Math.sin(a1)} A${r} ${r} 0 0 1 ${cx+r*Math.cos(a2)} ${cy+r*Math.sin(a2)}`,class:'wave','data-k':i+1},g);
+    p.style.animationDelay=(i*.25)+'s';});
+})();
+/* S7 электрозаправка */
+(function(){const g=$('sysS7');
+  el('rect',{x:1186,y:728,width:26,height:52,rx:4,fill:'#16305f',stroke:'#8fb3e8','stroke-width':1.5},g);
+  [0,1,2].forEach(i=>el('rect',{x:1192,y:766-i*12,width:14,height:9,rx:1.5,class:'bat','data-k':i+1},g));
+  el('path',{d:'M1222 760 h44 l-4 -12 h-30 Z',fill:'#16305f',stroke:'#8fb3e8','stroke-width':1.5},g);
+  el('rect',{x:1218,y:760,width:52,height:14,rx:4,fill:'#16305f',stroke:'#8fb3e8','stroke-width':1.5},g);
+  [1230,1258].forEach(x=>el('circle',{cx:x,cy:775,r:5,fill:'#0b1530',stroke:'#8fb3e8'},g));
+  el('path',{d:'M1212 742 Q1220 760 1222 764',fill:'none',stroke:'#3d5f99','stroke-width':2.5},g);
+  el('path',{d:'M1212 742 Q1220 760 1222 764',class:'flow',id:'chargeFlow',stroke:'#7dffb2'},g);
+})();
+/* S8 мост */
+(function(){const g=$('sysS8');
+  el('rect',{x:345,y:660,width:290,height:7,fill:'#132a5c',stroke:'#5b86c9'},g);
+  [420,560].forEach(px=>{
+    el('line',{x1:px,y1:780,x2:px,y2:578,stroke:'#5b86c9','stroke-width':5},g);
+    for(let i=1;i<=4;i++){el('line',{x1:px,y1:584,x2:px-i*17,y2:660,class:'cab','stroke-width':1.2},g);el('line',{x1:px,y1:584,x2:px+i*17,y2:660,class:'cab','stroke-width':1.2},g);}
+  });
+  for(let i=0;i<12;i++){const x=352+i*24.5;el('circle',{cx:x,cy:656,r:3,class:'bl','data-k':Math.floor(i/4)+1},g);}
+})();
+/* S4 камеры */
+(function(){const g=$('sysS4');
+  [[742,520,1,1],[868,690,-1,2],[1173,620,1,3]].forEach(([x,y,dir,k])=>{
+    const sc=el('polygon',{points:`${x+dir*14},${y+4} ${x+dir*120},${y+60} ${x+dir*70},${y+90}`,fill:'url(#scanG)',class:'scan',style:`transform-origin:${x+dir*14}px ${y+4}px`},g);
+    if(dir<0)sc.setAttribute('fill','#7dff9e'),sc.setAttribute('fill-opacity','.18');
+    el('rect',{x:dir>0?x:x-16,y:y-4,width:16,height:9,rx:2,fill:'#16305f',stroke:'#8fb3e8'},g);
+    el('circle',{cx:x+dir*12,cy:y,r:2.6,class:'led','data-k':k},g);
+  });
+})();
+/* S2 трамвай */
+(function(){const g=$('sysS2');
+  const t=el('g',{id:'tram'},g);
+  el('rect',{x:380,y:783,width:130,height:26,rx:7,fill:'#16305f',stroke:'#8fb3e8','stroke-width':1.5},t);
+  el('line',{x1:445,y1:783,x2:430,y2:768,stroke:'#8fb3e8'},t);el('line',{x1:430,y1:768,x2:460,y2:768,stroke:'#8fb3e8'},t);
+  [0,1,2,3,4,5].forEach(i=>el('rect',{x:388+i*20,y:788,width:14,height:10,rx:2,class:'win','data-k':Math.floor(i/2)+1},t));
+  el('rect',{x:504,y:790,width:4,height:6,fill:'#fff1b8',opacity:.8},t);
+})();
+/* R4 фонари (ближний тротуар) */
+(function(){const g=$('sysR4');
+  [[230,1],[1410,1],[420,2],[1170,2],[640,3],[960,3]].forEach(([x,k])=>{
+    el('polygon',{points:`${x+10},${776} ${x-30},${822} ${x+50},${822}`,fill:'url(#coneG)',class:'cone','data-k':k},g);
+    el('line',{x1:x,y1:822,x2:x,y2:772,stroke:'#5b86c9','stroke-width':3},g);
+    el('line',{x1:x,y1:772,x2:x+10,y2:772,stroke:'#5b86c9','stroke-width':3},g);
+    el('circle',{cx:x+10,cy:775,r:4.5,class:'sl','data-k':k},g);
+  });
+})();
+
+/* ================== КОНФИГУРАЦИЯ ================== */
+const cfg={};SYS.forEach(s=>cfg[s.id]=s.num<=6?'s':'x');
+let taken={},stats={},cfgEditAt=0;
+const lvl=id=>cfg[id]==='a'?3:cfg[id]==='x'?0:state[id];
+const activeSys=()=>SYS.filter(s=>cfg[s.id]!=='x');
+
+/* ================== СТРОКА EXCEL ================== */
+const CELLS={};let RESC,RESV,LASTL='';
+const LET='ABCDEFGHIJKLMNOPQ';
+function buildXL(){
+  const g=$('xl');g.innerHTML='';for(const k in CELLS)delete CELLS[k];
+  const act=activeSys(),n=act.length,cw=Math.min(52,860/(n+1.6)),x0=800-(cw*(n+1.6))/2;
+  LASTL=LET[n-1];
+  // строка формул
+  el('rect',{x:x0,y:10,width:cw*(n+1.6),height:30,rx:4,fill:'#0b1a40',stroke:'#4f6fa8'},g);
+  el('rect',{x:x0,y:10,width:60,height:30,rx:4,fill:'#16306a',stroke:'#4f6fa8'},g);
+  el('text',{x:x0+30,y:31,class:'xlf','text-anchor':'middle',style:'font-size:17px',fill:'#cfe0ff'},g).textContent=LET[n]+'1';
+  el('text',{x:x0+76,y:31,style:'font-size:18px;font-style:italic',fill:'#8fb0e6'},g).textContent='fx';
+  el('text',{x:x0+104,y:32,class:'monof',style:'font-size:19px',fill:'#9ff7c4'},g).textContent=`=СУММ(A1:${LASTL}1)`;
+  // ячейки
+  act.forEach((s,i)=>{
+    const x=x0+i*cw;
+    el('text',{x:x+cw/2,y:58,class:'chd xlf'},g).textContent=LET[i];
+    const r=el('rect',{x,y:63,width:cw,height:32,class:'cell'},g);
+    const t=el('text',{x:x+cw/2,y:87,class:'cval xlf'},g);t.textContent='0';
+    el('text',{x:x+cw/2,y:110,class:'clab xlf',fill:s.team===1?'#7fdcff':'#ffcf6a'},g).textContent=s.lab;
+    CELLS[s.id]={r,t};
+  });
+  const xr=x0+n*cw+cw*.25;
+  el('text',{x:xr+cw*.675,y:58,class:'chd xlf'},g).textContent=LET[n];
+  RESC=el('rect',{x:xr,y:61,width:cw*1.35,height:36,class:'res'},g);
+  RESV=el('text',{x:xr+cw*.675,y:87,class:'cval xlf',style:'fill:#ffe9a8'},g);RESV.textContent='0';
+  el('text',{x:xr+cw*.675,y:110,class:'clab xlf',fill:'#ffe9a8'},g).textContent='итог';
+  $('finalF').textContent=`=СУММ(A1:${LASTL}1) = ${n}`;
+}
+
+/* ================== ПАНЕЛИ ================== */
+const ROWS={};
+function buildPanels(){
+  $('panels').innerHTML='';for(const k in ROWS)delete ROWS[k];
+  [1,2].forEach(team=>{
+    const x=team===1?20:1260,col=team===1?'#3fd8ff':'#ffc24a';
+    const list=SYS.filter(s=>s.team===team&&cfg[s.id]!=='x'),n=list.length,step=n<=6?50:43;
+    const g=el('g',{},$('panels'));
+    el('rect',{x,y:124,width:320,height:88+n*step+10,rx:14,fill:'rgba(8,24,66,.7)',stroke:col,'stroke-width':2},g);
+    el('text',{x:x+160,y:156,class:'ptitle',fill:col},g).textContent=team===1?'КОМАНДА 1':'КОМАНДА 2';
+    el('text',{x:x+160,y:180,class:'psub'},g).textContent=team===1?'энергосеть':'городские службы';
+    el('line',{x1:x+20,y1:194,x2:x+300,y2:194,stroke:col,opacity:.4},g);
+    list.forEach((s,i)=>{
+      const y=226+i*step,auto=cfg[s.id]==='a';
+      const hit=el('rect',{x:x+8,y:y-21,width:304,height:step-6,rx:8,class:'row-hit'},g);
+      const t=el('text',{x:x+16,y:y+7,class:'pname'},g);t.textContent=s.short;
+      if(auto){t.style.fill='#8fa3c8';el('tspan',{class:'pauto',dx:6},t).textContent='авто';}
+      const segs=[0,1,2].map(k=>el('rect',{x:x+184+k*32,y:y-8,width:27,height:16,rx:3,class:'seg'},g));
+      const bc=el('circle',{cx:x+292,cy:y,r:16,class:'badge'},g);
+      const bt=el('text',{x:x+292,y:y+8,class:'btxt xlf'},g);bt.textContent='0';
+      hit.addEventListener('click',()=>{if(manual&&cfg[s.id]==='s')setLevel(s.id,(state[s.id]+1)%4,true);});
+      ROWS[s.id]={segs,bc,bt};
+    });
+  });
+}
+
+/* ================== ОБНОВЛЕНИЕ ================== */
+let launched=false,manual=false;
+function setLevel(id,v,force){v=Math.max(0,Math.min(3,v|0));if(state[id]===v)return;if(launched&&!force)return;state[id]=v;refresh();}
+function lit(root,v){root.querySelectorAll('[data-k]').forEach(e=>e.classList.toggle('on',+e.dataset.k<=v));}
+function refresh(){
+  let ready=0,n=0;
+  SYS.forEach(s=>{
+    const m=cfg[s.id],v=lvl(s.id),one=v===3,g=$('sys'+s.id);
+    if(m!=='x'){n++;if(one)ready++;}
+    g.style.display=(m==='x'&&s.num>6)?'none':'';
+    lit(g,v);g.classList.toggle('full',one);
+    const r=ROWS[s.id];
+    if(r){r.segs.forEach((e,k)=>{e.classList.toggle('on'+s.team,m==='s'&&k<v);e.classList.toggle('auto',m==='a');});
+      r.bc.classList.toggle('one',one&&m==='s');r.bc.classList.toggle('auto',m==='a');r.bt.classList.toggle('one',one);r.bt.textContent=one?'1':'0';}
+    const c=CELLS[s.id];
+    if(c){c.t.textContent=one?'1':'0';c.r.classList.toggle('one',one&&m==='s');c.r.classList.toggle('auto',m==='a');c.t.classList.toggle('one',one&&m==='s');c.t.classList.toggle('auto',m==='a');}
+  });
+  const S=lvl;
+  $('arcR3').classList.toggle('on',S('R3')===3);$('boltR3').classList.toggle('on',S('R3')===3);
+  $('pod').classList.toggle('on',S('R8')===3);$('tvBeacon').classList.toggle('on',S('R8')===3);
+  $('schoolSign').classList.toggle('on',S('R6')===3);$('flag').setAttribute('opacity',S('R6')===3?1:.35);
+  $('cross').classList.toggle('on',S('R7')===3);
+  document.querySelectorAll('.tlight').forEach(t=>t.classList.toggle('tfull',S('S1')===3));
+  $('tram').classList.toggle('drive',S('S2')===3);
+  $('chargeFlow').classList.toggle('on',S('S7')===3);
+  RESV.textContent=ready;RESC.classList.toggle('go',n>0&&ready===n);
+  $('ready').textContent=`РАБОТАЕТ СИСТЕМ: ${ready} из ${n}`;
+  if(n>0&&ready===n&&!launched){launched=true;setTimeout(finale,1200);}
+}
+function applyCfg(){buildXL();buildPanels();refresh();}
+
+/* ================== ФИНАЛ: САЛЮТ ================== */
+const parts=[];let fwOn=false,fwNext=0;
+const COLORS=['#ffd35a','#ff6b9a','#7dffb2','#6ad7ff','#c99bff','#ffffff','#ff9a40'];
+function burst(){
+  const x=rand(380,1220),y=rand(150,420),col=COLORS[Math.floor(Math.random()*COLORS.length)],n=64;
+  for(let i=0;i<n;i++){const a=i/n*Math.PI*2,sp=rand(2.2,4.2);
+    parts.push({c:el('circle',{r:3.4,fill:col},$('fireworks')),x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:0,max:rand(70,100)});}
+  const f=el('circle',{cx:x,cy:y,r:24,fill:col,opacity:.6,filter:'url(#glowBig)'},$('fireworks'));
+  setTimeout(()=>f.remove(),160);
+}
+function frame(now){
+  if(fwOn&&now>fwNext){burst();fwNext=now+rand(350,800);}
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life++;p.vx*=.985;p.vy=p.vy*.985+.045;p.x+=p.vx;p.y+=p.vy;
+    const a=1-p.life/p.max;if(a<=0){p.c.remove();parts.splice(i,1);continue;}
+    p.c.setAttribute('cx',p.x);p.c.setAttribute('cy',p.y);p.c.setAttribute('opacity',a);}
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+let gen=0;
+function countdown(txt,size){['cdL','cdR'].forEach(i=>{const e=$(i);e.textContent=txt;e.style.fontSize=size||'';e.classList.remove('pop');void e.getBBox();e.classList.add('pop');});}
+async function finale(){
+  const g=++gen,ok=()=>g===gen;stopDemo();
+  $('banner').textContent=`=СУММ(A1:${LASTL}1) = ${activeSys().length}  ·  ВСЕ СИСТЕМЫ ГОРОДА РАБОТАЮТ`;
+  await sleep(2600);if(!ok())return;
+  $('panels').style.opacity=0;
+  for(let n=3;n>=1;n--){countdown(String(n));await sleep(1000);if(!ok())return;}
+  document.body.classList.add('party');$('scene').classList.add('party');
+  fwOn=true;burst();burst();
+  $('final').classList.add('show');$('banner').textContent='';
+  await sleep(14000);if(!ok())return;
+  fwOn=false;
+}
+
+/* ================== СБРОС ================== */
+let resetUntil=0;
+function resetAll(){
+  gen++;stopDemo();launched=false;fwOn=false;
+  SYS.forEach(s=>state[s.id]=0);taken={};stats={};
+  $('panels').style.opacity=1;$('final').classList.remove('show');$('banner').textContent='';
+  $('scene').classList.remove('party');
+  ['cdL','cdR'].forEach(i=>{$(i).classList.remove('pop');$(i).textContent='';});
+  parts.splice(0).forEach(p=>p.c.remove());
+  refresh();resetUntil=Date.now()+4000;
+  if(configured)jsonp({action:'reset'}).catch(()=>{});
+}
+
+/* ================== СВЯЗЬ ================== */
+function jsonp(params){
+  return new Promise((res,rej)=>{
+    const cb='city_cb_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+    const s=document.createElement('script');let done=false;
+    window[cb]=d=>{done=true;res(d);window[cb]=()=>{};s.remove();};
+    s.onerror=()=>{if(!done){done=true;rej('err');s.remove();}};
+    setTimeout(()=>{if(!done){done=true;rej('timeout');window[cb]=()=>{};s.remove();}},8000);
+    s.src=GOOGLE_SHEET_URL+'?'+new URLSearchParams(Object.assign({},params,{callback:cb,_:Date.now()})).toString();
+    document.body.appendChild(s);
+  });
+}
+function setConn(st){const d=$('connDot'),t=$('connTxt');
+  if(st==='none'){d.setAttribute('fill','#6b7fa6');t.textContent='нет адреса';}
+  else if(st){d.setAttribute('fill','#5dff9a');t.textContent='связь есть';}
+  else{d.setAttribute('fill','#ffb347');t.textContent='нет связи';}}
+let inflight=false;
+async function poll(){
+  if(!configured||inflight)return;inflight=true;
+  try{
+    const d=await jsonp({action:'state'});setConn(true);
+    if(d&&d.state&&Date.now()>resetUntil){
+      if(d.cfg&&Date.now()-cfgEditAt>6000&&!launched){let ch=false;SYS.forEach(s=>{const m=d.cfg[s.id];if(m&&m!==cfg[s.id]){cfg[s.id]=m;ch=true;}});if(ch)applyCfg();}
+      SYS.forEach(s=>{const v=+d.state[s.id]||0;if(v>state[s.id])setLevel(s.id,v);});
+      taken=d.taken||{};stats=d.stats||{};
+      if($('teacher').classList.contains('show'))renderTeacher();
+    }
+  }catch(e){setConn(false);}
+  inflight=false;
+}
+if(configured){setInterval(poll,1500);poll();}else setConn('none');
+
+/* ================== УПРАВЛЕНИЕ ================== */
+let demoT=null;
+function stopDemo(){if(demoT){clearInterval(demoT);demoT=null;}$('bDemo').classList.remove('act');}
+function toggleDemo(){if(demoT){stopDemo();return;}$('bDemo').classList.add('act');
+  demoT=setInterval(()=>{const c=SYS.filter(s=>cfg[s.id]==='s'&&state[s.id]<3);if(!c.length){stopDemo();return;}const s=c[Math.floor(Math.random()*c.length)];setLevel(s.id,state[s.id]+1);},650);}
+function toggleManual(){manual=!manual;$('scene').classList.toggle('manual',manual);$('bManual').classList.toggle('act',manual);}
+function launchNow(){if(launched)return;stopDemo();const t=setInterval(()=>{const s=SYS.find(s=>cfg[s.id]==='s'&&state[s.id]<3);if(!s){clearInterval(t);return;}setLevel(s.id,state[s.id]+1);},120);}
+function full(){if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen();}
+$('bDemo').onclick=toggleDemo;$('bManual').onclick=toggleManual;$('bLaunch').onclick=launchNow;$('bFull').onclick=full;
+let resetArm=0;
+$('bReset').onclick=()=>{if(Date.now()-resetArm<2500){resetArm=0;$('bReset').textContent='Сброс';resetAll();}else{resetArm=Date.now();$('bReset').textContent='Ещё раз';setTimeout(()=>$('bReset').textContent='Сброс',2500);}};
+
+function sendCfg(){if(configured)jsonp({action:'config',cfg:JSON.stringify(cfg)}).catch(()=>{});}
+function quickSet(team,n){SYS.filter(s=>s.team===team).forEach(s=>{cfg[s.id]=s.num<=n?'s':(s.num<=6?'a':'x');});}
+function renderSettings(){
+  [1,2].forEach(team=>{
+    const list=SYS.filter(s=>s.team===team),nS=list.filter(s=>cfg[s.id]==='s').length;
+    let h=`<h4 style="color:${team===1?'#7fdcff':'#ffcf6a'}">Команда ${team} · ${team===1?'энергосеть':'городские службы'} — учеников: ${nS}</h4>
+      <div class="srow">Учеников: ${[4,5,6,7,8].map(n=>`<button data-q="${team},${n}" class="${nS===n?'sel':''}">${n}</button>`).join('')}</div>`;
+    list.forEach(s=>{h+=`<div class="srow"><span>${s.num}. ${s.name}</span>`+[['s','Ученик'],['a','Авто'],['x','Нет']].filter(([m])=>m!=='x'||s.num>6)
+      .map(([m,t])=>`<button data-s="${s.id},${m}" class="${cfg[s.id]===m?'sel':''}">${t}</button>`).join('')+'</div>';});
+    $('set'+team).innerHTML=h;
+  });
+  document.querySelectorAll('#settings [data-q]').forEach(b=>b.onclick=()=>{const[t,n]=b.dataset.q.split(',');quickSet(+t,+n);cfgChanged();});
+  document.querySelectorAll('#settings [data-s]').forEach(b=>b.onclick=()=>{const[id,m]=b.dataset.s.split(',');cfg[id]=m;cfgChanged();});
+}
+function cfgChanged(){cfgEditAt=Date.now();applyCfg();renderSettings();sendCfg();}
+function toggleSettings(){const o=$('settings');o.classList.toggle('show');$('teacher').classList.remove('show');if(o.classList.contains('show'))renderSettings();}
+$('sClose').onclick=toggleSettings;$('bSet').onclick=toggleSettings;
+function renderTeacher(){
+  $('tBody').innerHTML=activeSys().map(s=>{
+    const st=stats[s.id]||{},tk=taken[s.id],e=st.err||[0,0,0],f=(st.first||[]).filter(x=>x===true).length;
+    let time='';if(st.start&&st.end){const sec=Math.round((st.end-st.start)/1000);time=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');}
+    const who=cfg[s.id]==='a'?'<i>авто</i>':(st.name||(tk&&tk.name)||'—');
+    return `<tr class="t${s.team}"><td>${s.name}</td><td>${who}</td><td>${st.cls||(tk&&tk.cls)||''}</td><td>${lvl(s.id)} / 3</td>`+
+      e.map(x=>`<td class="${x>0?'bad':''}">${st.name?x:''}</td>`).join('')+
+      `<td>${st.name?f+' / 3':''}</td><td>${time}</td><td>${tk?`<button data-free="${s.id}">освободить</button>`:''}</td></tr>`;
+  }).join('');
+  document.querySelectorAll('#tBody [data-free]').forEach(b=>b.onclick=()=>{const id=b.dataset.free;delete taken[id];renderTeacher();if(configured)jsonp({action:'free',sys:id}).catch(()=>{});});
+}
+function toggleTeacher(){const o=$('teacher');o.classList.toggle('show');$('settings').classList.remove('show');if(o.classList.contains('show')){renderTeacher();poll();}}
+$('tClose').onclick=toggleTeacher;$('bTeach').onclick=toggleTeacher;
+document.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='t'||k==='е'){toggleTeacher();return;}
+  if(k==='s'||k==='ы'){toggleSettings();return;}
+  if(k==='escape'){$('teacher').classList.remove('show');$('settings').classList.remove('show');return;}
+  if($('settings').classList.contains('show')||$('teacher').classList.contains('show'))return;
+  if(k==='d'||k==='в')toggleDemo();
+  else if(k==='m'||k==='ь')toggleManual();
+  else if(k==='l'||k==='д')launchNow();
+  else if(k==='f'||k==='а')full();
+  else if(k==='r'||k==='к')$('bReset').onclick();
+  else if(k==='h'||k==='р')$('ctrl').classList.toggle('vis');
+});
+applyCfg();
+</script>
+</body>
+</html>
