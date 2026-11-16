@@ -277,7 +277,7 @@ const OUT_GENS=[
     return {code:`def ${n}(name):\n    print('Привет,', name)\n\nx = ${n}('${nm}')\nprint(x)`,ans:`Привет, ${nm}\nNone`,expl:'Процедура выводит приветствие, но ничего не возвращает — в x записывается None.'}},
   ()=>{const a=ri(2,9),b=ri(2,9);
     return {code:`def do_something(number):\n    return number * 2\n\nprint(do_something(${a}))\nprint(do_something(${a}) + do_something(${b}))`,ans:`${a*2}\n${a*2+b*2}`,expl:'Каждый вызов возвращает удвоенное число.'}},
-  ()=>{const km=pick([10,100,1000,500,50]);
+  ()=>{const km=pick([2,30,250,300,500,1000]);
     return {code:`def convert_to_miles(km):\n    return km * 0.6214\n\nprint(convert_to_miles(${km}))`,ans:pyFloat(km*0.6214),expl:`${km} · 0.6214 = ${pyFloat(km*0.6214)}. Результат вещественный.`}},
 ];
 function genOutput(gf){const g=(gf||pick(OUT_GENS))();return {type:'out',q:'Что будет выведено на экран? Запиши вывод программы (каждое значение — на отдельной строке, как в IDLE).',code:g.code,correct:g.ans,expl:g.expl,brief:'что выведет'}}
@@ -370,7 +370,7 @@ const IDLE_GENS=[
     task:'Напиши процедуру square(n, ch), которая выводит квадрат n × n из символа ch. Программа вводит n и символ.',
     input:`${n}\n${ch}`,ans:Array(n).fill(ch.repeat(n)).join('\n'),
     sol:'def square(n, ch):\n    for i in range(n):\n        print(ch * n)\n\nn = int(input())\nch = input()\nsquare(n, ch)'}},
-  ()=>{const km=pick([10,20,50,100,250,1000,42]);return {
+  ()=>{const km=pick([2,30,250,300,500,1000]);return {
     title:'Километры в мили',
     sample:'def km_to_m(km):\n    return km * 1000\n\nkm = int(input())\nprint(km_to_m(km))',
     sampleText:'Функция переводит километры в метры.',
@@ -572,15 +572,35 @@ function makeStructure(n){ // от простого к сложному
   const seq=[D[4],'par','arg',easy[0],defs[0],'type','calls','role',hard[0],hard[1]];
   return seq.slice(0,n).map(k=>genStructure(k));
 }
+const CT_PLAN=[['m1',3],['m2',3],['m3',3],['m4',3],['m5',1]];
+function CT_PLAN_N(){return CT_PLAN.reduce((a,x)=>a+x[1],0)}
 const MODULES=[
   {id:'help',name:'Учебник'},
-  {id:'m1',name:'1. Строение',learnN:10,testN:10,make:n=>makeStructure(n)},
-  {id:'m2',name:'2. Что выведет?',learnN:10,testN:8,make:n=>cyc(OUT_GENS,n).map(g=>genOutput(g))},
-  {id:'m3',name:'3. Заполни пропуск',learnN:10,testN:8,make:n=>cyc(FILL_GENS,n).map(g=>genFill(g))},
-  {id:'m4',name:'4. Найди ошибку',learnN:10,testN:8,make:n=>cyc(BUG_GENS,n).map(g=>genBug(g))},
-  {id:'m5',name:'5. Задачи в IDLE',learnN:IDLE_GROUPS.reduce((a,g)=>a+g[1].length,0),testN:4,make:(n,m)=>m==='learn'?allIdle():testIdle()},
+  {learnOnly:true,id:'m1',name:'1. Строение',learnN:10,testN:10,make:n=>makeStructure(n)},
+  {learnOnly:true,id:'m2',name:'2. Что выведет?',learnN:10,testN:8,make:n=>cyc(OUT_GENS,n).map(g=>genOutput(g))},
+  {learnOnly:true,id:'m3',name:'3. Заполни пропуск',learnN:10,testN:8,make:n=>cyc(FILL_GENS,n).map(g=>genFill(g))},
+  {learnOnly:true,id:'m4',name:'4. Найди ошибку',learnN:10,testN:8,make:n=>cyc(BUG_GENS,n).map(g=>genBug(g))},
+  {learnOnly:true,id:'m5',name:'5. Задачи в IDLE',learnN:IDLE_GROUPS.reduce((a,g)=>a+g[1].length,0),testN:4,make:(n,m)=>m==='learn'?allIdle():testIdle()},
+  {id:'ct',name:'Контрольная работа',testN:CT_PLAN_N(),make:()=>makeControl(),testOnly:true},
   {id:'res',name:'Результаты'},
 ];
+// Контрольная работа: задания из всех модулей (модуль, сколько заданий)
+
+const CT_IDLE=['Символ n раз','Переставить цифры','Сумма площадей','Чётное или нечётное','Цена со скидкой','Оплата за электроэнергию','Стоимость поездки на такси'];
+const MOD_SHORT={m1:'Строение',m2:'Что выведет?',m3:'Заполни пропуск',m4:'Найди ошибку',m5:'Программа'};
+function makeControl(){
+  const out=[];
+  CT_PLAN.forEach(([m,k])=>{
+    let ts;
+    if(m==='m1'){const a=makeStructure(10);ts=[a[pick([1,2])],a[pick([4,5,6])],a[pick([7,8,9])]].slice(0,k)}  // простой, средний, сложный
+    else if(m==='m2') ts=cyc(OUT_GENS,k).map(g=>genOutput(g));
+    else if(m==='m3') ts=cyc(FILL_GENS,k).map(g=>genFill(g));
+    else if(m==='m4') ts=cyc(BUG_GENS,k).map(g=>genBug(g));
+    else ts=shuffle(CT_IDLE).slice(0,k).map(x=>genIdle(IDLE_BY_TITLE[x]));
+    ts.forEach(t=>{t.mod=m;out.push(t)});
+  });
+  return out;
+}
 // берём генераторы по кругу в случайном порядке, чтобы задания не повторялись
 function cyc(arr,n){let out=[];while(out.length<n)out=out.concat(shuffle(arr));return out.slice(0,n)}
 function allIdle(){return IDLE_GROUPS.flatMap(g=>g[1].map(t=>genIdle(IDLE_BY_TITLE[t])))}
@@ -592,10 +612,11 @@ const DESCR={
   m2:'Прочитай программу и запиши, что она выведет. Сомневаешься — проверь в IDLE.',
   m3:'Впиши пропущенное. Получившаяся программа должна работать в IDLE.',
   m4:'Найди строку с ошибкой. Потом можно исправить программу в IDLE и убедиться, что она работает.',
+  ct:'Задания из всех разделов: строение подпрограмм, «что выведет», пропуски, ошибки и одна задача на программирование. Учебник в режиме контроля не открывается. Ответ на задание даётся один раз; оценка — в конце.',
   m5:'Посмотри образец и напиши похожую программу прямо здесь, в окне редактора. «▶ Запустить» — проверить на данных из задания, «Проверить» — программа проверяется ещё на нескольких наборах данных.',
 };
 
-let mode='learn', cur='help';
+let mode='learn', cur='help', lastLearn='m1';
 const results={learn:{},test:{}};          // результаты контроля: попытки
 const sessions={learn:{},test:{}};         // текущий набор заданий модуля в режиме
 let studentName='', studentClass='';
@@ -603,7 +624,7 @@ const modById=id=>MODULES.find(m=>m.id===id);
 
 function renderNav(){
   const nav=document.getElementById('nav');
-  nav.innerHTML=MODULES.map(m=>{
+  nav.innerHTML=MODULES.filter(m=>mode==='learn'?!m.testOnly:!(m.learnOnly||m.id==='help')).map(m=>{
     let r='';
     if(m.make){const n=mode==='learn'?m.learnN:m.testN;const s=sessions[mode][m.id];
       const done=s?s.answers.filter(Boolean).length:0;
@@ -612,14 +633,18 @@ function renderNav(){
   nav.querySelectorAll('button').forEach(b=>b.onclick=()=>enter(b.dataset.id));
 }
 document.querySelectorAll('#modes button').forEach(b=>b.onclick=()=>{
-  mode=b.dataset.m;document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('on',x===b));
+  const nm=b.dataset.m;if(nm===mode)return;
+  const cs=sessions.test.ct;
+  if(mode==='test'&&cs&&!cs.finished&&cs.answers.some(Boolean)){alert('Сначала заверши контрольную работу: кнопка «Завершить контроль».');return}
+  mode=nm;document.querySelectorAll('#modes button').forEach(x=>x.classList.toggle('on',x===b));
+  if(mode==='test'){if(cur!=='res')cur='ct'}else if(cur==='ct')cur=lastLearn;
   if(modById(cur).make&&!sessions[mode][cur]) newSession(cur);
   renderNav();render();
 });
 function enter(id){
-  cur=id;
+  cur=id;if(mode==='learn'&&modById(id).make)lastLearn=id;
   const s=sessions[mode][id];
-  if(modById(id).make&&(!s||(mode==='test'&&s.finished))) newSession(id);
+  if(modById(id).make&&(!s||(mode==='test'&&s.finished&&id!=='ct'))) newSession(id);
   renderNav();render();window.scrollTo(0,0);
 }
 function newSession(id){
@@ -666,6 +691,9 @@ function pillsHTML(s){
   const pill=(t,i)=>{const a=s.answers[i];let c='pill';if(i===s.i)c+=' cur';
     if(a) c+= mode==='learn'?(a.ok?' ok':' no'):' done';
     return `<button class="${c}" data-p="${i}" title="${esc(t.brief)}">${i+1}</button>`};
+  if(cur==='ct'){
+    let i=0;return `<div class="pillgroups">`+CT_PLAN.map(([m,k])=>`<div class="pg"><div class="pgname">${MOD_SHORT[m]}</div><div class="pills">`+Array.from({length:k},()=>{const r=pill(s.tasks[i],i);i++;return r}).join('')+`</div></div>`).join('')+`</div>`;
+  }
   if(cur==='m5'&&mode==='learn'){
     let i=0;return `<div class="pillgroups">`+IDLE_GROUPS.map(g=>`<div class="pg"><div class="pgname">${g[0]} · верно ${s.tasks.map((t,k)=>s.answers[k]&&s.answers[k].ok&&t.group===g[0]).filter(Boolean).length}, нужно ${HW_N}</div><div class="pills">`+g[1].map(()=>{const r=pill(s.tasks[i],i);i++;return r}).join('')+`</div></div>`).join('')+`</div>`;
   }
@@ -684,9 +712,11 @@ function buttonsHTML(s){
 }
 function renderFinished(s){
   const right=s.answers.filter(x=>x&&x.ok).length,tot=s.tasks.length;
-  return `<div class="fb neutral" style="text-align:center"><div>Контроль завершён</div><div class="grade">${grade(right,tot)} / 10</div><div>Верно ${right} из ${tot}</div></div>
+  const bestNote=(cur==='ct'&&ctAttempts()>1)?`<div style="margin-top:6px"><b>В оценку идёт лучшая попытка: ${ctSummary().r} из ${ctSummary().t} → ${ctSummary().g} / 10</b></div>`:'';
+  return `<div class="fb neutral" style="text-align:center"><div>${cur==='ct'?'Попытка '+ctAttempts()+' завершена':'Контроль завершён'}</div><div class="grade">${grade(right,tot)} / 10</div><div>Верно ${right} из ${tot}</div>${bestNote}</div>
     <h3>Разбор</h3>`+s.tasks.map((t,i)=>{const a=s.answers[i];return `<div class="fb ${a&&a.ok?'ok':'no'}"><b>${i+1}.</b> ${esc(t.brief)} — ${a?(a.ok?'верно':'неверно'):'нет ответа'}${!(a&&a.ok)?`; правильный ответ: <span class="mono">${esc(t.correct).replace(/\n/g,' ⏎ ')}</span>`:''}</div>`}).join('')+
-    `<div class="btns"><button class="btn" id="againBtn">Пройти заново (новые задания)</button><button class="btn lav" id="toRes">Сохранить результаты в файл</button></div>`;
+    `<div class="btns">${cur!=='ct'?'<button class="btn" id="againBtn">Пройти заново (новые задания)</button>':(ctAttempts()<CT_MAX?'<button class="btn" id="againBtn">Пройти ещё раз (последняя попытка)</button>':'')}`+
+    (cur==='ct'?`<div class="sumhint" style="width:100%">${ctAttempts()<CT_MAX?'Контроль можно пройти не более '+CT_MAX+' раз. В оценку идёт лучшая попытка.':'Использованы обе попытки. В оценку идёт лучшая.'}</div>`:'')+`<button class="btn lav" id="toRes">Сохранить результаты в файл</button></div>`;
 }
 
 /* ---------- отрисовка задания ---------- */
@@ -784,7 +814,9 @@ function bindTask(){
   if($('prevBtn')) $('prevBtn').onclick=()=>go(s.i-1);
   if($('nextBtn')) $('nextBtn').onclick=()=>go(s.i+1);
   if($('newSet')) $('newSet').onclick=()=>{if(confirm('Пройти модуль ещё раз с новыми заданиями? В итоговую оценку пойдёт ЛУЧШИЙ результат.')){newSession(cur);renderNav();render()}};
-  if($('againBtn')) $('againBtn').onclick=()=>{newSession(cur);renderNav();render()};
+  if($('againBtn')) $('againBtn').onclick=()=>{
+    if(cur==='ct'){if(ctAttempts()>=CT_MAX)return;if(!confirm('Начать вторую, последнюю попытку контроля? Задания будут новыми. В оценку пойдёт лучшая из двух попыток.'))return}
+    newSession(cur);renderNav();render()};
   if($('toRes')) $('toRes').onclick=()=>enter('res');
   if($('finishBtn')) $('finishBtn').onclick=()=>{const left=s.tasks.length-s.answers.filter(Boolean).length;
     if(confirm(left?`Без ответа осталось заданий: ${left}. Они будут засчитаны как неверные. Завершить контроль?`:'Завершить контроль?'))finishTest()};
@@ -827,7 +859,7 @@ function finishTest(){
   const s=sessions.test[cur];s.finished=true;
   const right=s.answers.filter(x=>x&&x.ok).length,tot=s.tasks.length;
   const r=results.test[cur]||(results.test[cur]={attempts:[]});
-  r.attempts.push({right,total:tot,grade:grade(right,tot),items:s.tasks.map((t,i)=>({q:t.brief,g:t.group||'',ok:!!(s.answers[i]&&s.answers[i].ok),user:s.answers[i]?s.answers[i].user:'нет ответа',code:s.answers[i]&&s.answers[i].a&&s.answers[i].a.code||'',manual:!!(s.answers[i]&&s.answers[i].a&&s.answers[i].a.manual)}))});
+  r.attempts.push({right,total:tot,grade:grade(right,tot),items:s.tasks.map((t,i)=>({q:t.brief,mod:t.mod||cur,g:t.group||'',ok:!!(s.answers[i]&&s.answers[i].ok),user:s.answers[i]?s.answers[i].user:'нет ответа',code:s.answers[i]&&s.answers[i].a&&s.answers[i].a.code||'',manual:!!(s.answers[i]&&s.answers[i].a&&s.answers[i].a.manual)}))});
   renderNav();render();window.scrollTo(0,0);
 }
 function needName(){
@@ -856,10 +888,13 @@ function learnBest(id){
 function attempts(id){const L=results.learn[id],se=sessions.learn[id];return (L&&L.hist?L.hist.length:0)+(se&&se.answers.some(Boolean)?1:0)}
 function cwSummary(){let r=0,t=0,any=false;CW.forEach(id=>{const b=learnBest(id);if(b){r+=b.right;any=true}t+=modById(id).learnN});return {r,t,g:grade(r,t),any}}
 function hwSummary(){const b=learnBest('m5'),gs=hwGroups(b),r=gs.reduce((a,g)=>a+g.counted,0);return {r,t:HW_MAX,g:grade(r,HW_MAX),any:!!b,groups:gs,best:b}}
-function ctSummary(){ // контроль: последняя попытка каждого модуля
-  let r=0,t=0;const per={};
-  MODULES.filter(x=>x.make).forEach(x=>{const R=results.test[x.id];if(R&&R.attempts.length){const a=R.attempts[R.attempts.length-1];per[x.id]=a;r+=a.right;t+=a.total}});
-  return {r,t,g:t?grade(r,t):null,per};
+const CT_MAX=2;                                  // сколько раз можно пройти контроль
+function ctAttempts(){const R=results.test.ct;return R?R.attempts.length:0}
+function ctSummary(){ // контроль: лучшая из попыток
+  const R=results.test.ct,at=R?R.attempts:[],per={};
+  const best=at.length?at.reduce((b,x)=>x.right>b.right?x:b):null;
+  if(best) CT_PLAN.forEach(([m])=>{const it=best.items.filter(x=>x.mod===m);per[m]={right:it.filter(x=>x.ok).length,total:it.length}});
+  return {r:best?best.right:0,t:best?best.total:0,g:best?best.grade:null,per,last:best,attempts:at};
 }
 
 /* --- состояние отправки --- */
@@ -882,13 +917,13 @@ function sendResults(){
     m1:(learnBest('m1')||{right:0}).right,m2:(learnBest('m2')||{right:0}).right,m3:(learnBest('m3')||{right:0}).right,m4:(learnBest('m4')||{right:0}).right,
     cw_right:cw.r,cw_total:cw.t,cw_grade:cw.any?cw.g:'',
     hw_groups:hw.groups.map(g=>g.counted+'/'+HW_N).join('; '),hw_right:hw.r,hw_total:hw.t,hw_grade:hw.any?hw.g:'',
-    ct_m1:ct.per.m1?ct.per.m1.grade:'',ct_m2:ct.per.m2?ct.per.m2.grade:'',ct_m3:ct.per.m3?ct.per.m3.grade:'',ct_m4:ct.per.m4?ct.per.m4.grade:'',ct_m5:ct.per.m5?ct.per.m5.grade:'',
+    ct_m1:ct.per.m1?ct.per.m1.right+'/'+ct.per.m1.total:'',ct_m2:ct.per.m2?ct.per.m2.right+'/'+ct.per.m2.total:'',ct_m3:ct.per.m3?ct.per.m3.right+'/'+ct.per.m3.total:'',ct_m4:ct.per.m4?ct.per.m4.right+'/'+ct.per.m4.total:'',ct_m5:ct.per.m5?ct.per.m5.right+'/'+ct.per.m5.total:'',
     ct_right:ct.t?ct.r:'',ct_total:ct.t||'',ct_grade:ct.g===null?'':ct.g,
     programs:[]
   };
   const prog=(md,it)=>{if(it.code)payload.programs.push({mode:md,task:it.q,group:it.g,ok:it.ok?'верно':'неверно',code:it.code,lines:codeLines(it.code),comments:countComments(it.code),manual:it.manual?'да':''})};
   if(hw.best) hw.best.items.forEach(it=>prog('ДЗ',it));
-  if(ct.per.m5) ct.per.m5.items.forEach(it=>prog('Контроль',it));
+  if(ct.last) ct.last.items.filter(it=>it.mod==='m5').forEach(it=>prog('Контроль',it));
   sending=true;refreshSend();
   fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
     .then(()=>{sending=false;dirty=false;lastSent=new Date();refreshSend();alert('Результаты отправлены учителю.')})
@@ -922,10 +957,10 @@ function renderResults(){
   <h3>Домашнее задание (задачи в IDLE, на выбор)</h3><table class="cmp"><tr><th>Группа</th><th>Решено верно</th><th>Засчитано</th></tr>`;
   hw.groups.forEach(g=>h+=`<tr><td>${g.name}</td><td>${g.solved}</td><td>${g.counted} из ${HW_N}</td></tr>`);
   h+=`<tr><th>Итого</th><th></th><th>${hw.r} из ${hw.t} · оценка ${hw.any?hw.g+' / 10':'—'}</th></tr></table>
-  <h3>Контроль</h3><table class="cmp"><tr><th>Раздел</th><th>Верно / всего</th><th>Оценка (из 10)</th></tr>`;
-  MODULES.filter(x=>x.make).forEach(x=>{const r=results.test[x.id],at=r&&r.attempts.length?r.attempts:null;
-    h+=`<tr><td>${x.name}</td><td>${at?at.map(a=>a.right+'/'+a.total).join(', '):'—'}</td><td>${at?at.map(a=>a.grade).join(', '):'—'}</td></tr>`});
-  if(ct.t) h+=`<tr><th>Итого (последние попытки)</th><th>${ct.r} из ${ct.t}</th><th>Оценка: ${ct.g} / 10</th></tr>`;
+  <h3>Контрольная работа</h3><table class="cmp"><tr><th>Раздел</th><th>Верно / всего (лучшая попытка)</th></tr>`;
+  CT_PLAN.forEach(([m,k])=>{const p=ct.per[m];h+=`<tr><td>${MOD_SHORT[m]}</td><td>${p?p.right+' из '+p.total:'—'}</td></tr>`});
+  h+=`<tr><th>Итого</th><th>${ct.last?ct.r+' из '+ct.t+' · оценка '+ct.g+' / 10':'не выполнялась'}</th></tr>`;
+  if(ct.attempts.length>1) h+=`<tr><td>Все попытки</td><td>${ct.attempts.map(a=>a.right+'/'+a.total+' ('+a.grade+')').join(', ')}</td></tr>`;
   return h+`</table><button class="btn lav" id="saveBtn">Сохранить результаты в файл (.txt)</button></div>`;
 }
 function bindResults(){document.getElementById('saveBtn').onclick=exportTxt;bindSend()}
@@ -940,16 +975,13 @@ function exportTxt(){
   hw.groups.forEach(g=>t+=`${g.name}: решено верно ${g.solved}, засчитано ${g.counted} из ${HW_N}\n`);
   t+=`ИТОГО: ${hw.r} из ${hw.t}, оценка ${hw.any?hw.g+'/10':'—'}\n`;
   if(hw.best) hw.best.items.forEach((it,i)=>{t+=`   ${i+1}. ${it.q} (${it.g}): ${it.st}\n`;if(it.code)t+=it.code.split('\n').map(l=>'        | '+l).join('\n')+'\n'});
-  t+=`\n=== КОНТРОЛЬ ===\n`;
-  MODULES.filter(x=>x.make).forEach(x=>{
-    const r=results.test[x.id];
-    if(!r||!r.attempts.length){t+=`${x.name}: не выполнялся\n`;return}
-    r.attempts.forEach((a,k)=>{
-      t+=`${x.name} — попытка ${k+1}: верно ${a.right} из ${a.total}, оценка ${a.grade}/10\n`;
-      a.items.forEach((it,i)=>t+=`   ${i+1}. ${it.q}: ${it.ok?'верно':'неверно'} (ответ: ${String(it.user).replace(/\n/g,' / ')})\n`);
-    });
+  t+=`\n=== КОНТРОЛЬНАЯ РАБОТА ===\n`;
+  if(!ct.attempts.length) t+=`Контрольная работа: не выполнялась\n`;
+  ct.attempts.forEach((a,k)=>{
+    t+=`Попытка ${k+1}: верно ${a.right} из ${a.total}, оценка ${a.grade}/10\n`;
+    a.items.forEach((it,i)=>{t+=`   ${i+1}. [${MOD_SHORT[it.mod]||''}] ${it.q}: ${it.ok?'верно':'неверно'} (ответ: ${String(it.user).replace(/\n/g,' / ')})\n`;if(it.code)t+=it.code.split('\n').map(l=>'        | '+l).join('\n')+'\n'});
   });
-  if(ct.t) t+=`ИТОГО по контролю: ${ct.r} из ${ct.t}, оценка ${ct.g}/10\n`;
+  if(ct.attempts.length) t+=`ИТОГО (лучшая попытка): ${ct.r} из ${ct.t}, оценка ${ct.g}/10\n`;
   t+=`\nОтправлено учителю: ${lastSent&&!dirty?'да, '+lastSent.toLocaleTimeString('ru-RU'):'нет'}\n`;
   const blob=new Blob(['﻿'+t],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
