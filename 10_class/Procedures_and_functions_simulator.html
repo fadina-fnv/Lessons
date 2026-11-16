@@ -277,10 +277,14 @@ const OUT_GENS=[
     return {code:`def ${n}(name):\n    print('Привет,', name)\n\nx = ${n}('${nm}')\nprint(x)`,ans:`Привет, ${nm}\nNone`,expl:'Процедура выводит приветствие, но ничего не возвращает — в x записывается None.'}},
   ()=>{const a=ri(2,9),b=ri(2,9);
     return {code:`def do_something(number):\n    return number * 2\n\nprint(do_something(${a}))\nprint(do_something(${a}) + do_something(${b}))`,ans:`${a*2}\n${a*2+b*2}`,expl:'Каждый вызов возвращает удвоенное число.'}},
-  ()=>{const km=pick([2,30,250,300,500,1000]);
-    return {code:`def convert_to_miles(km):\n    return km * 0.6214\n\nprint(convert_to_miles(${km}))`,ans:pyFloat(km*0.6214),expl:`${km} · 0.6214 = ${pyFloat(km*0.6214)}. Результат вещественный.`}},
+  ()=>{const km=pick([2,3,5,7,12,15]),m=pick([1,2,3]);
+    return {code:`def to_meters(km):\n    return km * 1000\n\nprint(to_meters(${km}))\nprint(to_meters(${km}) + to_meters(${m}))`,ans:`${km*1000}\n${km*1000+m*1000}`,expl:`Функция переводит километры в метры: ${km} км = ${km*1000} м. Во второй строке результаты двух вызовов складываются: ${km*1000} + ${m*1000} = ${km*1000+m*1000}.`}},
 ];
-function genOutput(gf){const g=(gf||pick(OUT_GENS))();return {type:'out',q:'Что будет выведено на экран? Запиши вывод программы (каждое значение — на отдельной строке, как в IDLE).',code:g.code,correct:g.ans,expl:g.expl,brief:'что выведет'}}
+// Для контроля — без заданий «с подвохом» (None, код после return, вызов без вывода, порядок вывода из функции):
+// их трудно решить без запуска программы. В режиме «Обучение» они остаются — там можно проверить в IDLE.
+const OUT_TRICKY=[1,2,6,9,10];
+const OUT_CONTROL=OUT_GENS.filter((g,i)=>!OUT_TRICKY.includes(i));
+function genOutput(gf){const g=(gf||pick(OUT_GENS))();return {type:'out',q:'Что будет выведено на экран? Запиши вывод программы (каждое значение — на отдельной строке).',code:g.code,correct:g.ans,expl:g.expl,brief:'что выведет'}}
 
 /* ---------- Модуль 3. Заполни пропуск ---------- */
 const FILL_GENS=[
@@ -593,7 +597,7 @@ function makeControl(){
   CT_PLAN.forEach(([m,k])=>{
     let ts;
     if(m==='m1'){const a=makeStructure(10);ts=[a[pick([1,2])],a[pick([4,5,6])],a[pick([7,8,9])]].slice(0,k)}  // простой, средний, сложный
-    else if(m==='m2') ts=cyc(OUT_GENS,k).map(g=>genOutput(g));
+    else if(m==='m2') ts=cyc(OUT_CONTROL,k).map(g=>genOutput(g));
     else if(m==='m3') ts=cyc(FILL_GENS,k).map(g=>genFill(g));
     else if(m==='m4') ts=cyc(BUG_GENS,k).map(g=>genBug(g));
     else ts=shuffle(CT_IDLE).slice(0,k).map(x=>genIdle(IDLE_BY_TITLE[x]));
