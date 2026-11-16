@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Контрольная: растровая и векторная графика</title>
+<script>
+/* ===== GOOGLE_SHEET_URL — адрес веб-приложения Google Apps Script (заканчивается на /exec) ===== */
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxilP4uSLwU0fzyHEwXV4_Oxun1kLIKCJkbDOpxZvJfM9RURZJv8i7rEV3UgaEBj37A/exec';
+const WORK_NAME = 'Контрольная: растровая и векторная графика';
+const CLASSES = ['6А','6Б','6В'];
+const MAX_TRIES = 2;
+</script>
+<style>
+:root{
+  --bg:#f6f5fc; --card:#fff; --ink:#1f2d4d; --muted:#4a5a7a;
+  --blue:#4b4fc4; --blue-l:#ebeafd; --line:#d3d0ef;
+  --ok:#23914a; --ok-l:#e2f5e7; --warn:#d07400; --warn-l:#fff0d9;
+  --rast:#16807f; --rast-l:#dff3f2; --vect:#7448c4; --vect-l:#efe7fb;
+  --done:#6c5fd3;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Times New Roman",Times,serif;font-size:21px;line-height:1.45}
+header{background:linear-gradient(135deg,#e6e3ff,#f3f0ff 50%,#ddf5ec);border-bottom:2px solid var(--line);padding:14px 18px}
+header h1{margin:0;font-size:32px;color:#3b3fa6;line-height:1.15}
+.student{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;align-items:flex-end}
+.student label{display:flex;flex-direction:column;font-size:17px;color:var(--muted);font-weight:bold}
+.student input,.student select{font:inherit;font-size:21px;padding:6px 10px;border:2px solid #9fb8de;border-radius:8px;background:#fff;color:var(--ink)}
+.student input{width:340px;max-width:100%}
+.student select{width:120px}
+.student input:read-only,.student select:disabled{background:#f1f0fa;color:var(--muted)}
+main{max-width:980px;margin:0 auto;padding:16px 14px 60px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:18px}
+.card h2{margin:0 0 10px;font-size:27px;color:#3b3fa6;line-height:1.2}
+.rules{margin:8px 0;padding-left:26px}
+.rules li{margin:5px 0}
+.big-btn{font:inherit;font-size:22px;font-weight:bold;padding:12px 22px;border-radius:12px;border:none;background:var(--blue);color:#fff;cursor:pointer}
+.big-btn.sec{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.big-btn.send{background:var(--ok);font-size:24px}
+.big-btn:disabled{opacity:.45;cursor:default}
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.center{text-align:center}
+.msg{margin-top:10px;font-size:20px;font-weight:bold;color:var(--warn);text-align:center;min-height:1em}
+
+/* навигация по вопросам */
+.qnav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.qnav button{font:inherit;font-size:21px;font-weight:bold;width:50px;height:50px;border-radius:12px;border:2px solid #9fb8de;background:#fff;color:var(--ink);cursor:pointer}
+.qnav button.ans{background:var(--done);border-color:var(--done);color:#fff}
+.qnav button.cur{box-shadow:0 0 0 4px #ffd24d}
+.legend{font-size:17px;color:var(--muted);margin-bottom:12px}
+.legend i{display:inline-block;width:16px;height:16px;border-radius:4px;vertical-align:-2px;margin:0 4px 0 10px;border:2px solid #9fb8de}
+.legend i.a{background:var(--done);border-color:var(--done)}
+.tbar{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:20px;color:var(--muted)}
+
+.qcard{border:3px solid var(--line);border-radius:16px;padding:18px;text-align:center;background:#fff}
+.qcard .sec{font-size:18px;font-weight:bold;color:var(--blue);text-transform:uppercase;letter-spacing:.5px}
+.qcard .emo{font-size:54px;line-height:1.15;margin-top:4px}
+.qcard .qt{font-size:27px;font-weight:bold;margin:8px 0 4px}
+.qcard .qp{font-size:21px;color:var(--muted)}
+.opts{display:grid;gap:12px;margin-top:14px;grid-template-columns:1fr}
+.opts.g2{grid-template-columns:1fr 1fr}
+.opts button{font:inherit;font-size:22px;padding:14px 16px;border-radius:12px;border:3px solid #9fb8de;background:#fff;color:var(--ink);cursor:pointer;text-align:left}
+.opts.g2 button{text-align:center;font-weight:bold}
+.opts button:hover{background:#f4f8ff}
+.opts button.sel{background:var(--blue-l);border-color:var(--blue);font-weight:bold;box-shadow:0 0 0 3px #ffd24d}
+.opts .r{color:var(--rast);border-color:var(--rast)}
+.opts .v{color:var(--vect);border-color:var(--vect)}
+.step{display:flex;justify-content:space-between;gap:10px;margin-top:16px;flex-wrap:wrap}
+.finish{margin-top:18px;text-align:center;border-top:2px dashed var(--line);padding-top:14px}
+
+/* результат */
+.grade{font-size:58px;font-weight:bold;text-align:center;margin:4px 0}
+.good{color:var(--ok)} .mid{color:#a07800} .low{color:var(--warn)}
+table.res{width:100%;border-collapse:collapse;font-size:20px;margin:10px 0}
+table.res td,table.res th{border:2px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.res th{background:var(--blue-l)}
+.log{list-style:none;padding:0;margin:10px 0}
+.log li{padding:8px 12px;border-radius:8px;margin:5px 0;font-size:19px}
+.log li.ok{background:var(--ok-l)} .log li.no{background:var(--warn-l)}
+.send-box{margin:18px auto 0;max-width:660px;text-align:center;border:3px solid #9fd7b0;background:#f3fbf5;border-radius:14px;padding:14px}
+.send-msg{margin-top:8px;font-size:19px;color:var(--muted)}
+.send-msg.good{color:var(--ok);font-weight:bold} .send-msg.bad{color:var(--warn);font-weight:bold}
+.note{font-size:18px;color:var(--muted)}
+
+#modal{position:fixed;inset:0;background:rgba(20,28,60,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+#modal.on{display:flex}
+#modal .dlg{background:#fff;border:3px solid var(--blue);border-radius:16px;padding:20px;max-width:540px;width:100%;text-align:center;font-size:22px}
+#modal .dlg.alarm{border-color:var(--warn)}
+@media (max-width:640px){
+  body{font-size:19px} header h1{font-size:26px}
+  .student input{width:100%} .student label{flex:1 1 100%} .student label.c{flex:0 0 auto}
+  .opts.g2{grid-template-columns:1fr}
+  .qcard .qt{font-size:23px}
+  .qnav button{width:44px;height:44px;font-size:19px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Контрольная: растровая и векторная графика</h1>
+  <div class="student">
+    <label>Фамилия и имя <input id="fio" type="text" autocomplete="off" spellcheck="false"></label>
+    <label class="c">Класс <select id="cls"></select></label>
+  </div>
+</header>
+
+<div id="modal"><div class="dlg" id="mdlg"><p id="mtext"></p><div class="btns" id="mbtns"></div></div></div>
+
+<main id="app"></main>
+
+<script>
+/* ===================== БАНКИ ВОПРОСОВ ===================== */
+// В вопросах A и D первый вариант — верный (варианты перемешиваются при выдаче)
+const BANK_A = [
+ {e:'🧩',t:'Растровое изображение состоит из…',o:['пикселей — маленьких квадратиков, каждый закрашен одним цветом','фигур: линий, кругов, многоугольников','букв и цифр']},
+ {e:'🔷',t:'Векторное изображение состоит из…',o:['фигур: линий, кругов, прямоугольников, многоугольников, кривых','пикселей — маленьких квадратиков','фотографий']},
+ {e:'🔲',t:'Пиксель — это…',o:['самый маленький элемент растрового изображения','фигура в векторном рисунке','формат графического файла']},
+ {e:'💾',t:'Что запоминает компьютер, когда хранит растровое изображение?',o:['цвет каждого пикселя','описание каждой фигуры: где она, какого размера и цвета','только ширину и высоту картинки']},
+ {e:'💾',t:'Что запоминает компьютер, когда хранит векторное изображение?',o:['описание каждой фигуры: где она, какого размера, цвет контура и заливки','цвет каждого пикселя','снимок экрана с рисунком']},
+ {e:'🔍',t:'Пикселизация — это когда…',o:['при увеличении растровой картинки становятся видны квадратики-пиксели','векторная фигура меняет цвет заливки','файл становится меньше после сохранения']},
+ {e:'🔎',t:'Почему векторный рисунок остаётся чётким при любом увеличении?',o:['компьютер заново рисует фигуры по их описанию','в нём очень много пикселей','он сохранён в формате JPG']},
+ {e:'📦',t:'Почему растровый файл обычно большой?',o:['компьютер хранит цвет каждого пикселя','компьютер хранит описание каждой фигуры','растровые файлы нельзя сжимать']}
+];
+const BANK_B = [
+ {a:'r',e:'📷',t:'Фотография кота, снятая на телефон'},
+ {a:'r',e:'🖥️',t:'Снимок экрана (скриншот)'},
+ {a:'r',e:'🖌️',t:'Рисунок, нарисованный кистью в Paint'},
+ {a:'r',e:'📄',t:'Отсканированная страница книги'},
+ {a:'r',e:'🖼️',t:'Файл «экскурсия.jpg»'},
+ {a:'r',e:'🗂️',t:'Файл «рисунок.bmp»'},
+ {a:'r',e:'🎬',t:'Кадр, сохранённый из видео'},
+ {a:'v',e:'🔷',t:'Схема из кругов и стрелок, нарисованная фигурами в PowerPoint'},
+ {a:'v',e:'⭐',t:'Эмблема класса, собранная из фигур в PowerPoint'},
+ {a:'v',e:'🧩',t:'Файл «логотип.svg»'},
+ {a:'v',e:'📐',t:'Чертёж из линий и окружностей'},
+ {a:'v',e:'🔤',t:'Буквы шрифта, которые гладкие при любом размере'},
+ {a:'v',e:'🏷️',t:'Логотип, который печатают и на ручке, и на огромном баннере'},
+ {a:'v',e:'🚇',t:'Схема метро из цветных линий и кружков'}
+];
+const BANK_C = [
+ {k:'rp',e:'🌅',t:'Передаёт фотографию реалистично, с плавными переходами цвета'},
+ {k:'rp',e:'📷',t:'Получается сразу при съёмке фотоаппаратом или при сканировании'},
+ {k:'rp',e:'🖌️',t:'Можно изменить цвет любой точки, рисовать кистью свободно'},
+ {k:'rm',e:'🔍',t:'При увеличении появляется пикселизация'},
+ {k:'rm',e:'📦',t:'Файл обычно большой: хранится цвет каждого пикселя'},
+ {k:'rm',e:'✂️',t:'Трудно передвинуть один предмет: он слит с фоном в общие пиксели'},
+ {k:'vp',e:'🔎',t:'Увеличивается без потери качества'},
+ {k:'vp',e:'🪶',t:'Файл простого рисунка небольшой'},
+ {k:'vp',e:'↔️',t:'Каждую фигуру можно отдельно передвинуть, растянуть, перекрасить'},
+ {k:'vp',e:'🔤',t:'Надписи и линии остаются чёткими при любом размере'},
+ {k:'vm',e:'🚫',t:'Трудно передать фотографию с плавными переходами цвета'},
+ {k:'vm',e:'📸',t:'Нельзя получить сразу фотоаппаратом или сканером'},
+ {k:'vm',e:'🧱',t:'Рисунок часто выглядит упрощённым, «плоским»'},
+ {k:'vm',e:'✏️',t:'Сложный рисунок долго составлять из фигур'}
+];
+const BANK_D = [
+ {g:'v',e:'🏷️',t:'Логотип школы напечатают и на ручке, и на большом баннере',
+  o:['Векторную: она увеличивается без потери качества','Растровую: она реалистично передаёт фотографии','Растровую: она увеличивается без потери качества']},
+ {g:'v',e:'📱',t:'Значок для приложения покажут и на маленьком телефоне, и на большом планшете',
+  o:['Векторную: она остаётся чёткой при любом размере','Растровую: она получается сразу при съёмке','Растровую: она остаётся чёткой при любом размере']},
+ {g:'v',e:'📊',t:'Схему для презентации покажут на большой интерактивной панели',
+  o:['Векторную: линии и надписи останутся чёткими при увеличении','Растровую: она передаёт плавные переходы цвета','Векторную: она реалистично передаёт фотографии']},
+ {g:'v',e:'🗺️',t:'Схему расстановки парт будут часто менять: передвигать парты',
+  o:['Векторную: каждую фигуру можно передвинуть отдельно','Растровую: можно изменить цвет любого пикселя','Растровую: каждый предмет легко передвинуть отдельно']},
+ {g:'r',e:'🏞️',t:'Фото пейзажа с экскурсии для презентации',
+  o:['Растровую: она реалистично передаёт фотографии','Векторную: она увеличивается без потери качества','Векторную: она реалистично передаёт фотографии']},
+ {g:'r',e:'📄',t:'Нужно быстро сохранить в компьютере копию бумажной грамоты',
+  o:['Растровую: она получается сразу при сканировании или съёмке','Векторную: у неё небольшой файл','Векторную: она получается сразу при сканировании']},
+ {g:'r',e:'🤳',t:'Ученица хочет убрать со своего селфи случайное пятнышко',
+  o:['Растровую: можно изменить цвет любой точки','Векторную: каждую фигуру можно перекрасить','Векторную: она хорошо передаёт фотографии']},
+ {g:'r',e:'🖼️',t:'Портрет бабушки для печати в рамку',
+  o:['Растровую: она реалистично передаёт лицо и переходы цвета','Векторную: надписи остаются чёткими','Векторную: она реалистично передаёт лицо']}
+];
+
+/* ===================== НАСТРОЙКА ===================== */
+const SECTIONS = {
+ A:'Как устроено изображение', B:'Какая это графика?', C:'Достоинство или недостаток?', D:'Что выбрать и почему?'
+};
+const OPT_RV = [{l:'Растровая',c:'r'},{l:'Векторная',c:'v'}];
+const OPT_C = [{l:'👍 Достоинство растровой',c:'r'},{l:'👎 Недостаток растровой',c:'r'},{l:'👍 Достоинство векторной',c:'v'},{l:'👎 Недостаток векторной',c:'v'}];
+const CKEYS = ['rp','rm','vp','vm'];
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pick(arr,n){return shuffle(arr).slice(0,n);}
+function withOpts(q,sec){ // первый вариант верный → перемешать
+  const idx=shuffle(q.o.map((_,i)=>i));
+  return {sec,e:q.e,t:q.t,prompt:sec==='A'?'Выберите верный ответ.':'Какую графику выбрать и почему?',
+    opts:idx.map(i=>({l:q.o[i]})),right:idx.indexOf(0),grid:false,
+    rightText:q.o[0]};
+}
+function genQuestions(){
+  const qs=[];
+  pick(BANK_A,2).forEach(q=>qs.push(withOpts(q,'A')));
+  const br=BANK_B.filter(q=>q.a==='r'), bv=BANK_B.filter(q=>q.a==='v');
+  const two=Math.random()<.5;
+  shuffle(pick(br,two?2:1).concat(pick(bv,two?1:2))).forEach(q=>qs.push(
+    {sec:'B',e:q.e,t:q.t,prompt:'Какая это графика?',opts:OPT_RV,right:q.a==='r'?0:1,grid:true,rightText:q.a==='r'?'растровая':'векторная'}));
+  let c=CKEYS.map(k=>pick(BANK_C.filter(q=>q.k===k),1)[0]);
+  c.push(pick(BANK_C.filter(q=>!c.includes(q)),1)[0]);
+  shuffle(c).forEach(q=>{const i=CKEYS.indexOf(q.k);
+    qs.push({sec:'C',e:q.e,t:q.t,prompt:'Это достоинство или недостаток? Какой графики?',opts:OPT_C,right:i,grid:true,rightText:OPT_C[i].l.replace(/^\S+\s/,'').toLowerCase()});});
+  shuffle([pick(BANK_D.filter(q=>q.g==='v'),1)[0],pick(BANK_D.filter(q=>q.g==='r'),1)[0]]).forEach(q=>qs.push(withOpts(q,'D')));
+  return qs;
+}
+
+/* ===================== СОСТОЯНИЕ ===================== */
+let tries=[], cur=null, qi=0, view='start', outAt=0, sentInfo='';
+// попытка: {qs, ans[], exits, outMs, finished, pts, pct, grade, date}
+
+function grade(p){return Math.max(1,Math.round(p/10));}
+function lvl(p){return p>=80?'good':(p>=50?'mid':'low');}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function plural(n,a,b,c){n=Math.abs(n)%100;const d=n%10;if(n>10&&n<20)return c;if(d>1&&d<5)return b;if(d===1)return a;return c;}
+function fmtTime(ms){const s=Math.round(ms/1000),m=Math.floor(s/60);return m?m+' мин '+(s%60)+' с':s+' с';}
+function best(){const f=tries.filter(t=>t.finished);return f.length?f.reduce((a,b)=>b.pts>a.pts?b:a):null;}
+function nowStr(){const d=new Date();return d.toLocaleDateString('ru-RU')+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
+
+/* ===================== ОКНО СООБЩЕНИЙ ===================== */
+function modal(text,buttons,alarm){
+  const m=document.getElementById('modal'),b=document.getElementById('mbtns');
+  document.getElementById('mdlg').className='dlg'+(alarm?' alarm':'');
+  document.getElementById('mtext').innerHTML=text; b.innerHTML='';
+  buttons.forEach(x=>{const e=document.createElement('button');e.className='big-btn'+(x.sec?' sec':'');e.textContent=x.l;
+    e.onclick=()=>{m.classList.remove('on');if(x.f)x.f();};b.appendChild(e);});
+  m.classList.add('on');
+}
+
+/* ===================== ЗАЩИТА: выход из окна ===================== */
+function goOut(){ if(view==='test'&&cur&&!outAt) outAt=Date.now(); }
+function comeBack(){
+  if(view!=='test'||!cur||!outAt) return;
+  const d=Date.now()-outAt; outAt=0;
+  if(d<400) return; // случайное мигание фокуса
+  cur.exits++; cur.outMs+=d;
+  modal('⚠️ Вы покидали окно контрольной.<br>Это записано и будет отправлено учителю.<br><b>Выходов: '+cur.exits+', вне окна: '+fmtTime(cur.outMs)+'</b>',[{l:'Продолжить работу'}],true);
+  render();
+}
+document.addEventListener('visibilitychange',()=>document.hidden?goOut():comeBack());
+window.addEventListener('blur',goOut);
+window.addEventListener('focus',comeBack);
+window.addEventListener('beforeunload',e=>{if(view==='test'){e.preventDefault();e.returnValue='';}});
+
+/* ===================== ЭКРАНЫ ===================== */
+const app=document.getElementById('app');
+function lockStudent(on){document.getElementById('fio').readOnly=on;document.getElementById('cls').disabled=on;}
+
+function renderStart(){
+  const left=MAX_TRIES-tries.length;
+  app.innerHTML='<div class="card"><h2>Перед началом</h2><ul class="rules">'+
+   '<li>Впишите <b>фамилию и имя</b> и выберите <b>класс</b> вверху страницы.</li>'+
+   '<li>В работе <b>12 вопросов</b>: как устроено изображение, какая это графика, достоинства и недостатки, что выбрать для задачи.</li>'+
+   '<li>Отвечайте в любом порядке. Ответ можно изменить, пока работа не завершена. Отвеченные вопросы отмечаются цветом.</li>'+
+   '<li>Оценка — по 10-балльной шкале. Вопросы без ответа считаются неверными.</li>'+
+   '<li>Не выходите из окна контрольной: каждый выход и время вне окна записываются.</li>'+
+   '<li>Попыток — <b>'+MAX_TRIES+'</b>, во второй попытке вопросы будут новыми. В оценку идёт лучший результат.</li></ul>'+
+   '<p class="center"><button class="big-btn" id="go">'+(tries.length?'Начать вторую попытку':'Начать контрольную')+'</button></p>'+
+   '<div class="msg" id="smsg"></div>'+(tries.length?'<p class="center"><button class="big-btn sec" id="back">← Вернуться к результату</button></p>':'')+'</div>';
+  document.getElementById('go').onclick=()=>{
+    const fio=document.getElementById('fio').value.trim().replace(/\s+/g,' '),cls=document.getElementById('cls').value;
+    const msg=document.getElementById('smsg');
+    if(fio.split(' ').length<2){msg.textContent='Впишите фамилию и имя.';document.getElementById('fio').focus();return;}
+    if(!cls){msg.textContent='Выберите класс.';document.getElementById('cls').focus();return;}
+    if(left<=0) return;
+    document.getElementById('fio').value=fio;
+    cur={qs:genQuestions(),ans:[],exits:0,outMs:0,finished:false};
+    cur.ans=cur.qs.map(()=>null); tries.push(cur); qi=0; view='test'; lockStudent(true); render();
+  };
+  const b=document.getElementById('back'); if(b) b.onclick=()=>{view='result';render();};
+}
+
+function renderTest(){
+  const q=cur.qs[qi], n=cur.qs.length, done=cur.ans.filter(a=>a!==null).length;
+  let h='<div class="card"><div class="tbar"><span>Попытка '+tries.length+' из '+MAX_TRIES+'</span><span>Отвечено: <b>'+done+'</b> из '+n+'</span></div>'+
+    '<div class="qnav">'+cur.qs.map((_,i)=>'<button data-i="'+i+'" class="'+(cur.ans[i]!==null?'ans':'')+(i===qi?' cur':'')+'">'+(i+1)+'</button>').join('')+'</div>'+
+    '<div class="legend"><i></i>без ответа<i class="a"></i>есть ответ</div>'+
+    '<div class="qcard"><div class="sec">Вопрос '+(qi+1)+' · '+SECTIONS[q.sec]+'</div><div class="emo">'+q.e+'</div>'+
+    '<div class="qt">'+esc(q.t)+'</div><div class="qp">'+q.prompt+'</div>'+
+    '<div class="opts'+(q.grid?' g2':'')+'">'+q.opts.map((o,i)=>'<button data-o="'+i+'" class="'+(o.c||'')+(cur.ans[qi]===i?' sel':'')+'">'+esc(o.l)+'</button>').join('')+'</div></div>'+
+    '<div class="step"><button class="big-btn sec" id="prev"'+(qi===0?' disabled':'')+'>← Назад</button>'+
+    '<button class="big-btn sec" id="next"'+(qi===n-1?' disabled':'')+'>Дальше →</button></div>'+
+    '<div class="finish"><button class="big-btn" id="fin">Завершить работу и узнать оценку</button></div></div>';
+  app.innerHTML=h;
+  app.querySelectorAll('.qnav button').forEach(b=>b.onclick=()=>{qi=+b.dataset.i;render();});
+  app.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{
+    cur.ans[qi]=+b.dataset.o;
+    // после ответа — к следующему вопросу без ответа (если он есть)
+    const nx=cur.ans.findIndex((a,i)=>a===null&&i>qi), any=cur.ans.findIndex(a=>a===null);
+    render(); setTimeout(()=>{ if(nx>=0) qi=nx; else if(any>=0) qi=any; render(); },350);
+  });
+  document.getElementById('prev').onclick=()=>{qi--;render();};
+  document.getElementById('next').onclick=()=>{qi++;render();};
+  document.getElementById('fin').onclick=()=>{
+    const miss=cur.ans.filter(a=>a===null).length;
+    if(miss) modal('Без ответа: <b>'+miss+' '+plural(miss,'вопрос','вопроса','вопросов')+'</b>.<br>Они будут засчитаны как неверные. Завершить работу?',
+      [{l:'Завершить',f:finish},{l:'Вернуться к вопросам',sec:true}]);
+    else modal('Завершить работу и узнать оценку?<br>После этого ответы изменить нельзя.',[{l:'Завершить',f:finish},{l:'Ещё проверю',sec:true}]);
+  };
+}
+
+function finish(){
+  const pts=cur.qs.reduce((s,q,i)=>s+(cur.ans[i]===q.right?1:0),0);
+  cur.pts=pts; cur.pct=Math.round(100*pts/cur.qs.length); cur.grade=grade(cur.pct); cur.finished=true; cur.date=nowStr();
+  view='result'; lockStudent(false); window.scrollTo(0,0); render();
+}
+
+function renderResult(){
+  const last=tries[tries.length-1], b=best(), fio=document.getElementById('fio').value.trim(), cls=document.getElementById('cls').value;
+  let h='<div class="card"><h2>Результат</h2><p>Ученик: <b>'+(fio?esc(fio):'—')+'</b>, класс: <b>'+(cls||'—')+'</b></p>'+
+    '<div class="grade '+lvl(last.pct)+'">Оценка: '+last.grade+' из 10</div>'+
+    '<p class="center">Попытка '+tries.length+': верно <b>'+last.pts+'</b> из '+last.qs.length+' ('+last.pct+'%)</p>';
+  if(tries.length>1) h+='<p class="center">В оценку идёт лучший результат: <b>'+b.grade+' из 10</b> ('+b.pct+'%)</p>';
+  h+='<table class="res"><tr><th>Попытка</th><th>Результат</th><th>Оценка</th><th>Выходы из окна</th></tr>'+
+    tries.map((t,i)=>'<tr><td>'+(i+1)+' · '+t.date+'</td><td>'+t.pts+' из '+t.qs.length+' ('+t.pct+'%)</td><td><b>'+t.grade+'</b></td><td>'+
+      (t.exits?t.exits+' ('+fmtTime(t.outMs)+')':'нет')+'</td></tr>').join('')+'</table>';
+  h+='<h2 style="font-size:23px;margin-top:16px">Разбор попытки '+tries.length+'</h2><ul class="log">'+
+    last.qs.map((q,i)=>{const ok=last.ans[i]===q.right;
+      return '<li class="'+(ok?'ok':'no')+'">'+(ok?'✅ ':(last.ans[i]===null?'⚪ ':'🔸 '))+(i+1)+'. '+esc(q.t)+(ok?'':' — <b>'+esc(q.rightText)+'</b>')+'</li>';}).join('')+'</ul>';
+  h+='<div class="send-box"><button class="big-btn send" id="sendBtn">📨 Отправить результат учителю</button>'+
+    '<div id="sendMsg" class="send-msg">'+(sentInfo?'Последняя отправка: '+sentInfo+'.':'Перед отправкой проверьте фамилию, имя и класс.')+'</div></div>';
+  h+='<div class="btns">'+(tries.length<MAX_TRIES?'<button class="big-btn sec" id="again">Вторая попытка (новые вопросы)</button>':'<span class="note">Обе попытки использованы.</span>')+
+    '<button class="big-btn sec" id="txt">Сохранить результат (.txt)</button></div></div>';
+  app.innerHTML=h;
+  document.getElementById('sendBtn').onclick=sendResult;
+  document.getElementById('txt').onclick=saveTxt;
+  const a=document.getElementById('again'); if(a) a.onclick=()=>{view='start';render();};
+}
+
+function render(){
+  if(view==='start') renderStart(); else if(view==='test') renderTest(); else renderResult();
+}
+
+/* ===================== ОТПРАВКА И СОХРАНЕНИЕ ===================== */
+function payload(){
+  const b=best(), fio=document.getElementById('fio').value.trim().replace(/\s+/g,' '), cls=document.getElementById('cls').value;
+  const fin=tries.filter(t=>t.finished), ex=fin.reduce((s,t)=>s+t.exits,0), out=fin.reduce((s,t)=>s+t.outMs,0);
+  return {work:WORK_NAME,fio,cls,date:nowStr(),
+    modules:fin.map((t,i)=>({name:'Попытка '+(i+1),pct:t.pct,tries:1})).concat([{name:'Выходы из окна',pct:ex,tries:Math.round(out/1000)}]),
+    done:fin.length,total:MAX_TRIES,pts:b.pts,max:b.qs.length,pct:b.pct,grade:b.grade,
+    exits:ex,outside:fmtTime(out)};
+}
+function sendResult(){
+  const msg=document.getElementById('sendMsg'), btn=document.getElementById('sendBtn');
+  const show=(t,c)=>{msg.className='send-msg'+(c?' '+c:'');msg.innerHTML=t;};
+  const d=payload();
+  if(d.fio.split(' ').length<2){show('Впишите <b>фамилию и имя</b> вверху страницы.','bad');window.scrollTo(0,0);return;}
+  if(!d.cls){show('Выберите <b>класс</b> вверху страницы.','bad');window.scrollTo(0,0);return;}
+  if(!/^https:\/\/script\.google\.com\//.test(GOOGLE_SHEET_URL)){show('Отправка не настроена. Сохраните результат в .txt и сдайте файл.','bad');return;}
+  btn.disabled=true; show('Отправляю…');
+  fetch(GOOGLE_SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(d)})
+    .then(()=>{sentInfo=d.date+' (оценка '+d.grade+')';show('✅ Результат отправлен учителю: '+sentInfo+'.','good');})
+    .catch(()=>show('Не удалось отправить — проверьте интернет и попробуйте ещё раз или сохраните .txt.','bad'))
+    .finally(()=>{btn.disabled=false;});
+}
+function saveTxt(){
+  const d=payload();
+  let t=WORK_NAME+'\r\nУченик: '+(d.fio||'—')+'\r\nКласс: '+(d.cls||'—')+'\r\nДата: '+d.date+'\r\n\r\n';
+  tries.filter(x=>x.finished).forEach((x,i)=>{t+='Попытка '+(i+1)+' ('+x.date+'): '+x.pts+' из '+x.qs.length+' ('+x.pct+'%), оценка '+x.grade+', выходов из окна: '+x.exits+' ('+fmtTime(x.outMs)+')\r\n';});
+  t+='\r\nИтоговая оценка (лучшая попытка): '+d.grade+' из 10\r\n';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/plain;charset=utf-8'}));
+  a.download='Контрольная_графика_'+(d.fio||'ученик').replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_')+'.txt';
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
+/* ===================== ЗАПУСК ===================== */
+document.getElementById('cls').innerHTML='<option value="">—</option>'+CLASSES.map(c=>'<option>'+c+'</option>').join('');
+window.addEventListener('pageshow',()=>{ if(view==='start'&&!tries.length) document.getElementById('fio').value=''; });
+document.getElementById('fio').value=''; document.getElementById('cls').value='';
+['fio','cls'].forEach(i=>document.getElementById(i).addEventListener('input',()=>{ if(view==='result') render(); }));
+render();
+</script>
+</body>
+</html>
