@@ -8,7 +8,7 @@
      Чтобы найти это место: Ctrl+F и слово GOOGLE_SHEET_URL
      ===================================================================== -->
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbytDGoDJOFNHsGaXpk81ejbgkyuS9GdpwwpgmMvzHw6oeabKpRSY43BgsUrcjRlmRET/exec';   // GOOGLE_SHEET_URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3V-IBO6_5ZacoE13VXKWLTMaxsoXitonXzsxOErbZ7av_sFoiT_oBklXSRvS3lB5q/exec';   // GOOGLE_SHEET_URL
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Пользовательские процедуры и функции — учебник-тренажёр</title>
@@ -865,6 +865,7 @@ function finishTest(){
   const r=results.test[cur]||(results.test[cur]={attempts:[]});
   r.attempts.push({right,total:tot,grade:grade(right,tot),items:s.tasks.map((t,i)=>({q:t.brief,mod:t.mod||cur,g:t.group||'',ok:!!(s.answers[i]&&s.answers[i].ok),user:s.answers[i]?s.answers[i].user:'нет ответа',code:s.answers[i]&&s.answers[i].a&&s.answers[i].a.code||'',manual:!!(s.answers[i]&&s.answers[i].a&&s.answers[i].a.manual)}))});
   renderNav();render();window.scrollTo(0,0);
+  if(cur==='ct') sendResults(true);   // контроль отправляется сам
 }
 function needName(){
   if(!studentName.trim()||!studentClass){flash('Заполни фамилию, имя и выбери класс вверху.');document.getElementById('fio').focus();return false}
@@ -902,19 +903,20 @@ function ctSummary(){ // контроль: лучшая из попыток
 }
 
 /* --- состояние отправки --- */
-let dirty=false, lastSent=null, sending=false;
+let dirty=false, lastSent=null, sending=false, sendErr='', sendTries=0, retryTimer=null;
+const SEND_MAX_TRIES=6;                       // сколько раз пробовать автоматически
 function markDirty(){dirty=true}
 function sendStatusHTML(){
-  if(sending) return `<div class="send wait">Отправка…</div>`;
-  if(lastSent&&!dirty) return `<div class="send ok">✓ Результаты отправлены учителю в ${lastSent.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</div>`;
+  if(sending) return `<div class="send wait">⏳ Отправка…</div>`;
+  if(sendErr&&retryTimer) return `<div class="send no">⚠ ${esc(sendErr)}. Повторная отправка — автоматически через несколько секунд…</div>`;
+  if(sendErr) return `<div class="send no">✗ Не удалось отправить (${esc(sendErr)}). Проверь интернет и нажми кнопку ещё раз. На всякий случай сохрани результаты в файл на вкладке «Результаты».</div>`;
+  if(lastSent&&!dirty) return `<div class="send ok">✓ Результаты сохранены в таблице учителя в ${lastSent.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</div>`;
   if(lastSent&&dirty) return `<div class="send no">Есть новые результаты — отправь их учителю ещё раз</div>`;
   return `<div class="send no">Результаты ещё не отправлены учителю</div>`;
 }
 function sendBlock(){return `<div class="sendbar">${sendStatusHTML()}<button class="btn" id="sendBtn">📤 Отправить результат учителю</button></div>`}
-function bindSend(){const b=document.getElementById('sendBtn');if(b)b.onclick=sendResults}
-function sendResults(){
-  if(!studentName.trim()||!studentClass){alert('Заполни фамилию, имя и выбери класс вверху.');const f=document.getElementById('fio');if(f)f.focus();return}
-  if(SCRIPT_URL.indexOf('PASTE_')===0){alert('Адрес Google-таблицы не указан. Сохрани результаты в файл и скажи учителю.');return}
+function bindSend(){const b=document.getElementById('sendBtn');if(b)b.onclick=()=>sendResults(false)}
+function buildPayload(){
   const cw=cwSummary(),hw=hwSummary(),ct=ctSummary();
   const payload={
     name:studentName.trim().replace(/\s+/g,' '),cls:studentClass,
@@ -928,11 +930,36 @@ function sendResults(){
   const prog=(md,it)=>{if(it.code)payload.programs.push({mode:md,task:it.q,group:it.g,ok:it.ok?'верно':'неверно',code:it.code,lines:codeLines(it.code),comments:countComments(it.code),manual:it.manual?'да':''})};
   if(hw.best) hw.best.items.forEach(it=>prog('ДЗ',it));
   if(ct.last) ct.last.items.filter(it=>it.mod==='m5').forEach(it=>prog('Контроль',it));
-  sending=true;refreshSend();
-  fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
-    .then(()=>{sending=false;dirty=false;lastSent=new Date();refreshSend();alert('Результаты отправлены учителю.')})
-    .catch(()=>{sending=false;refreshSend();alert('Не удалось отправить: проверь интернет и попробуй ещё раз. На всякий случай сохрани результаты в файл.')});
+  return payload;
 }
+// auto=true — повторная или автоматическая отправка (без всплывающих окон)
+function sendResults(auto){
+  if(!studentName.trim()||!studentClass){if(!auto){alert('Заполни фамилию, имя и выбери класс вверху.');const f=document.getElementById('fio');if(f)f.focus()}return}
+  if(SCRIPT_URL.indexOf('PASTE_')===0){if(!auto)alert('Адрес Google-таблицы не указан. Сохрани результаты в файл и скажи учителю.');return}
+  if(sending) return;
+  if(!auto) sendTries=0;
+  clearTimeout(retryTimer);retryTimer=null;
+  const payload=buildPayload();
+  sending=true;refreshSend();
+  // Таблица отвечает {ok:true}, только если строка действительно записана
+  fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+    .then(r=>r.json())
+    .then(d=>{
+      sending=false;
+      if(d&&d.ok){dirty=false;lastSent=new Date();sendErr='';sendTries=0;refreshSend();if(!auto)alert('Результаты сохранены в таблице учителя.')}
+      else retryLater(d&&d.error==='busy'?'таблица занята — одновременно отправляют другие ученики':'ошибка таблицы');
+    })
+    .catch(()=>{sending=false;retryLater(navigator.onLine===false?'нет интернета':'нет связи с таблицей')});
+}
+function retryLater(reason){
+  sendErr=reason;sendTries++;
+  if(sendTries<SEND_MAX_TRIES){
+    const ms=4000+Math.random()*8000*sendTries;   // разное время у разных учеников, чтобы не отправлять всем сразу
+    retryTimer=setTimeout(()=>{retryTimer=null;sendResults(true)},ms);
+  }
+  refreshSend();
+}
+window.addEventListener('online',()=>{if(sendErr&&!sending){sendTries=0;sendResults(true)}});
 function refreshSend(){document.querySelectorAll('.sendbar .send').forEach(x=>x.outerHTML=sendStatusHTML());}
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='Результаты не отправлены учителю!';return e.returnValue}});
 
