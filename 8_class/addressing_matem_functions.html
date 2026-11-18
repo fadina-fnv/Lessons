@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<script>
+// ===== GOOGLE_SHEET_URL: адрес веб-приложения Google Apps Script (вставьте между кавычками) =====
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbw-78vqTXRYX9EXECU4vcPU5rQuL_pPu5MVYUsgcyR1HZpoeYNNYWJRFSon-ajI4DR3/exec';
+// ===============================================================================================
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Электронные таблицы: адресация и математические функции</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#f3f3f3;color:#1f2d3a;font-family:"Times New Roman",Times,serif;font-size:21px;line-height:1.3}
+/* шапка в стиле Excel */
+header{background:#e2efe6;border-bottom:1px solid #b9d7c3;padding:7px 16px;display:flex;align-items:center;gap:12px}
+.xlico{flex:none;width:34px;height:34px;border-radius:6px;background:#2e8b57;color:#fff;font:bold 20px Calibri,Arial,sans-serif;display:flex;align-items:center;justify-content:center}
+header h1{margin:0;font-size:24px;color:#185c37}
+#top{background:#fff;border-bottom:1px solid #d4d4d4;padding:6px 16px;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;position:sticky;top:0;z-index:20}
+.who{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-weight:bold}
+.who input,.who select{font:inherit;font-weight:normal;font-size:20px;padding:3px 8px;border:1px solid #9cb8a5;border-radius:4px;color:#1f2d3a;background:#fff}
+#fio{width:240px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:19px;padding:5px 14px;border-radius:5px;cursor:pointer;background:#fff}
+#viewTabs button{border:2px solid #9fbfe6;color:#1f5fa8}
+#viewTabs button.on{background:#2f76c0;border-color:#2f76c0;color:#fff;font-weight:bold}
+#modTabs button{border:2px solid #a8d1b5;color:#1d6b40}
+#modTabs button.on{background:#2e8b57;border-color:#2e8b57;color:#fff;font-weight:bold}
+#modTabs.off{display:none}
+#saveTxt{border:2px solid #d4d4d4;color:#3a4a5a}
+#sendBtn{border:2px solid #e0a43a;color:#8a5200;font-weight:bold}
+.sendst{font-size:17px;color:#5a6b7a}.sendst.ok{color:#1d6b40;font-weight:bold}.sendst.bad{color:#a0600a;font-weight:bold}
+.finbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding-top:8px;border-top:1px solid #e1e1e1}
+.btn.fin{background:#fff;color:#8a5200;border:2px solid #e0a43a}
+.btn.fin:hover{background:#fff8e1}
+#msg{width:100%;color:#a0600a;font-weight:bold}
+#msg:empty{display:none}
+main{max-width:1100px;margin:0 auto;padding:12px 12px 40px}
+.card{background:#fff;border:1px solid #d4d4d4;border-radius:6px;padding:12px 16px;margin-bottom:12px}
+h2{margin:0 0 8px;font-size:24px;color:#185c37}
+h3{margin:2px 0 6px;font-size:21px;color:#185c37}
+p{margin:6px 0}
+.hidden{display:none!important}
+.muted{color:#5a6b7a}
+.ad{font-weight:bold;color:#1f5fa8;white-space:nowrap}
+.fm{font-family:"JetBrains Mono",Consolas,"Courier New",monospace;font-weight:bold;color:#185c37;background:#eef7f1;border:1px solid #cfe6d7;border-radius:4px;padding:0 5px;white-space:nowrap}
+.mono{font-family:"JetBrains Mono",Consolas,"Courier New",monospace;font-weight:bold}
+.btn{font:inherit;font-size:19px;background:#2e8b57;color:#fff;border:1px solid #2e8b57;border-radius:5px;padding:7px 16px;font-weight:bold;cursor:pointer}
+.btn:hover{background:#277a4c}
+.btn.alt{background:#fff;color:#1d6b40;border:1px solid #9cb8a5;font-weight:normal}
+.btn.alt:hover{background:#eef7f1}
+.btn.alt.on{background:#d8eedf;border-color:#2e8b57;font-weight:bold}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+/* лист Excel */
+.gwrap{position:relative;overflow-x:auto;padding:2px 14px 12px 2px;max-width:100%}
+table.xl{border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:18px;background:#fff}
+table.xl th{background:#f2f2f2;color:#555;font-weight:normal;border:1px solid #d4d4d4;padding:1px 6px;min-width:28px;font-size:16px}
+table.xl td{border:1px solid #e1e1e1;padding:2px 7px;min-width:70px;height:32px;text-align:right;white-space:nowrap;color:#1f2d3a;position:relative}
+table.xl td.txt{text-align:left}
+table.xl td.fcell{text-align:left;font-family:"JetBrains Mono",Consolas,monospace;font-size:15px;font-weight:bold}
+table.xl td.srcc{background:#f6fbf8}
+table.xl td.cp{background:#fffdf2}
+table.xl td.flash{animation:fl .7s ease-out}
+@keyframes fl{from{background:#d8eedf}to{background:#fffdf2}}
+table.xl td.sel{outline:2px solid #217346;outline-offset:-2px}
+table.xl td.sel::after{content:"";position:absolute;right:-4px;bottom:-4px;width:7px;height:7px;background:#217346;border:1px solid #fff;z-index:2}
+table.xl td.lockc{background:#c6efce}
+table.xl td.lockc::before{content:"$";position:absolute;left:3px;top:0;font-size:12px;color:#006100;font-weight:bold}
+table.xl td.dst{outline:2px dashed #d08a00;outline-offset:-3px;background:#fff4dc;text-align:center;font-weight:bold;color:#a0600a}
+table.xl td.errv{color:#a0600a;font-weight:bold}
+table.xl td.rg0{background:#dce9fb;outline:2px dashed #1f6fd1;outline-offset:-2px}
+table.xl td.rg1{background:#efe0f6;outline:2px dashed #8e44ad;outline-offset:-2px}
+table.xl td.rg2{background:#fdeacc;outline:2px dashed #c06a00;outline-offset:-2px}
+.rc0{color:#1f6fd1}.rc1{color:#8e44ad}.rc2{color:#c06a00}
+/* адреса в формулах: акцент на закреплённых частях */
+.lk{background:#c6efce;color:#006100;border-radius:3px;padding:0 1px}
+.rabs{box-shadow:0 0 0 2px #2e8b57;border-radius:3px}
+.chg{color:#c55a11;text-decoration:underline}
+.err{color:#a0600a}
+.plus{position:absolute;width:22px;height:22px;pointer-events:none;display:none;transition:left .45s ease,top .45s ease;z-index:5}
+/* таблица видов адресации */
+.types{border-collapse:collapse;width:100%;font-size:20px}
+.types th,.types td{border:1px solid #d4d4d4;padding:6px 10px;text-align:left;vertical-align:middle}
+.types th{background:#e2efe6;color:#185c37}
+.types td.ex{font-family:"JetBrains Mono",Consolas,monospace;font-weight:bold;font-size:24px;white-space:nowrap}
+.tip{background:#fff8e1;border:1px solid #f0d48a;border-radius:5px;padding:6px 12px;margin-top:8px}
+.explain{background:#f6fbf8;border:1px solid #cfe6d7;border-radius:5px;padding:6px 12px;margin-top:6px;font-size:19px;min-height:40px}
+.explain ul{margin:2px 0;padding-left:20px}
+/* функции */
+.flist{border-collapse:collapse;width:100%;font-size:20px}
+.flist td,.flist th{border:1px solid #d4d4d4;padding:6px 10px;text-align:left;vertical-align:middle}
+.flist th{background:#e2efe6;color:#185c37}
+.flist tr.fr{cursor:pointer}
+.flist tr.fr:hover td{background:#f6fbf8}
+.flist tr.fr.on td{background:#d8eedf}
+.flist td.nm{font-family:"JetBrains Mono",Consolas,monospace;font-weight:bold;color:#185c37;white-space:nowrap}
+.fbar{display:flex;align-items:stretch;border:1px solid #c6c6c6;background:#fff;font-family:Calibri,Arial,sans-serif;font-size:18px;margin-bottom:6px;max-width:640px}
+.fbar .nb{width:60px;border-right:1px solid #c6c6c6;padding:3px 6px;text-align:center}
+.fbar .fx{width:44px;border-right:1px solid #c6c6c6;padding:3px 6px;font-style:italic;font-weight:bold;color:#555;text-align:center}
+.fbar .fx.pulse{background:#ffe08a;animation:pu 1s ease-in-out infinite;color:#1f2d3a}
+@keyframes pu{50%{background:#fff4c9}}
+.fbar .ft{padding:3px 8px;font-family:"JetBrains Mono",Consolas,monospace;font-weight:bold;font-size:16px;flex:1;min-height:30px;overflow-x:auto;white-space:nowrap}
+.ftip{display:inline-block;background:#fffde6;border:1px solid #d9c56a;border-radius:3px;padding:1px 8px;font-family:Calibri,Arial,sans-serif;font-size:15px;margin:0 0 6px}
+.cap{background:#fff8e1;border:1px solid #f0d48a;border-radius:5px;padding:8px 12px;font-size:20px;margin:8px 0;min-height:50px}
+.cap b{color:#185c37}
+.pl{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.pl-left{flex:1 1 440px;min-width:0}
+.pl-right{flex:0 1 320px}
+.xdlg{border:1px solid #9cb8a5;border-radius:4px;background:#fff;font-family:Calibri,Arial,sans-serif;font-size:16px;box-shadow:0 3px 12px rgba(30,70,50,.22);max-width:320px}
+.xdlg .t{background:#e2efe6;padding:4px 10px;font-weight:bold;border-bottom:1px solid #c6c6c6}
+.xdlg .b{padding:8px 10px}
+.xdlg .lst{border:1px solid #c6c6c6;margin:4px 0}
+.xdlg .lst div{padding:1px 8px}
+.xdlg .lst div.on{background:#2e8b57;color:#fff}
+.xdlg .fld{display:flex;align-items:center;gap:6px;margin:4px 0}
+.xdlg .fld span{width:140px;text-align:right}
+.xdlg .fld i{flex:1;border:1px solid #9aa6b2;padding:1px 6px;font-style:normal;min-height:24px;font-family:"JetBrains Mono",Consolas,monospace;font-size:14px}
+.xdlg .fld i.act{outline:2px solid #2e8b57}
+.xdlg .ok{display:inline-block;border:1px solid #7f8b97;padding:1px 16px;border-radius:3px;margin-top:6px;background:#f3f5f7}
+.xdlg .ok.pulse{background:#ffe08a;animation:pu 1s infinite}
+.steps{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
+.steps span{width:28px;height:28px;border-radius:50%;border:1px solid #9cb8a5;display:inline-flex;align-items:center;justify-content:center;font-size:15px;color:#1d6b40;cursor:pointer;background:#fff}
+.steps span.on{background:#2e8b57;color:#fff;border-color:#2e8b57}
+.steps span.done{background:#d8eedf}
+/* задания */
+.qtext{font-size:22px;margin:0 0 8px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.opt{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #9cb8a5;border-radius:6px;padding:8px 12px;font:inherit;font-size:21px;min-height:50px;text-align:left;color:#1f2d3a;cursor:pointer}
+.opt:hover{background:#f6fbf8}
+.opt::before{content:"";flex:none;width:18px;height:18px;border-radius:50%;border:2px solid #7fae8f;background:#fff}
+.opt.sel{background:#d8eedf;border-color:#2e8b57;font-weight:bold}
+.opt.sel::before{background:#2e8b57;box-shadow:inset 0 0 0 3px #fff}
+.opt.right{background:#c6efce;border-color:#2e8b57}
+.opt.wrong{background:#fde9cc;border-color:#e3a33b}
+.opt .mono{font-size:19px}
+.bigad{font-family:"JetBrains Mono",Consolas,monospace;font-weight:bold;font-size:42px;background:#f6fbf8;border:1px solid #cfe6d7;border-radius:6px;padding:0 20px;display:inline-block;vertical-align:middle}
+.numin{font:inherit;font-size:24px;width:180px;padding:5px 10px;border:1px solid #9cb8a5;border-radius:5px;color:#1f2d3a}
+.fb{border-radius:6px;padding:8px 12px;margin-top:10px}
+.fb.ok{background:#e6f5ea;border:1px solid #8fcca0}
+.fb.no{background:#fdf0d8;border:1px solid #e6bd6d}
+.fb ul{margin:4px 0;padding-left:20px}
+/* модули с кружочками */
+.mods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.mod{border:1px solid #d4d4d4;border-radius:6px;padding:8px 12px;background:#fafafa}
+.mod .mh{display:flex;justify-content:space-between;gap:8px;font-weight:bold;color:#185c37}
+.bar{height:10px;background:#e7e7e7;border-radius:5px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:#2e8b57;width:0;transition:width .4s}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dots button{width:40px;height:40px;border-radius:50%;border:2px solid #9cb8a5;background:#fff;color:#1d6b40;font:inherit;font-size:18px;font-weight:bold;cursor:pointer}
+.dots button.done{background:#d6e6f7;border-color:#7fa9d4;color:#1f5fa8}
+.dots button.cur{outline:3px solid #2f76c0;outline-offset:2px}
+.dots button.ok{background:#c6efce;border-color:#2e8b57;color:#006100}
+.dots button.no{background:#fde9cc;border-color:#e3a33b;color:#a0600a}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap}
+.confirm{margin-top:10px;background:#fff8e1;border:1px solid #f0d48a;border-radius:6px;padding:10px 14px;text-align:center}
+.summary{background:#e6f5ea;border:1px solid #8fcca0;border-radius:6px;padding:8px 12px;margin-top:10px;font-weight:bold}
+.score{text-align:center;font-size:62px;font-weight:bold;color:#185c37;line-height:1.1}
+.score small{font-size:26px;color:#3f5f50}
+.rrows{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;margin:10px 0 14px}
+.rr{display:flex;justify-content:space-between;gap:10px;padding:4px 10px;border-radius:5px;font-size:19px}
+.rr.ok{background:#e6f5ea}.rr.no{background:#fdf0d8}
+.center{text-align:center}
+@media(max-width:700px){
+  body{font-size:18px} header{padding:5px 10px} header h1{font-size:18px} .xlico{width:28px;height:28px;font-size:16px}
+  #top{padding:5px 8px;position:static;gap:6px} #fio{width:100%} .who label{width:100%} .who label:last-child{width:auto}
+  .tabs button{font-size:17px;padding:4px 10px}
+  main{padding:8px 6px 30px} .card{padding:10px 10px}
+  .opts,.rrows,.mods{grid-template-columns:1fr} .qtext{font-size:19px} .opt{font-size:18px;min-height:44px}
+  .types{font-size:17px} .types td.ex{font-size:19px} .flist{font-size:17px}
+  table.xl{font-size:15px} table.xl th{font-size:13px;padding:1px 4px} table.xl td{min-width:48px;padding:1px 4px;height:28px} table.xl td.fcell{font-size:12px}
+  .flist .fm{white-space:normal;word-break:break-all;font-size:14px} .flist td{padding:4px 6px}
+  .bigad{font-size:32px} .dots button{width:36px;height:36px;font-size:16px}
+}
+</style>
+</head>
+<body>
+<header><div class="xlico">X</div><h1>Электронные таблицы: адресация ячеек и математические функции</h1></header>
+<div id="top">
+  <div class="who">
+    <label>Фамилия и имя <input id="fio" type="text" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="60"></label>
+    <label>Класс <select id="klass" autocomplete="off"><option value="">выбрать</option><option>8А</option><option>8Б</option><option>8В</option></select></label>
+  </div>
+  <div class="tabs" id="viewTabs"><button data-v="learn">Изучение</button><button data-v="train">Тренировка</button><button data-v="ctrl">Контроль</button></div>
+  <div class="tabs" id="modTabs"><button data-m="addr">Виды адресации</button><button data-m="func">Математические функции</button></div>
+  <div class="tabs"><button id="sendBtn">Отправить результаты учителю</button><button id="saveTxt">Сохранить результаты (.txt)</button></div>
+  <span class="sendst" id="sendSt"></span>
+  <div id="msg"></div>
+</div>
+<main>
+  <section id="addr-learn" class="view"></section>
+  <section id="func-learn" class="view"></section>
+  <section id="addr-train" class="view"></section>
+  <section id="func-train" class="view"></section>
+  <section id="ctrl" class="view"></section>
+</main>
+<script>
+"use strict";
+/* ===================== Помощники ===================== */
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function fmt(n){ if (typeof n !== "number") return String(n); const r = Math.round(n * 10000) / 10000; return String(r).replace(".", ",").replace("-", "−"); }
+function parseNum(s){ s = String(s).trim().replace(/\s/g, "").replace(",", ".").replace("−", "-"); if (!/^-?\d+(\.\d+)?$/.test(s)) return null; return +s; }
+const near = (a, b) => typeof a === "number" && typeof b === "number" && Math.abs(a - b) < 1e-9 * Math.max(1, Math.abs(b));
+function plural(n, a, b, c){ n = Math.abs(n) % 100; const d = n % 10; if (n > 10 && n < 20) return c; if (d === 1) return a; if (d >= 2 && d <= 4) return b; return c; }
+const strip = h => { const d = document.createElement("div"); d.innerHTML = h; return d.textContent.replace(/\s+/g, " ").trim(); };
+const ad = s => `<span class="ad">${esc(s)}</span>`;              // адрес или диапазон в тексте
+const fm = s => `<span class="fm">${esc(s)}</span>`;              // формула в тексте
+const hl = s => s.replace(/(\$?[A-L]\$?\d+(?::\$?[A-L]\$?\d+)?)/g, '<span class="ad">$1</span>'); // подсветить адреса в простом тексте
+
+/* ===================== Адреса и формулы ===================== */
+const COLS = "ABCDEFGHIJKL";
+const AD = (c, r) => COLS[c] + r;
+function splitA(a){ return {c: COLS.indexOf(a[0]), r: +a.slice(1)}; }
+function tokenize(f){
+  const out = [], re = /(\$?)([A-L])(\$?)(\d+)/g; let m, last = 0;
+  while ((m = re.exec(f))){
+    if (m.index > last) out.push({t: "s", s: f.slice(last, m.index)});
+    out.push({t: "r", ca: !!m[1], c: COLS.indexOf(m[2]), ra: !!m[3], r: +m[4]});
+    last = re.lastIndex;
+  }
+  if (last < f.length) out.push({t: "s", s: f.slice(last)});
+  return out;
+}
+const refText = t => t.err ? "#ССЫЛКА!" : (t.ca ? "$" : "") + COLS[t.c] + (t.ra ? "$" : "") + t.r;
+const fStr = tok => tok.map(t => t.t === "s" ? t.s : refText(t)).join("");
+function shiftRef(t, dc, dr){
+  const n = {...t, c: t.ca ? t.c : t.c + dc, r: t.ra ? t.r : t.r + dr};
+  n.err = n.c < 0 || n.c >= COLS.length || n.r < 1;
+  return n;
+}
+const shiftF = (tok, dc, dr) => tok.map(t => t.t === "r" ? shiftRef(t, dc, dr) : t);
+const refsOf = tok => tok.filter(t => t.t === "r");
+function refKind(t){ return t.ca && t.ra ? "abs" : (!t.ca && !t.ra ? "rel" : "mix"); }
+const KIND_RU = {rel: "Относительный", abs: "Абсолютный", mix: "Смешанный"};
+/* формула в HTML: закреплённое ($) — зелёным, изменившееся при копировании — подчёркнуто */
+function refHTML(t, s){
+  if (t.err) return `<span class="err">#ССЫЛКА!</span>`;
+  const cc = s && s.c !== t.c, rc = s && s.r !== t.r;
+  const col = t.ca ? `<span class="lk">$${COLS[t.c]}</span>` : `<span class="${cc ? "chg" : ""}">${COLS[t.c]}</span>`;
+  const row = t.ra ? `<span class="lk">$${t.r}</span>` : `<span class="${rc ? "chg" : ""}">${t.r}</span>`;
+  return `<span class="${t.ca && t.ra ? "rabs" : ""}">${col}${row}</span>`;
+}
+const fHTML = (tok, src) => tok.map((t, i) => t.t === "s" ? esc(t.s) : refHTML(t, src ? src[i] : null)).join("");
+const fBox = (tok, src) => `<span class="fm">${fHTML(tok, src)}</span>`;
+function evalTok(tok, get){
+  let ex = "";
+  for (const t of tok){
+    if (t.t === "s"){ ex += t.s; continue; }
+    if (t.err) return "#ССЫЛКА!";
+    let v = get(AD(t.c, t.r));
+    if (v === undefined || v === null || v === "") v = 0;
+    if (typeof v === "string") return v.startsWith("#") ? v : "#ЗНАЧ!";
+    ex += "(" + v + ")";
+  }
+  ex = ex.replace(/^=/, "");
+  if (!/^[\d.+\-*/() ]*$/.test(ex)) return "#ИМЯ?";
+  let r; try { r = Function("return " + ex)(); } catch(e){ return "#ЗНАЧ!"; }
+  if (!isFinite(r)) return "#ДЕЛ/0!";
+  return Math.round(r * 1e9) / 1e9;
+}
+function shiftWords(dc, dr){
+  const p = [];
+  if (dr) p.push(`на ${dr} ${plural(dr, "строку", "строки", "строк")} вниз`);
+  if (dc) p.push(`на ${dc} ${plural(dc, "столбец", "столбца", "столбцов")} вправо`);
+  return p.join(" и ") || "без сдвига";
+}
+/* короткое пояснение по одной ссылке */
+function refNote(t, dc, dr){
+  const n = shiftRef(t, dc, dr), a = `<span class="mono">${refHTML(t)}</span> → <span class="mono">${refHTML(n, t)}</span>`;
+  if (n.err) return `${a}: адрес вышел за край листа — ошибка #ССЫЛКА!`;
+  if (t.ca && t.ra) return `${a}: <b>не изменился</b> — абсолютный адрес, закреплены и столбец, и строка`;
+  const parts = [];
+  if (t.ca) parts.push("столбец закреплён ($)"); else if (dc) parts.push(`столбец сдвинулся на ${dc}`);
+  if (t.ra) parts.push("строка закреплена ($)"); else if (dr) parts.push(`строка сдвинулась на ${dr}`);
+  if (refText(n) === refText(t)) parts.push("адрес не изменился");
+  return `${a}: ${parts.join(", ")}`;
+}
+const refNotes = (tok, dc, dr) => "<ul>" + refsOf(tok).map(t => "<li>" + refNote(t, dc, dr) + "</li>").join("") + "</ul>";
+
+/* ===================== Сетка ===================== */
+function gridHTML(cols, rows, cell){
+  let h = '<table class="xl"><tr><th></th>';
+  for (let c = 0; c < cols; c++) h += `<th>${COLS[c]}</th>`;
+  h += "</tr>";
+  for (let r = 1; r <= rows; r++){
+    h += `<tr><th>${r}</th>`;
+    for (let c = 0; c < cols; c++){ const a = AD(c, r), o = cell(a) || {}; h += `<td data-a="${a}" class="${o.c || ""}">${o.h ?? ""}</td>`; }
+    h += "</tr>";
+  }
+  return h + "</table>";
+}
+const dataCell = v => v === undefined ? {} : typeof v === "number" ? {h: fmt(v)} : {h: esc(v), c: "txt"};
+function rangeList(from, to){ const a = splitA(from), b = splitA(to || from), out = [];
+  for (let r = a.r; r <= b.r; r++) for (let c = a.c; c <= b.c; c++) out.push(AD(c, r)); return out; }
+const PLUS = `<svg viewBox="0 0 22 22" width="22" height="22"><path d="M11 1v20M1 11h20" stroke="#fff" stroke-width="6"/><path d="M11 2v18M2 11h18" stroke="#000" stroke-width="2.4"/></svg>`;
+
+/* ===================== Модуль 1. Изучение ===================== */
+const EXS = [
+  {title: "Пример 1. Относительные адреса — копируем вниз", f: "=A2+B2", src: "C2", cols: 3, rows: 5, plan: [["down", 3]],
+   note: "Формула складывает два числа своей строки. При копировании вниз номер строки в адресах увеличивается — в каждой строке считаются свои числа.",
+   data: {A1: "Число 1", B1: "Число 2", C1: "Сумма", A2: 5, B2: 3, A3: 8, B3: 2, A4: 4, B4: 7, A5: 6, B5: 6}},
+  {title: "Пример 2. Абсолютный адрес — копируем вниз", f: "=A3*$B$1", alt: "=A3*B1", src: "B3", cols: 2, rows: 7, plan: [["down", 4]],
+   note: "Часы переводим в минуты. Все строки умножаем на одно и то же число 60 из ячейки B1, поэтому она закреплена: $B$1.",
+   data: {A1: "Минут в часе", B1: 60, A2: "Часы", B2: "Минуты", A3: 2, A4: 1, A5: 3, A6: 1.5, A7: 4}},
+  {title: "Пример 3. Абсолютный адрес — копируем вправо", f: "=B1*$B$4", alt: "=B1*B4", src: "B2", cols: 6, rows: 4, plan: [["right", 4]],
+   note: "Метры переводим в сантиметры. Число 100 всегда берём из ячейки B4 — она закреплена: $B$4. Копируем на 4 ячейки вправо.",
+   data: {A1: "Метры", B1: 2, C1: 5, D1: 1.5, E1: 3, F1: 7, A2: "Сантиметры", A4: "см в метре", B4: 100}},
+  {title: "Пример 4. Смешанные адреса — таблица умножения", f: "=$A2*B$1", src: "B2", cols: 5, rows: 5, plan: [["right", 3], ["down", 3]],
+   note: "$A2 — закреплён столбец A: первый множитель всегда из столбца A. B$1 — закреплена строка 1: второй множитель всегда из строки 1. Копируем вправо, а потом вниз.",
+   data: {B1: 1, C1: 2, D1: 3, E1: 4, A2: 1, A3: 2, A4: 3, A5: 4}}
+];
+EXS.forEach((e, i) => { e.i = i; e.st = {f: e.f, copies: {}, showF: true, sel: e.src, run: false, fresh: []}; });
+const exTok = e => tokenize(e.st.f);
+function exVal(e, a, d){
+  if (d > 30) return "#ЦИКЛ";
+  const tok = a === e.src ? exTok(e) : (e.st.copies[a] && e.st.copies[a].tok);
+  if (tok) return evalTok(tok, b => exVal(e, b, d + 1));
+  return e.data[a];
+}
+function exGrid(e){
+  const S = e.st, tok = exTok(e), locked = {};
+  refsOf(tok).forEach(t => { if (t.ca && t.ra) locked[AD(t.c, t.r)] = 1; });
+  const box = $("exg" + e.i);
+  box.innerHTML = gridHTML(e.cols, e.rows, a => {
+    let o;
+    const own = a === e.src ? tok : S.copies[a] && S.copies[a].tok;
+    if (own){
+      if (S.showF) o = {h: fHTML(own, a === e.src ? null : tok), c: "fcell"};
+      else { const v = exVal(e, a, 0); o = {h: fmt(v), c: typeof v === "string" ? "errv" : ""}; }
+      o.c += a === e.src ? " srcc" : " cp";
+      if (S.fresh.includes(a)) o.c += " flash";
+    } else o = dataCell(e.data[a]);
+    if (locked[a]) o.c = (o.c || "") + " lockc";
+    if (S.sel === a) o.c = (o.c || "") + " sel";
+    return o;
+  });
+  box.querySelectorAll("td").forEach(td => td.onclick = () => { if (S.run) return; S.sel = td.dataset.a; S.fresh = []; exGrid(e); });
+  // пояснение
+  const cp = S.copies[S.sel];
+  let h;
+  if (S.sel === e.src) h = `В ${ad(e.src)} формула ${fBox(tok)}. Нажмите «Копировать» — формула протянется маркером заполнения.`;
+  else if (cp) h = `В ${ad(S.sel)} получилось ${fBox(cp.tok, tok)} — копия из ${ad(e.src)}, сдвиг ${shiftWords(cp.dc, cp.dr)}:` + refNotes(tok, cp.dc, cp.dr);
+  else h = "Нажмите на ячейку с формулой, чтобы увидеть, как изменились адреса.";
+  $("exe" + e.i).innerHTML = h;
+}
+function placePlus(e, a){
+  const wrap = $("exw" + e.i), td = wrap.querySelector(`td[data-a="${a}"]`), cur = wrap.querySelector(".plus");
+  if (!td) return;
+  let r = td.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+  if (r.right + 16 > w.right) wrap.scrollLeft += r.right + 16 - w.right;
+  r = td.getBoundingClientRect(); w = wrap.getBoundingClientRect();
+  cur.style.left = (r.right - w.left + wrap.scrollLeft - 11) + "px";
+  cur.style.top = (r.bottom - w.top + wrap.scrollTop - 11) + "px";
+}
+function exCopy(e){
+  const S = e.st; if (S.run) return;
+  const tok = exTok(e), s = splitA(e.src), steps = []; let w = 0;
+  e.plan.forEach(([dir, n]) => {
+    if (dir === "right"){ for (let i = 1; i <= n; i++) steps.push({cells: [AD(s.c + i, s.r)], at: AD(s.c + i, s.r)}); w = n; }
+    else for (let j = 1; j <= n; j++){ const cells = []; for (let i = 0; i <= w; i++) cells.push(AD(s.c + i, s.r + j)); steps.push({cells, at: AD(s.c + w, s.r + j)}); }
+  });
+  S.copies = {}; S.sel = e.src; S.fresh = []; S.run = true; exGrid(e);
+  const cur = $("exw" + e.i).querySelector(".plus");
+  cur.style.transition = "none"; placePlus(e, e.src); cur.style.display = "block";
+  void cur.offsetWidth; cur.style.transition = "";
+  let k = 0;
+  const go = () => {
+    if (k >= steps.length){ setTimeout(() => { cur.style.display = "none"; S.run = false; S.sel = steps[steps.length - 1].at; S.fresh = []; exGrid(e); }, 500); return; }
+    const st = steps[k++];
+    placePlus(e, st.at);
+    setTimeout(() => {
+      st.cells.forEach(a => { const p = splitA(a), dc = p.c - s.c, dr = p.r - s.r; S.copies[a] = {tok: shiftF(tok, dc, dr), dc, dr}; });
+      S.fresh = st.cells; exGrid(e); placePlus(e, st.at);
+      setTimeout(go, 380);
+    }, 420);
+  };
+  setTimeout(go, 700);
+}
+function exCard(e){
+  const S = e.st;
+  const el = $("ex" + e.i);
+  el.innerHTML = `<h3>${e.title}</h3><p>${hl(e.note)}</p>
+    <div class="row"><span>Формула в ${ad(e.src)}:</span> ${fBox(exTok(e))}</div>
+    <div class="row">
+      <button class="btn" data-a="copy">✚ Копировать</button>
+      <button class="btn alt" data-a="reset">Сначала</button>
+      <button class="btn alt ${S.showF ? "on" : ""}" data-a="f">Формулы</button>
+      <button class="btn alt ${S.showF ? "" : "on"}" data-a="v">Значения</button>
+      ${e.alt ? `<button class="btn alt ${S.f === e.alt ? "on" : ""}" data-a="alt">${S.f === e.alt ? "Вернуть $" : "А если без $?"}</button>` : ""}
+    </div>
+    <div class="gwrap" id="exw${e.i}"><div id="exg${e.i}"></div><div class="plus">${PLUS}</div></div>
+    <div class="explain" id="exe${e.i}"></div>`;
+  el.querySelectorAll("[data-a]").forEach(b => b.onclick = () => {
+    if (S.run) return;
+    const a = b.dataset.a;
+    if (a === "copy") return exCopy(e);
+    if (a === "reset"){ S.copies = {}; S.sel = e.src; }
+    if (a === "f") S.showF = true;
+    if (a === "v") S.showF = false;
+    if (a === "alt"){ S.f = S.f === e.alt ? e.f : e.alt; S.copies = {}; S.sel = e.src; }
+    exCard(e);
+  });
+  exGrid(e);
+}
+function renderAddrLearn(){
+  $("addr-learn").innerHTML = `
+  <div class="card"><h2>Виды адресации</h2>
+    <p>Адрес ячейки = буква столбца + номер строки. Знак <span class="lk mono">$</span> закрепляет ту часть адреса, перед которой стоит: при копировании формулы она <b>не меняется</b>.</p>
+    <table class="types"><tr><th>Вид адреса</th><th>Пример</th><th>Что происходит при копировании формулы</th></tr>
+      <tr><td>Относительный</td><td class="ex">C3</td><td>меняются и буква столбца, и номер строки</td></tr>
+      <tr><td><b>Абсолютный</b></td><td class="ex"><span class="rabs"><span class="lk">$C</span><span class="lk">$3</span></span></td><td><b>не меняется ничего</b> — адрес закреплён полностью</td></tr>
+      <tr><td>Смешанный</td><td class="ex"><span class="lk">$C</span>3</td><td>закреплён столбец — меняется только номер строки</td></tr>
+      <tr><td>Смешанный</td><td class="ex">C<span class="lk">$3</span></td><td>закреплена строка — меняется только буква столбца</td></tr></table>
+    <div class="tip">Как поставить $: в строке формул щёлкните по адресу и нажмите <b>F4</b>. Каждое нажатие меняет вид: C3 → $C$3 → C$3 → $C3 → C3.</div>
+    <p class="muted" style="font-size:18px">Режим показа формул в Excel: <b>Ctrl + Ё</b> или вкладка «Формулы» → «Показать формулы».</p>
+  </div>
+  ${EXS.map(e => `<div class="card" id="ex${e.i}"></div>`).join("")}`;
+  EXS.forEach(exCard);
+}
+/* ===================== Модуль 1. Задания ===================== */
+function mkRef(kind, c, r){ const t = {t: "r", c, r, ca: false, ra: false};
+  if (kind === "abs"){ t.ca = t.ra = true; } else if (kind === "mc") t.ca = true; else if (kind === "mr") t.ra = true; return t; }
+const KEXPL = {rel: "нет знаков $ — при копировании меняются и буква столбца, и номер строки.",
+  abs: "$ стоит и перед буквой, и перед номером строки — адрес не меняется при копировании.",
+  mix: "$ стоит только перед одной частью адреса — закреплена только она, другая часть меняется."};
+function genType(kind){
+  kind = kind || pick(["rel", "abs", "mix"]);
+  const t = mkRef(kind === "mix" ? pick(["mc", "mr"]) : kind, rnd(0, 7), rnd(1, 20));
+  return {topic: "Вид адреса", kind: "opt", q: `Определите вид адреса <span class="bigad">${refHTML(t)}</span>`,
+    opts: ["Относительный", "Абсолютный", "Смешанный"], correct: ["rel", "abs", "mix"].indexOf(kind),
+    explain: `<span class="mono">${refText(t)}</span> — <b>${KIND_RU[kind].toLowerCase()}</b>: ${KEXPL[kind]}`};
+}
+function genChange(){
+  const used = {}, cell = () => { for (;;){ const c = rnd(0, 7), r = rnd(1, 15); if (!used[c + "_" + r]){ used[c + "_" + r] = 1; return [c, r]; } } };
+  const list = shuffle(["abs", "rel", "mc", "mr"].map(k => ({k, t: mkRef(k, ...cell())})));
+  const Q = pick([["не изменяется", "abs"], ["изменяются и буква столбца, и номер строки", "rel"], ["изменяется только номер строки", "mc"], ["изменяется только буква столбца", "mr"]]);
+  const ex = {abs: "$ перед буквой и перед цифрой — не меняется ничего", rel: "нет $ — меняется всё",
+    mc: "$ перед буквой — столбец закреплён, меняется только строка", mr: "$ перед цифрой — строка закреплена, меняется только столбец"};
+  return {topic: "Вид адреса", kind: "opt", q: `Укажите адрес, у которого при копировании формулы <b>${Q[0]}</b>.`,
+    opts: list.map(x => `<span class="mono">${refHTML(x.t)}</span>`), correct: list.findIndex(x => x.k === Q[1]),
+    explain: "<ul>" + list.map(x => `<li><span class="mono">${refText(x.t)}</span> — ${ex[x.k]}</li>`).join("") + "</ul>"};
+}
+function wrongCopies(tok, dc, dr){
+  const ok = fStr(shiftF(tok, dc, dr)), out = [];
+  const add = tk => { if (tk.some(t => t.err)) return; const s = fStr(tk); if (s !== ok && !out.includes(s)) out.push(s); };
+  const keep$ = tk => tk.map((t, i) => t.t === "r" ? {...t, ca: tok[i].ca, ra: tok[i].ra} : t);
+  add(tok);                                                                               // ничего не изменилось
+  add(keep$(tok.map(t => t.t === "r" ? shiftRef({...t, ca: false, ra: false}, dc, dr) : t)));   // $ «не сработал»
+  add(tok.map(t => t.t === "r" ? {...t, c: t.ca ? t.c + dc : t.c, r: t.ra ? t.r + dr : t.r} : t)); // сдвинули закреплённое
+  add(shiftF(tok, dr, dc)); add(shiftF(tok, 0, dr)); add(shiftF(tok, dc, 0));
+  for (let k = 1; out.length < 6 && k < 6; k++) add(shiftF(tok, dc + k % 2, dr + k));
+  return {ok, wrong: shuffle(out).slice(0, 3)};
+}
+function randFormula(){
+  for (;;){
+    const kinds = [pick(["rel", "abs", "mc", "mr"]), pick(["rel", "abs", "mc", "mr"])];
+    if (kinds.every(k => k === "rel")) continue;
+    const s = [];
+    for (const k of kinds){ let c, r; do { c = rnd(0, 5); r = rnd(1, 8); } while (s.some(x => x.c === c && x.r === r)); s.push(mkRef(k, c, r)); }
+    return [{t: "s", s: "="}, s[0], {t: "s", s: pick(["+", "-", "*"])}, s[1]];
+  }
+}
+/* Копирование: какая формула получится */
+function genCopy(){
+  for (;;){
+    const tok = randFormula(), s = {c: rnd(1, 4), r: rnd(2, 6)};
+    if (refsOf(tok).some(t => t.c === s.c && t.r === s.r)) continue;
+    const right = Math.random() < .5, dc = right ? rnd(1, 3) : rnd(0, 1), dr = right ? rnd(0, 1) : rnd(1, 4);
+    if (shiftF(tok, dc, dr).some(t => t.err)) continue;
+    const w = wrongCopies(tok, dc, dr); if (w.wrong.length < 3) continue;
+    const sa = AD(s.c, s.r), da = AD(s.c + dc, s.r + dr), opts = shuffle([w.ok, ...w.wrong]);
+    const grid = gridHTML(Math.max(s.c + dc, s.c) + 2, Math.max(s.r + dr, s.r) + 1, a => a === sa ? {h: fHTML(tok), c: "fcell srcc"} : a === da ? {h: "?", c: "dst"} : {});
+    return {topic: "Копирование формулы", kind: "opt",
+      q: `Формулу ${fBox(tok)} скопировали из ячейки ${ad(sa)} в ячейку ${ad(da)}. Какая формула получится в ${ad(da)}?<div class="gwrap">${grid}</div>`,
+      opts: opts.map(o => `<span class="mono">${fHTML(tokenize(o))}</span>`), correct: opts.indexOf(w.ok),
+      explain: `Сдвиг ${shiftWords(dc, dr)}. Ответ: ${fBox(tokenize(w.ok))}${refNotes(tok, dc, dr)}`};
+  }
+}
+/* Копирование: какое число получится */
+function genValue(){
+  for (;;){
+    const data = {}; for (let c = 0; c < 4; c++) for (let r = 1; r <= 6; r++) data[AD(c, r)] = rnd(1, 9);
+    const r0 = rnd(1, 2), k = rnd(2, 6 - r0), rel = mkRef("rel", rnd(0, 3), r0 + rnd(0, 1)), lk = mkRef(pick(["abs", "abs", "mr"]), rnd(0, 3), rnd(1, 3));
+    if (rel.c === lk.c && rel.r === lk.r) continue;
+    const op = pick(["+", "*"]), tok = Math.random() < .5 ? [{t: "s", s: "="}, rel, {t: "s", s: op}, lk] : [{t: "s", s: "="}, lk, {t: "s", s: op}, rel];
+    const nt = shiftF(tok, 0, k); if (nt.some(t => t.t === "r" && (t.err || t.r > 6))) continue;
+    const get = a => data[a], ok = evalTok(nt, get);
+    const cand = [evalTok(tok, get), evalTok(shiftF(tok.map(t => t.t === "r" ? {...t, ra: false, ca: false} : t), 0, k), get)];
+    const wrong = [];
+    cand.concat([ok + 1, ok - 1, ok + 2, ok + 3]).forEach(v => { if (typeof v === "number" && v !== ok && !wrong.includes(v)) wrong.push(v); });
+    if (typeof ok !== "number" || wrong.length < 3) continue;
+    const src = AD(4, r0), dst = AD(4, r0 + k), opts = shuffle([ok, ...wrong.slice(0, 3)]);
+    const grid = gridHTML(5, 6, a => a === src ? {h: fHTML(tok), c: "fcell srcc"} : a === dst ? {h: "?", c: "dst"} : dataCell(data[a]));
+    const nr = refsOf(nt);
+    return {topic: "Копирование формулы", kind: "opt",
+      q: `Формулу из ${ad(src)} скопировали в ${ad(dst)}. Какое число появится в ${ad(dst)}?<div class="gwrap">${grid}</div>`,
+      opts: opts.map(fmt), correct: opts.indexOf(ok),
+      explain: `В ${ad(dst)} окажется формула ${fBox(nt, tok)}: ${nr.map(t => `${ad(AD(t.c, t.r))} = ${fmt(data[AD(t.c, t.r)])}`).join(", ")}, значит ответ <b>${fmt(ok)}</b>.${refNotes(tok, 0, k)}`};
+  }
+}
+/* ===================== Модуль 2. Функции ===================== */
+const FNS = [
+  {id: "SUM", ru: "СУММ", what: "складывает числа", exf: "=СУММ(B2:B5)", syntax: "СУММ(число1; [число2]; …)", fields: ["Число1", "Число2"],
+   ex: {title: "Сколько шагов за четыре дня", cols: 3, rows: 6, data: {A1: "День", B1: "Шаги", A2: "Пн", B2: 8200, A3: "Вт", B3: 6400, A4: "Ср", B4: 9100, A5: "Чт", B5: 7300, A6: "Всего"}, target: "B6",
+     args: [{text: "B2:B5", from: "B2", to: "B5"}], result: 31000}},
+  {id: "SUMIF", ru: "СУММЕСЛИ", what: "складывает только те числа, которые подходят под условие (например, только яблоки)", exf: "=СУММЕСЛИ(A2:A6;D2;B2:B6)", syntax: "СУММЕСЛИ(диапазон; критерий; [диапазон_суммирования])", fields: ["Диапазон", "Критерий", "Диапазон_суммирования"],
+   ex: {title: "Сколько килограммов яблок", cols: 5, rows: 6, data: {A1: "Фрукт", B1: "Масса, кг", A2: "Яблоко", B2: 3, A3: "Груша", B3: 2, A4: "Яблоко", B4: 4, A5: "Слива", B5: 1, A6: "Яблоко", B6: 2, D1: "Фрукт", E1: "Всего, кг", D2: "Яблоко"}, target: "E2",
+     args: [{text: "A2:A6", from: "A2", to: "A6", why: "где искать"}, {text: "D2", from: "D2", why: "что искать"}, {text: "B2:B6", from: "B2", to: "B6", why: "что складывать"}], result: 9}},
+  {id: "PRODUCT", ru: "ПРОИЗВЕД", what: "перемножает числа", exf: "=ПРОИЗВЕД(A2:C2)", syntax: "ПРОИЗВЕД(число1; [число2]; …)", fields: ["Число1", "Число2"],
+   ex: {title: "Объём коробки", cols: 4, rows: 2, data: {A1: "Длина", B1: "Ширина", C1: "Высота", D1: "Объём", A2: 4, B2: 3, C2: 2}, target: "D2", args: [{text: "A2:C2", from: "A2", to: "C2"}], result: 24}},
+  {id: "ABS", ru: "ABS", what: "убирает знак «минус»: из −8 получается 8", exf: "=ABS(C2)", syntax: "ABS(число)", fields: ["Число"],
+   ex: {title: "На сколько градусов изменилась температура", cols: 4, rows: 2, data: {A1: "Утром", B1: "Днём", C1: "Изменение", D1: "На сколько", A2: 3, B2: -5, C2: -8}, target: "D2", args: [{text: "C2", from: "C2"}], result: 8}},
+  {id: "SQRT", ru: "КОРЕНЬ", what: "квадратный корень: из 49 получается 7", exf: "=КОРЕНЬ(A2)", syntax: "КОРЕНЬ(число)", fields: ["Число"],
+   ex: {title: "Сторона квадратной клумбы по её площади", cols: 2, rows: 2, data: {A1: "Площадь", B1: "Сторона", A2: 49}, target: "B2", args: [{text: "A2", from: "A2"}], result: 7}},
+  {id: "POWER", ru: "СТЕПЕНЬ", what: "возводит число в степень: 4 в степени 3 — это 64", exf: "=СТЕПЕНЬ(A2;3)", syntax: "СТЕПЕНЬ(число; степень)", fields: ["Число", "Степень"],
+   ex: {title: "Объём кубика", cols: 2, rows: 2, data: {A1: "Ребро", B1: "Объём", A2: 4}, target: "B2", args: [{text: "A2", from: "A2"}, {text: "3", why: "степень"}], result: 64}},
+  {id: "ROUND", ru: "ОКРУГЛ", what: "округляет число до нужного количества знаков после запятой: 4,6667 → 4,7", exf: "=ОКРУГЛ(A2;1)", syntax: "ОКРУГЛ(число; число_разрядов)", fields: ["Число", "Число_разрядов"],
+   ex: {title: "Средний балл с одним знаком после запятой", cols: 2, rows: 2, data: {A1: "Средний балл", B1: "Округлённый", A2: 4.6667}, target: "B2", args: [{text: "A2", from: "A2"}, {text: "1", why: "сколько знаков после запятой"}], result: 4.7}},
+  {id: "INT", ru: "ЦЕЛОЕ", what: "отбрасывает дробную часть: из 2,75 получается 2", exf: "=ЦЕЛОЕ(A2)", syntax: "ЦЕЛОЕ(число)", fields: ["Число"],
+   ex: {title: "Сколько целых пицц", cols: 2, rows: 2, data: {A1: "Пиццы", B1: "Целых", A2: 2.75}, target: "B2", args: [{text: "A2", from: "A2"}], result: 2}},
+  {id: "MOD", ru: "ОСТАТ", what: "остаток от деления: 17 конфет делим на 5 детей — остаётся 2", exf: "=ОСТАТ(A2;B2)", syntax: "ОСТАТ(число; делитель)", fields: ["Число", "Делитель"],
+   ex: {title: "Сколько конфет останется", cols: 3, rows: 2, data: {A1: "Конфет", B1: "Детей", C1: "Осталось", A2: 17, B2: 5}, target: "C2", args: [{text: "A2", from: "A2"}, {text: "B2", from: "B2"}], result: 2}}
+];
+const FN = id => FNS.find(f => f.id === id);
+const MATH_LIST = ["ABS", "ACOS", "ЗНАК", "КОРЕНЬ", "ОКРУГЛ", "ОСТАТ", "ПИ", "ПРОИЗВЕД", "СТЕПЕНЬ", "СУММ", "СУММЕСЛИ", "ЦЕЛОЕ"];
+
+/* пошаговая вставка функции (по умолчанию — через fx) */
+const pl = {fn: "SUM", mode: "fx", i: 0, steps: [], timer: null};
+function argHTML(args, upto){ return args.slice(0, upto).map((a, i) => a.from ? `<span class="rc${i % 3}">${esc(a.text)}</span>` : esc(a.text)).join(";"); }
+function buildSteps(){
+  const f = FN(pl.fn), e = f.ex, t = e.target, st = [];
+  const marks = n => e.args.slice(0, n).map((a, i) => a.from ? {from: a.from, to: a.to || a.from, k: i % 3} : null).filter(Boolean);
+  st.push({cap: `Выделите ячейку <b>${t}</b> — в ней будет ответ.`, fbar: "", cell: ""});
+  if (pl.mode === "fx"){
+    st.push({cap: "Нажмите кнопку <b>fx</b> слева от строки формул.", fbar: "", cell: "", fx: true});
+    st.push({cap: `В окне «Вставка функции» выберите категорию <b>Математические</b>, найдите <b>${f.ru}</b> и нажмите <b>ОК</b>.`, fbar: "=", cell: "=", dlg: "ins"});
+    e.args.forEach((a, i) => {
+      const fld = f.fields[i];
+      const txt = a.from ? `Щёлкните в поле <b>${fld}</b> и выделите на листе ${a.to ? "диапазон" : "ячейку"} <b>${a.text}</b>` : `В поле <b>${fld}</b> введите <b>${a.text}</b>`;
+      st.push({cap: txt + (a.why ? ` (${a.why}).` : "."), fbar: `=${f.ru}(${argHTML(e.args, i + 1)})`, cell: `=${f.ru}(${argHTML(e.args, i + 1)})`, dlg: "args", n: i + 1, marks: marks(i + 1)});
+    });
+    st.push({cap: `Нажмите <b>ОК</b>. В ячейке — результат <b>${fmt(e.result)}</b>, а в строке формул — сама формула.`, fbar: `=${f.ru}(${argHTML(e.args, 99)})`, cell: fmt(e.result), dlg: "args", n: 99, ok: true, done: true, marks: marks(99)});
+  } else {
+    st.push({cap: "Введите знак <b>=</b>.", fbar: "=", cell: "="});
+    st.push({cap: `Введите <b>${f.ru}</b> и откройте скобку <b>(</b>.`, fbar: `=${f.ru}(`, cell: `=${f.ru}(`, tip: f.syntax});
+    e.args.forEach((a, i) => {
+      const pre = i ? "Поставьте <b>;</b> и " : "";
+      const txt = a.from ? `${pre}${i ? "в" : "В"}ыделите ${a.to ? "диапазон" : "ячейку"} <b>${a.text}</b>` : `${pre}${i ? "в" : "В"}ведите <b>${a.text}</b>`;
+      st.push({cap: txt + (a.why ? ` (${a.why}).` : "."), fbar: `=${f.ru}(${argHTML(e.args, i + 1)}`, cell: `=${f.ru}(${argHTML(e.args, i + 1)}`, tip: f.syntax, marks: marks(i + 1)});
+    });
+    st.push({cap: `Закройте скобку <b>)</b> и нажмите <b>Enter</b>. Результат — <b>${fmt(e.result)}</b>.`, fbar: `=${f.ru}(${argHTML(e.args, 99)})`, cell: fmt(e.result), done: true, marks: marks(99)});
+  }
+  pl.steps = st;
+}
+function dlgHTML(s){
+  const f = FN(pl.fn), e = f.ex;
+  if (s.dlg === "ins"){
+    const i = MATH_LIST.indexOf(f.ru), from = Math.max(0, Math.min(i - 2, MATH_LIST.length - 6));
+    return `<div class="xdlg"><div class="t">Вставка функции</div><div class="b">Категория: <b>Математические</b> ▾
+      <div class="lst">${MATH_LIST.slice(from, from + 6).map(n => `<div class="${n === f.ru ? "on" : ""}">${n}</div>`).join("")}</div>
+      <div style="font-size:14px"><b>${esc(f.syntax)}</b></div><span class="ok pulse">ОК</span></div></div>`;
+  }
+  if (s.dlg === "args"){
+    const fl = f.fields.map((nm, i) => { const a = e.args[i], v = a && i < s.n ? (a.from ? `<span class="rc${i % 3}">${esc(a.text)}</span>` : esc(a.text)) : "";
+      return `<div class="fld"><span>${nm}</span><i class="${i === s.n - 1 && !s.ok ? "act" : ""}">${v}</i></div>`; }).join("");
+    return `<div class="xdlg"><div class="t">Аргументы функции</div><div class="b"><b>${f.ru}</b>${fl}
+      ${s.n >= e.args.length ? `<div>Значение: <b>${fmt(e.result)}</b></div>` : ""}<span class="ok ${s.ok ? "pulse" : ""}">ОК</span></div></div>`;
+  }
+  return "";
+}
+function renderPlayer(){
+  const f = FN(pl.fn), e = f.ex, s = pl.steps[pl.i], cls = {};
+  (s.marks || []).forEach(m => rangeList(m.from, m.to).forEach(a => cls[a] = "rg" + m.k));
+  const grid = gridHTML(e.cols, e.rows, a => {
+    if (a === e.target) return {h: s.cell ? (s.done ? s.cell : `<span class="mono" style="font-size:13px">${s.cell}</span>`) : "", c: "sel" + (s.done ? "" : " txt")};
+    const o = dataCell(e.data[a]); if (cls[a]) o.c = (o.c || "") + " " + cls[a]; return o; });
+  $("player").innerHTML = `
+    <h3>Как вставить ${f.ru}: ${e.title.toLowerCase()}</h3>
+    <div class="row"><button class="btn alt ${pl.mode === "fx" ? "on" : ""}" data-md="fx">Через кнопку fx</button><button class="btn alt ${pl.mode === "manual" ? "on" : ""}" data-md="manual">С клавиатуры</button></div>
+    <div class="steps">${pl.steps.map((x, i) => `<span class="${i === pl.i ? "on" : i < pl.i ? "done" : ""}" data-st="${i}">${i + 1}</span>`).join("")}</div>
+    <div class="cap">${pl.i + 1}. ${s.cap}</div>
+    <div class="pl"><div class="pl-left">
+      <div class="fbar"><div class="nb">${e.target}</div><div class="fx ${s.fx ? "pulse" : ""}">fx</div><div class="ft">${s.fbar}</div></div>
+      ${s.tip && !s.done ? `<div class="ftip">${esc(s.tip)}</div>` : ""}
+      <div class="gwrap">${grid}</div></div>
+      <div class="pl-right">${dlgHTML(s)}</div></div>
+    <div class="row"><button class="btn alt" id="plPrev" ${pl.i ? "" : "disabled"}>◀ Назад</button><button class="btn" id="plNext" ${pl.i < pl.steps.length - 1 ? "" : "disabled"}>Далее ▶</button>
+      <button class="btn alt" id="plAuto">▶ Показать всё</button></div>`;
+  $("plPrev").onclick = () => { clearTimeout(pl.timer); pl.i--; renderPlayer(); };
+  $("plNext").onclick = () => { clearTimeout(pl.timer); pl.i++; renderPlayer(); };
+  $("plAuto").onclick = () => { clearTimeout(pl.timer); pl.i = 0; renderPlayer(); const go = () => { if (pl.i < pl.steps.length - 1){ pl.i++; renderPlayer(); pl.timer = setTimeout(go, 2300); } }; pl.timer = setTimeout(go, 1800); };
+  document.querySelectorAll("#player [data-md]").forEach(b => b.onclick = () => { clearTimeout(pl.timer); pl.mode = b.dataset.md; pl.i = 0; buildSteps(); renderPlayer(); });
+  document.querySelectorAll("#player [data-st]").forEach(b => b.onclick = () => { clearTimeout(pl.timer); pl.i = +b.dataset.st; renderPlayer(); });
+}
+function renderFuncLearn(){
+  $("func-learn").innerHTML = `
+  <div class="card"><h2>Математические функции</h2>
+    <p>Функция пишется так: ${fm("=ИМЯ(аргументы)")}. Диапазон ${ad("B2:B5")} — это ячейки с ${ad("B2")} по ${ad("B5")}. Аргументы разделяются точкой с запятой <b>;</b></p>
+    <table class="flist"><tr><th>Функция</th><th>Что делает</th><th>Пример</th></tr>
+    ${FNS.map(f => `<tr class="fr ${f.id === pl.fn ? "on" : ""}" data-fn="${f.id}"><td class="nm">${f.ru}</td><td>${f.what}</td><td>${fm(f.exf)}</td></tr>`).join("")}</table>
+    <p class="muted" style="font-size:18px">Нажмите на строку таблицы — ниже по шагам покажем, как вставить эту функцию через кнопку <b>fx</b>.</p>
+  </div>
+  <div class="card" id="player"></div>`;
+  document.querySelectorAll("#func-learn [data-fn]").forEach(r => r.onclick = () => { clearTimeout(pl.timer); pl.fn = r.dataset.fn; pl.i = 0; buildSteps();
+    document.querySelectorAll("#func-learn .fr").forEach(x => x.classList.toggle("on", x === r)); renderPlayer(); $("player").scrollIntoView({behavior: "smooth", block: "start"}); });
+  buildSteps(); renderPlayer();
+}
+/* ===================== Модуль 2. Задания ===================== */
+/* Выбор формулы — с таблицей данных */
+const CH_TABLE = {
+  SUM: () => { const n = 5, d = {A1: "День", B1: "Шаги"}; ["Пн", "Вт", "Ср", "Чт", "Пт"].forEach((x, i) => { d["A" + (i + 2)] = x; d["B" + (i + 2)] = rnd(40, 99) * 100; }); d.A7 = "Всего";
+    return {cols: 2, rows: 7, data: d, target: "B7", text: "В B7 найдите, сколько всего шагов сделано за 5 дней.", ok: "=СУММ(B2:B6)", wrong: ["=СУММ(B2;B6)", "=СУММ(B2:B5)", "=ПРОИЗВЕД(B2:B6)"]}; },
+  SUMIF: () => { const d = {A1: "Класс", B1: "Собрали, кг", D1: "Класс", E1: "Всего, кг"}, k = pick(["8А", "8Б", "8В"]);
+    for (let r = 2; r <= 7; r++){ d["A" + r] = pick(["8А", "8Б", "8В"]); d["B" + r] = rnd(3, 15); } d.D2 = k;
+    return {cols: 5, rows: 7, data: d, target: "E2", text: `В E2 найдите, сколько килограммов собрал только ${k} (название класса записано в D2).`,
+      ok: "=СУММЕСЛИ(A2:A7;D2;B2:B7)", wrong: ["=СУММЕСЛИ(B2:B7;D2;A2:A7)", "=СУММ(B2:B7)", "=СУММЕСЛИ(A2:A7;B2:B7;D2)"]}; },
+  PRODUCT: () => ({cols: 4, rows: 2, data: {A1: "Длина", B1: "Ширина", C1: "Высота", D1: "Объём", A2: rnd(3, 9), B2: rnd(2, 6), C2: rnd(2, 5)}, target: "D2",
+      text: "В D2 найдите объём коробки — перемножьте длину, ширину и высоту.", ok: "=ПРОИЗВЕД(A2:C2)", wrong: ["=СУММ(A2:C2)", "=ПРОИЗВЕД(A2;C2)", "=СТЕПЕНЬ(A2:C2)"]}),
+  ABS: () => { const a = rnd(1, 6), b = -rnd(2, 9); return {cols: 4, rows: 2, data: {A1: "Утром", B1: "Днём", C1: "Изменение", D1: "На сколько", A2: a, B2: b, C2: b - a}, target: "D2",
+      text: "В D2 запишите изменение температуры из C2 без знака «минус».", ok: "=ABS(C2)", wrong: ["=ABS(D2)", "=ЦЕЛОЕ(C2)", "ABS(C2)"]}; },
+  SQRT: () => { const s = rnd(4, 12); return {cols: 2, rows: 2, data: {A1: "Площадь", B1: "Сторона", A2: s * s}, target: "B2",
+      text: "В B2 найдите сторону квадрата — квадратный корень из площади в A2.", ok: "=КОРЕНЬ(A2)", wrong: ["=СТЕПЕНЬ(A2;2)", "=КОРЕНЬ(B2)", "=КОРЕНЬ(A2;2)"]}; },
+  POWER: () => ({cols: 2, rows: 2, data: {A1: "Ребро", B1: "Объём", A2: rnd(2, 9)}, target: "B2",
+      text: "В B2 найдите объём кубика: число из A2 в 3-й степени.", ok: "=СТЕПЕНЬ(A2;3)", wrong: ["=СТЕПЕНЬ(3;A2)", "=СТЕПЕНЬ(A2,3)", "=ПРОИЗВЕД(A2;3)"]}),
+  ROUND: () => ({cols: 2, rows: 2, data: {A1: "Средний балл", B1: "Округлённый", A2: pick([4.6667, 3.8333, 4.4286, 3.5714])}, target: "B2",
+      text: "В B2 округлите средний балл из A2 до <u><b>одного знака</b></u> после запятой.", ok: "=ОКРУГЛ(A2;1)", wrong: ["=ОКРУГЛ(1;A2)", "=ОКРУГЛ(A2;10)", "=ЦЕЛОЕ(A2)"]}),
+  INT: () => ({cols: 2, rows: 2, data: {A1: "Часы", B1: "Целых часов", A2: pick([3.75, 2.5, 5.25, 1.8])}, target: "B2",
+      text: "В B2 оставьте только целую часть числа из A2.", ok: "=ЦЕЛОЕ(A2)", wrong: ["=ОКРУГЛ(A2;1)", "=ОСТАТ(A2;1)", "=ЦЕЛОЕ(B2)"]}),
+  MOD: () => { const b = rnd(3, 6); return {cols: 3, rows: 2, data: {A1: "Конфет", B1: "Детей", C1: "Осталось", A2: b * rnd(3, 6) + rnd(1, b - 1), B2: b}, target: "C2",
+      text: "Конфеты из A2 раздали поровну детям (B2). В C2 найдите, сколько конфет останется.", ok: "=ОСТАТ(A2;B2)", wrong: ["=ОСТАТ(B2;A2)", "=ЦЕЛОЕ(A2/B2)", "=ОСТАТ(A2:B2)"]}; }
+};
+const WHY = "Помните: формула начинается со знака =, аргументы разделяются точкой с запятой «;», диапазон пишется через двоеточие.";
+function genChooseTable(id){
+  const f = FN(id || pick(Object.keys(CH_TABLE))), t = CH_TABLE[f.id]();
+  const grid = gridHTML(t.cols, t.rows, a => a === t.target ? {h: "?", c: "dst"} : dataCell(t.data[a]));
+  const opts = shuffle([t.ok, ...t.wrong]);
+  return {topic: "Выбор формулы", kind: "opt", q: `${hl(t.text)}<div class="gwrap">${grid}</div>Какую формулу ввести в ${ad(t.target)}?`,
+    opts: opts.map(o => `<span class="mono">${esc(o)}</span>`), correct: opts.indexOf(t.ok),
+    explain: `Функция <b>${f.ru}</b> ${f.what}. ${WHY}`};
+}
+/* Выбор формулы — только текст */
+const CH_TEXT = {
+  SUM: () => { const r1 = rnd(2, 3), r2 = r1 + rnd(4, 6); return {d: `В B${r2 + 1} найдите сумму чисел в ячейках с B${r1} по B${r2}.`, ok: `=СУММ(B${r1}:B${r2})`, wrong: [`=СУММ(B${r1};B${r2})`, `=СУММ(B${r1}:B${r2 - 1})`, `СУММ(B${r1}:B${r2})`]}; },
+  SUMIF: () => { const n = rnd(7, 12); return {d: `В A2:A${n} записаны названия фруктов, в B2:B${n} — их масса, в D2 — слово «Яблоко». В E2 найдите общую массу яблок.`,
+      ok: `=СУММЕСЛИ(A2:A${n};D2;B2:B${n})`, wrong: [`=СУММЕСЛИ(B2:B${n};D2;A2:A${n})`, `=СУММ(B2:B${n})`, `=СУММЕСЛИ(A2:A${n};B2:B${n};D2)`]}; },
+  PRODUCT: () => { const r = rnd(2, 9); return {d: `В D${r} найдите произведение чисел из ячеек A${r}, B${r} и C${r}.`, ok: `=ПРОИЗВЕД(A${r}:C${r})`, wrong: [`=СУММ(A${r}:C${r})`, `=ПРОИЗВЕД(A${r};C${r})`, `=СТЕПЕНЬ(A${r}:C${r})`]}; },
+  ABS: () => { const r = rnd(2, 9); return {d: `В C${r} запишите число из A${r} без знака «минус».`, ok: `=ABS(A${r})`, wrong: [`=ABS(C${r})`, `=ЦЕЛОЕ(A${r})`, `ABS(A${r})`]}; },
+  SQRT: () => { const r = rnd(2, 9); return {d: `В B${r} найдите квадратный корень из числа в ячейке A${r}.`, ok: `=КОРЕНЬ(A${r})`, wrong: [`=СТЕПЕНЬ(A${r};2)`, `=КОРЕНЬ(A${r};2)`, `=КОРЕНЬ(B${r})`]}; },
+  POWER: () => { const r = rnd(2, 9), n = pick([2, 3]); return {d: `В B${r} возведите число из A${r} в степень ${n}.`, ok: `=СТЕПЕНЬ(A${r};${n})`, wrong: [`=СТЕПЕНЬ(${n};A${r})`, `=СТЕПЕНЬ(A${r},${n})`, `=ПРОИЗВЕД(A${r};${n})`]}; },
+  ROUND: () => { const r = rnd(2, 9), d = rnd(0, 2), w = ["до <u><b>целого числа</b></u>", "до <u><b>одного знака</b></u> после запятой", "до <u><b>двух знаков</b></u> после запятой"][d], o = (d + 1) % 3;
+    return {d: `В C${r} округлите число из A${r} ${w}.`, ok: `=ОКРУГЛ(A${r};${d})`, wrong: [`=ОКРУГЛ(${d};A${r})`, `=ОКРУГЛ(A${r};${o})`, `=ЦЕЛОЕ(A${r})`]}; },
+  INT: () => { const r = rnd(2, 9); return {d: `В B${r} оставьте только целую часть числа из A${r}.`, ok: `=ЦЕЛОЕ(A${r})`, wrong: [`=ОСТАТ(A${r};1)`, `=ЦЕЛОЕ(B${r})`, `=ОКРУГЛ(A${r};1)`]}; },
+  MOD: () => { const r = rnd(2, 9); return {d: `В C${r} найдите остаток от деления числа из A${r} на число из B${r}.`, ok: `=ОСТАТ(A${r};B${r})`, wrong: [`=ОСТАТ(B${r};A${r})`, `=ЦЕЛОЕ(A${r}/B${r})`, `=ОСТАТ(A${r}:B${r})`]}; }
+};
+function genChooseText(id){
+  const f = FN(id || pick(Object.keys(CH_TEXT))), t = CH_TEXT[f.id](), opts = shuffle([t.ok, ...t.wrong]);
+  return {topic: "Выбор формулы", kind: "opt", q: `${hl(t.d)}<br>Какая формула записана правильно?`,
+    opts: opts.map(o => `<span class="mono">${esc(o)}</span>`), correct: opts.indexOf(t.ok),
+    explain: `Функция <b>${f.ru}</b> ${f.what}. ${WHY}`};
+}
+/* Результат функции — всегда с таблицей */
+function roundTask(){ for (;;){ const X = rnd(1000, 9999), d = rnd(0, 2), div = Math.pow(10, 3 - d); if (X % div * 2 === div) continue; return {x: X / 1000, d, ans: Math.round(X / div) * div / 1000}; } }
+const CALC = {
+  SUM: () => { const d = {A1: "Числа", C1: "Ответ"}; for (let r = 2; r <= 7; r++) d["A" + r] = rnd(2, 25);
+    const i = rnd(2, 4), j = rnd(i + 2, 7), cells = rangeList("A" + i, "A" + j), s = cells.reduce((a, c) => a + d[c], 0);
+    return {cols: 3, rows: 7, data: d, target: "C2", f: `=СУММ(A${i}:A${j})`, ans: s, ex: `Диапазон A${i}:A${j} — ячейки с A${i} по A${j}: ${cells.map(c => d[c]).join(" + ")} = ${s}`}; },
+  PRODUCT: () => { const v = [rnd(2, 6), rnd(2, 5), rnd(2, 5)]; return {cols: 5, rows: 2, data: {A1: "Длина", B1: "Ширина", C1: "Высота", A2: v[0], B2: v[1], C2: v[2], E1: "Ответ"}, target: "E2", f: "=ПРОИЗВЕД(A2:C2)", ans: v[0] * v[1] * v[2], ex: `${v.join(" · ")} = ${v[0] * v[1] * v[2]}`}; },
+  ABS: () => { const v = -rnd(3, 40); return {cols: 3, rows: 2, data: {A1: "Число", A2: v, C1: "Ответ"}, target: "C2", f: "=ABS(A2)", ans: -v, ex: `ABS убирает знак «минус»: ${fmt(v)} → ${-v}`}; },
+  SQRT: () => { const s = rnd(2, 12); return {cols: 3, rows: 2, data: {A1: "Число", A2: s * s, C1: "Ответ"}, target: "C2", f: "=КОРЕНЬ(A2)", ans: s, ex: `${s} · ${s} = ${s * s}, значит корень из ${s * s} равен ${s}`}; },
+  POWER: () => { const a = rnd(2, 5), n = a > 3 ? 2 : rnd(2, 3); return {cols: 4, rows: 2, data: {A1: "Число", B1: "Степень", A2: a, B2: n, D1: "Ответ"}, target: "D2", f: "=СТЕПЕНЬ(A2;B2)", ans: a ** n, ex: `${a} в степени ${n}: ${Array(n).fill(a).join(" · ")} = ${a ** n}`}; },
+  ROUND: () => { const t = roundTask(); return {cols: 3, rows: 2, data: {A1: "Число", A2: t.x, C1: "Ответ"}, target: "C2", f: `=ОКРУГЛ(A2;${t.d})`, ans: t.ans,
+      ex: `${fmt(t.x)} округляем ${["до целого числа", "до одного знака после запятой", "до двух знаков после запятой"][t.d]}: ${fmt(t.ans)}`}; },
+  INT: () => { const v = Math.round((rnd(10, 999) / 10 + rnd(1, 9) / 100) * 100) / 100; return {cols: 3, rows: 2, data: {A1: "Число", A2: v, C1: "Ответ"}, target: "C2", f: "=ЦЕЛОЕ(A2)", ans: Math.floor(v), ex: `Отбрасываем дробную часть: ${fmt(v)} → ${Math.floor(v)}`}; },
+  MOD: () => { const b = rnd(3, 9), a = b * rnd(2, 9) + rnd(0, b - 1), q = Math.floor(a / b); return {cols: 4, rows: 2, data: {A1: "Число", B1: "Делитель", A2: a, B2: b, D1: "Ответ"}, target: "D2", f: "=ОСТАТ(A2;B2)", ans: a % b,
+      ex: `${a} делим на ${b}: целых ${q} (${q} · ${b} = ${q * b}), остаток ${a} − ${q * b} = ${a % b}`}; },
+  SUMIF: () => { const cls = ["8А", "8Б", "8В"], d = {A1: "Класс", B1: "Собрали, кг", D1: "Ответ"}, n = 7;
+    for (let r = 2; r <= n; r++){ d["A" + r] = pick(cls); d["B" + r] = rnd(3, 18); }
+    const rows = Array.from({length: n - 1}, (_, i) => i + 2);
+    if (Math.random() < .55){ const k = pick(cls), m = rows.filter(r => d["A" + r] === k), s = m.reduce((a, r) => a + d["B" + r], 0);
+      return {cols: 4, rows: n, data: d, target: "D2", f: `=СУММЕСЛИ(A2:A${n};"${k}";B2:B${n})`, ans: s, ex: `Ищем «${k}» в A2:A${n} и складываем числа из тех же строк: ${m.length ? m.map(r => d["B" + r]).join(" + ") : "таких нет —"} ${m.length ? "= " : ""}${s}`}; }
+    const lim = pick([8, 10, 12]), m = rows.filter(r => d["B" + r] > lim), s = m.reduce((a, r) => a + d["B" + r], 0);
+    return {cols: 4, rows: n, data: d, target: "D2", f: `=СУММЕСЛИ(B2:B${n};">${lim}")`, ans: s, ex: `Складываем только числа больше ${lim}: ${m.length ? m.map(r => d["B" + r]).join(" + ") + " = " + s : "таких нет — 0"}`}; }
+};
+function genCalc(id){
+  const f = FN(id || pick(Object.keys(CALC))), t = CALC[f.id]();
+  const grid = gridHTML(t.cols, t.rows, a => a === t.target ? {h: "?", c: "dst"} : dataCell(t.data[a]));
+  return {topic: "Результат функции", kind: "num", q: `В ячейку ${ad(t.target)} ввели формулу ${fm(t.f)}. Какое число появится в ${ad(t.target)}?<div class="gwrap">${grid}</div>`,
+    ans: t.ans, explain: hl(t.ex) + "."};
+}
+
+/* ===================== Наборы заданий ===================== */
+const GROUPS = {
+  addr: () => { const k = shuffle(["rel", "abs", "mix"]);
+    return [{name: "Вид адреса", items: [genType(k[0]), genChange(), genType(k[1]), genChange()]},
+            {name: "Копирование формулы", items: [genCopy(), genValue(), genCopy(), genValue(), genCopy()]}]; },
+  func: () => { const a = shuffle(Object.keys(CH_TABLE)), b = shuffle(Object.keys(CH_TEXT).filter(x => !a.slice(0, 3).includes(x))), c = shuffle(Object.keys(CALC).filter(x => x !== "SUMIF"));
+    return [{name: "Выбор формулы", items: [genChooseTable(a[0]), genChooseTable(a[1]), genChooseTable(a[2]), genChooseText(b[0]), genChooseText(b[1])]},
+            {name: "Результат функции", items: [genCalc(c[0]), genCalc(c[1]), genCalc(c[2]), genCalc(c[3]), genCalc("SUMIF")]}]; }
+};
+function controlSet(){
+  const a = shuffle(Object.keys(CH_TABLE)), b = shuffle(Object.keys(CH_TEXT).filter(x => !a.slice(0, 2).includes(x))), c = shuffle(Object.keys(CALC).filter(x => !a.slice(0, 2).includes(x) && x !== b[0]));
+  return [genType(), genChange(), genCopy(), genCopy(), genValue(),
+          genChooseTable(a[0]), genChooseTable(a[1]), genChooseText(b[0]), genCalc(c[0]), genCalc(c[1])];
+}
+/* ===================== Показ задания ===================== */
+function isRight(it, a){
+  if (a === undefined || a === null) return false;
+  if (it.kind === "opt") return a === it.correct;
+  const v = parseNum(a); return v !== null && near(v, it.ans);
+}
+const hasAnswer = (it, a) => a !== undefined && a !== null && (it.kind !== "num" || String(a).trim() !== "");
+const answerText = (it, a) => !hasAnswer(it, a) ? "нет ответа" : it.kind === "opt" ? strip(it.opts[a]) : String(a);
+const rightText = it => it.kind === "opt" ? strip(it.opts[it.correct]) : fmt(it.ans);
+/* show: true — показать правильность и пояснение */
+function renderItem(box, it, st, onChange, show){
+  let h = `<div class="qtext">${it.q}</div>`;
+  if (it.kind === "opt") h += `<div class="opts">${it.opts.map((o, i) => {
+      let c = st.a === i ? "sel" : ""; if (show){ if (i === it.correct) c += " right"; else if (st.a === i) c += " wrong"; }
+      return `<button class="opt ${c}" data-o="${i}" ${show ? "disabled" : ""}>${o}</button>`; }).join("")}</div>`;
+  else h += `<div class="row"><b>Ответ:</b><input class="numin" inputmode="decimal" autocomplete="off" value="${esc(st.a ?? "")}" ${show ? "disabled" : ""}></div><div class="muted" style="font-size:17px">Дробную часть пишите через запятую: 4,7</div>`;
+  h += `<div data-act></div>`;
+  if (show){ const ok = isRight(it, st.a);
+    h += `<div class="fb ${ok ? "ok" : "no"}"><b>${ok ? "Верно!" : hasAnswer(it, st.a) ? "Неверно." : "Нет ответа."}</b>${ok ? "" : ` Правильный ответ: <span class="mono">${esc(rightText(it))}</span>.`}<div>${it.explain}</div></div>`; }
+  box.innerHTML = h;
+  if (show) return;
+  if (it.kind === "opt") box.querySelectorAll("[data-o]").forEach(b => b.onclick = () => { st.a = +b.dataset.o; onChange && onChange(); renderItem(box, it, st, onChange); });
+  else { const inp = box.querySelector(".numin"); inp.oninput = () => { st.a = inp.value; onChange && onChange(); }; }
+}
+
+/* ===================== Тренировка: проверка сразу после каждого задания ===================== */
+const TR = {addr: null, func: null};
+const HIST = {addr: [], func: []};
+function newTrain(m){
+  const groups = GROUPS[m](), items = [], grp = [];
+  groups.forEach((g, gi) => g.items.forEach(it => { items.push(it); grp.push(gi); }));
+  TR[m] = {groups, items, grp, st: items.map(() => ({a: null, checked: false})), pos: 0, done: false};
+  renderTrain(m);
+}
+function trainStats(m){
+  const T = TR[m]; if (!T) return null;
+  const ok = i => T.st[i].checked && isRight(T.items[i], T.st[i].a);
+  return {n: T.items.length, checked: T.st.filter(s => s.checked).length, good: T.items.filter((_, i) => ok(i)).length,
+    by: T.groups.map((g, gi) => { const idx = T.grp.map((x, i) => x === gi ? i : -1).filter(i => i >= 0);
+      return {name: g.name, n: idx.length, checked: idx.filter(i => T.st[i].checked).length, good: idx.filter(ok).length, idx}; })};
+}
+function renderTrain(m){
+  const T = TR[m], v = $(m + "-train"), n = T.items.length, S = trainStats(m), st = T.st[T.pos], it = T.items[T.pos];
+  const ok = i => isRight(T.items[i], T.st[i].a);
+  const mods = S.by.map(g => {
+    const pct = Math.round(g.checked / g.n * 100);
+    return `<div class="mod"><div class="mh"><span>${g.name}</span><span>${pct}%${g.checked ? ` · верно ${g.good} из ${g.checked}` : ""}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="dots">${g.idx.map(i => `<button class="${T.st[i].checked ? (ok(i) ? "ok" : "no") : ""} ${i === T.pos ? "cur" : ""}" data-d="${i}">${i + 1}</button>`).join("")}</div></div>`;
+  }).join("");
+  const all = S.checked === n;
+  v.innerHTML = `<div class="card"><h2>Тренировка: ${m === "addr" ? "виды адресации" : "математические функции"}</h2>
+    <div class="mods">${mods}</div>
+    ${all ? `<div class="summary">Все задания выполнены: верно ${S.good} из ${n} (${Math.round(S.good / n * 100)}%).
+      <div class="row"><button class="btn" data-new>Новые задания</button><button class="btn alt" data-send>Отправить результаты учителю</button></div></div>` : ""}</div>
+    <div class="card"><div data-item></div>
+      <div class="nav"><button class="btn alt" data-prev ${T.pos ? "" : "disabled"}>◀ Назад</button><span class="muted">Задание ${T.pos + 1} из ${n}</span><button class="btn alt" data-nx ${T.pos < n - 1 ? "" : "disabled"}>Далее ▶</button></div></div>`;
+  const box = v.querySelector("[data-item]");
+  renderItem(box, it, st, null, st.checked);
+  const act = box.querySelector("[data-act]");
+  if (!st.checked){
+    act.innerHTML = `<div class="row"><button class="btn" data-check>Проверить</button><span class="err" data-warn></span></div>`;
+    act.querySelector("[data-check]").onclick = () => {
+      if (!hasAnswer(it, st.a)){ act.querySelector("[data-warn]").innerHTML = "<b>Сначала выберите или введите ответ.</b>"; return; }
+      st.checked = true;
+      const S2 = trainStats(m);
+      if (S2.checked === n && !T.done){ T.done = true;
+        HIST[m].push({t: new Date(), good: S2.good, n, by: S2.by.map(g => [g.name, g.good, g.n])}); }
+      renderTrain(m);
+    };
+  } else {
+    const next = T.st.findIndex((s, i) => i > T.pos && !s.checked), first = T.st.findIndex(s => !s.checked), go = next >= 0 ? next : first;
+    if (go >= 0){ act.innerHTML = `<div class="row"><button class="btn" data-go>Следующее задание ▶</button></div>`; act.querySelector("[data-go]").onclick = () => { T.pos = go; renderTrain(m); }; }
+  }
+  v.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { T.pos = +b.dataset.d; renderTrain(m); });
+  v.querySelector("[data-prev]").onclick = () => { T.pos--; renderTrain(m); };
+  v.querySelector("[data-nx]").onclick = () => { T.pos++; renderTrain(m); };
+  if (all){ v.querySelector("[data-new]").onclick = () => newTrain(m); v.querySelector("[data-send]").onclick = sendSummary; }
+}
+
+/* ===================== Контроль (общий) ===================== */
+let C = {state: "start"};
+function renderCtrl(){
+  const v = $("ctrl");
+  if (C.state === "start"){
+    v.innerHTML = `<div class="card" style="max-width:720px;margin:0 auto"><h2>Контроль: адресация и математические функции</h2>
+      <ul><li>10 заданий: 5 — виды адресации, 5 — математические функции.</li><li>За каждое верное задание — 1 балл, оценка из 10 баллов.</li>
+      <li>Задание без ответа — 0 баллов.</li><li>До завершения можно вернуться к любому заданию и изменить ответ.</li>
+      <li>После завершения результат сам отправится учителю.</li></ul>
+      <p>Перед началом заполните <b>фамилию, имя</b> и выберите <b>класс</b> вверху страницы.</p>
+      <div class="center"><button class="btn" data-start>Начать</button></div></div>`;
+    v.querySelector("[data-start]").onclick = () => {
+      const fio = $("fio").value.trim(), kl = $("klass").value;
+      if (fio.length < 3 || !kl){ say("Заполните фамилию, имя и выберите класс."); $("fio").focus(); return; }
+      say("");
+      const items = controlSet();
+      C = {state: "run", items, st: items.map(() => ({a: null})), pos: 0, fio, kl, t0: Date.now()};
+      renderCtrl();
+    };
+    return;
+  }
+  if (C.state === "run"){
+    const n = C.items.length, cnt = () => C.items.filter((it, i) => hasAnswer(it, C.st[i].a)).length;
+    const dot = i => `<button class="${hasAnswer(C.items[i], C.st[i].a) ? "done" : ""} ${i === C.pos ? "cur" : ""}" data-d="${i}">${i + 1}</button>`;
+    v.innerHTML = `<div class="card"><div class="mods">
+        <div class="mod"><div class="mh"><span>Виды адресации</span></div><div class="dots">${[0, 1, 2, 3, 4].map(dot).join("")}</div></div>
+        <div class="mod"><div class="mh"><span>Математические функции</span></div><div class="dots">${[5, 6, 7, 8, 9].map(dot).join("")}</div></div></div>
+        <div class="finbar"><span class="muted">${esc(C.fio)}, ${esc(C.kl)} · ответов: <b data-cnt>${cnt()}</b> из ${n}</span><button class="btn fin" data-fin>Завершить работу</button></div>
+        <div data-conf></div></div>
+      <div class="card"><div data-item></div>
+      <div class="nav"><button class="btn alt" data-prev ${C.pos ? "" : "disabled"}>◀ Назад</button><span class="muted">Задание ${C.pos + 1} из ${n}</span><button class="btn" data-nx ${C.pos < n - 1 ? "" : "disabled"}>Далее ▶</button></div></div>`;
+    const upd = () => { v.querySelectorAll("[data-d]").forEach(b => { const i = +b.dataset.d; b.classList.toggle("done", hasAnswer(C.items[i], C.st[i].a)); }); v.querySelector("[data-cnt]").textContent = cnt(); };
+    renderItem(v.querySelector("[data-item]"), C.items[C.pos], C.st[C.pos], upd);
+    v.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { C.pos = +b.dataset.d; renderCtrl(); });
+    v.querySelector("[data-prev]").onclick = () => { C.pos--; renderCtrl(); };
+    v.querySelector("[data-nx]").onclick = () => { C.pos++; renderCtrl(); };
+    v.querySelector("[data-fin]").onclick = () => {
+      const left = n - cnt();
+      v.querySelector("[data-conf]").innerHTML = `<div class="confirm"><b>${left ? `Без ответа: ${left} ${plural(left, "задание", "задания", "заданий")} — за них будет 0 баллов. ` : ""}Завершить работу?</b>
+        <div class="row" style="justify-content:center"><button class="btn" data-yes>Да, завершить</button><button class="btn alt" data-no>Вернуться</button></div></div>`;
+      v.querySelector("[data-yes]").onclick = () => { C.state = "done"; C.t1 = Date.now(); C.ok = C.items.map((it, i) => isRight(it, C.st[i].a)); C.score = C.ok.filter(Boolean).length; sendControl(); renderCtrl(); window.scrollTo(0, 0); };
+      v.querySelector("[data-no]").onclick = () => v.querySelector("[data-conf]").innerHTML = "";
+    };
+    return;
+  }
+  const sec = Math.round((C.t1 - C.t0) / 1000);
+  v.innerHTML = `<div class="card" style="max-width:860px;margin:0 auto"><h2 class="center">${esc(C.fio)}, ${esc(C.kl)}</h2>
+    <div class="score">${C.score}<small> / 10</small></div><p class="center muted">Время: ${Math.floor(sec / 60)} мин ${sec % 60} с</p>
+    <div class="rrows">${C.items.map((it, i) => `<div class="rr ${C.ok[i] ? "ok" : "no"}"><span>${i + 1}. ${esc(it.topic)}</span><b>${C.ok[i] ? "верно" : "неверно"}</b></div>`).join("")}</div>
+    <div class="row" style="justify-content:center"><button class="btn alt" data-rev>Посмотреть ошибки</button><button class="btn alt" data-save>Сохранить в файл (.txt)</button><button class="btn alt" data-again>Пройти ещё раз</button></div>
+    <div data-review></div></div>`;
+  v.querySelector("[data-save]").onclick = saveTxt;
+  v.querySelector("[data-again]").onclick = () => { C = {state: "start"}; renderCtrl(); };
+  v.querySelector("[data-rev]").onclick = () => {
+    const box = v.querySelector("[data-review]"); box.innerHTML = "";
+    C.items.forEach((it, i) => { if (C.ok[i]) return; const d = document.createElement("div"); d.className = "card"; d.style.marginTop = "10px"; box.appendChild(d);
+      renderItem(d, it, C.st[i], null, true); d.insertAdjacentHTML("afterbegin", `<div class="muted">${i + 1}. ${esc(it.topic)}</div>`); });
+    if (!box.innerHTML) box.innerHTML = `<p class="center"><b>Ошибок нет — отлично!</b></p>`;
+  };
+}
+
+/* ===================== Отправка учителю (Google-таблица) ===================== */
+const SENDCFG = /^https:\/\//.test(GOOGLE_SHEET_URL);
+const SEND = {queue: [], busy: false, timer: null};
+try { SEND.queue = JSON.parse(localStorage.getItem("xl8_queue") || "[]"); } catch(e){}
+const saveQ = () => { try { localStorage.setItem("xl8_queue", JSON.stringify(SEND.queue)); } catch(e){} };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function setSend(cls, txt){ const e = $("sendSt"); e.className = "sendst " + cls; e.textContent = txt; }
+function enqueue(rec){
+  rec.id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  SEND.queue.push(rec); saveQ(); pump();
+}
+async function pump(){
+  if (SEND.busy || !SEND.queue.length) return;
+  if (!SENDCFG){ setSend("bad", "Адрес таблицы учителя не указан — сохраните результаты в файл (.txt)."); return; }
+  SEND.busy = true; clearTimeout(SEND.timer);
+  const waits = [1500, 3000, 6000, 10000, 15000];
+  while (SEND.queue.length){
+    const rec = SEND.queue[0]; let ok = false;
+    for (let i = 0; i < 5 && !ok; i++){
+      setSend("", `Отправка учителю… ${i ? "(попытка " + (i + 1) + ")" : ""}`);
+      try {
+        const r = await fetch(GOOGLE_SHEET_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(rec)});
+        const j = await r.json();
+        if (j && j.ok === true) ok = true;
+      } catch(e){}
+      if (!ok && i < 4) await sleep(waits[i] + Math.random() * 1000);
+    }
+    if (!ok){ SEND.busy = false; setSend("bad", "Не удалось отправить — нет связи. Результат сохранён и отправится сам, когда появится интернет. Можно нажать «Отправить» ещё раз.");
+      SEND.timer = setTimeout(pump, 60000); return; }
+    SEND.queue.shift(); saveQ();
+  }
+  SEND.busy = false; setSend("ok", "✓ Результаты отправлены учителю");
+}
+window.addEventListener("online", pump);
+function detailCtrl(){ return C.items.map((it, i) => `${i + 1}. ${it.topic}: ${C.ok[i] ? "верно" : "неверно (ответ: " + answerText(it, C.st[i].a) + "; правильно: " + rightText(it) + ")"}`).join("\n"); }
+function sendControl(){
+  const sec = Math.round((C.t1 - C.t0) / 1000);
+  enqueue({fio: C.fio, kl: C.kl, kind: "Контроль", result: `верно ${C.score} из 10, время ${Math.floor(sec / 60)} мин ${sec % 60} с`, grade: C.score, details: detailCtrl()});
+}
+function trainText(m){
+  const S = trainStats(m), name = m === "addr" ? "Адресация" : "Функции";
+  const hist = HIST[m].map((h, i) => `попытка ${i + 1}: ${h.good} из ${h.n}`).join("; ");
+  if (!S.checked && !HIST[m].length) return null;
+  return `${name}: сейчас верно ${S.good} из ${S.checked} проверенных (всего заданий ${S.n})${hist ? "; завершённые наборы — " + hist : ""}`;
+}
+function sendSummary(){
+  const fio = $("fio").value.trim(), kl = $("klass").value;
+  if (fio.length < 3 || !kl){ say("Чтобы отправить результаты, заполните фамилию, имя и выберите класс."); $("fio").focus(); return; }
+  const parts = [trainText("addr"), trainText("func")].filter(Boolean);
+  const pending = SEND.queue.length;
+  if (!parts.length && C.state !== "done"){
+    if (pending){ pump(); return; }
+    say("Пока нечего отправлять: выполните задания тренировки или контроль."); return; }
+  say("");
+  if (parts.length) enqueue({fio, kl, kind: "Тренировка", result: parts.map(p => p.split(":")[0] + ": " + p.match(/верно \d+ из \d+/)[0]).join("; "), grade: "", details: parts.join("\n")});
+  else pump();
+}
+$("sendBtn").onclick = sendSummary;
+if (SEND.queue.length) setTimeout(pump, 1500);
+
+/* ===================== Сохранение в файл ===================== */
+function say(t){ $("msg").textContent = t; }
+function saveTxt(){
+  const fio = $("fio").value.trim() || C.fio || "", kl = $("klass").value || C.kl || "";
+  if (!fio){ say("Чтобы сохранить результаты, введите фамилию и имя."); $("fio").focus(); return; }
+  say("");
+  const now = new Date(), N = "\r\n", tm = d => d.toLocaleTimeString("ru-RU").slice(0, 5);
+  let t = `Тренажёр «Электронные таблицы: адресация и математические функции»${N}Ученик: ${fio}${N}Класс: ${kl}${N}Дата: ${now.toLocaleDateString("ru-RU")} ${tm(now)}${N}${N}`;
+  t += `===== КОНТРОЛЬ =====${N}`;
+  if (C.state === "done"){
+    const sec = Math.round((C.t1 - C.t0) / 1000);
+    t += `Оценка: ${C.score} из 10 (время ${Math.floor(sec / 60)} мин ${sec % 60} с)${N}` + detailCtrl().split("\n").map(x => "  " + x).join(N) + N;
+  } else t += (C.state === "run" ? "начат, но не завершён" : "не выполнялся") + N;
+  [["addr", "ТРЕНИРОВКА: ВИДЫ АДРЕСАЦИИ"], ["func", "ТРЕНИРОВКА: МАТЕМАТИЧЕСКИЕ ФУНКЦИИ"]].forEach(([m, title]) => {
+    t += `${N}===== ${title} =====${N}`;
+    const S = trainStats(m);
+    t += `Текущий набор: проверено ${S.checked} из ${S.n}, верно ${S.good}${N}`;
+    HIST[m].forEach((h, i) => { t += `Набор ${i + 1} (${tm(h.t)}): ${h.good} из ${h.n} (${Math.round(h.good / h.n * 100)}%) — ${h.by.map(b => `${b[0]} ${b[1]}/${b[2]}`).join(", ")}${N}`; });
+  });
+  const blob = new Blob(["﻿" + t], {type: "text/plain;charset=utf-8"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `Адресация и функции — ${fio}${kl ? " " + kl : ""}.txt`.replace(/[\\/:*?"<>|]/g, "");
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ===================== Переключение ===================== */
+const UI = {m: "addr", v: "learn"};
+function show(){
+  document.querySelectorAll(".view").forEach(s => s.classList.add("hidden"));
+  $(UI.v === "ctrl" ? "ctrl" : UI.m + "-" + UI.v).classList.remove("hidden");
+  $("modTabs").classList.toggle("off", UI.v === "ctrl");
+  document.querySelectorAll("#modTabs button").forEach(b => b.classList.toggle("on", b.dataset.m === UI.m));
+  document.querySelectorAll("#viewTabs button").forEach(b => b.classList.toggle("on", b.dataset.v === UI.v));
+}
+document.querySelectorAll("#modTabs button").forEach(b => b.onclick = () => {
+  if (UI.m !== b.dataset.m){ UI.m = b.dataset.m; if (!TR[UI.m] || TR[UI.m].done) newTrain(UI.m); }
+  show(); });
+document.querySelectorAll("#viewTabs button").forEach(b => b.onclick = () => { UI.v = b.dataset.v; show(); window.scrollTo(0, 0); });
+$("saveTxt").onclick = saveTxt;
+function clearWho(){ $("fio").value = ""; $("klass").value = ""; }
+$("fio").name = "f" + Math.random().toString(36).slice(2);
+clearWho(); window.addEventListener("pageshow", clearWho);
+renderAddrLearn(); renderFuncLearn(); newTrain("addr"); newTrain("func"); renderCtrl(); show();
+</script>
+</body>
+</html>
