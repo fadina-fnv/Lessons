@@ -104,6 +104,9 @@ pre.code.example{background:#FBFBFE;border-style:dashed}
 code{font-family:var(--mono);background:#F1F2FA;padding:0 6px;border-radius:5px}
 #refModal{position:fixed;inset:0;background:rgba(46,49,80,.35);z-index:90;display:flex;justify-content:flex-end}
 #refModal .rbox{width:min(780px,100%);height:100%;overflow:auto;background:#fff;padding:18px 24px;border-left:4px solid var(--blue)}
+.fnm{color:#900090;font-family:var(--mono);font-weight:bold}
+.sq{color:#008800;font-family:var(--mono)}
+.task .val .sq{color:#0000C0}
 .hide{display:none!important}
 #guard{position:fixed;inset:0;background:rgba(226,229,248,.97);z-index:100;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
 #guard .box{background:#fff;border:3px solid var(--blue);border-radius:16px;padding:28px 36px;max-width:640px}
@@ -1529,12 +1532,22 @@ function openModule(i,fresh){
 function dotsHtml(list,i){return '<div class="prog">'+list.map((s,k)=>`<span class="dot click ${k===i?'cur':''} ${s}" data-k="${k}">${k+1}</span>`).join('')+'</div>';}
 const dotClass=t=>t.st===true?'ok':t.st===false?'bad':(t.tries>0?'try':'');
 function maxTries(t){if(t.codeTask)return Infinity;if(t.kind==='line')return 2;if(t.type==='choice')return t.options.length<=2?1:2;return 3;}
+function fmtTask(d){
+  return d.split('\n').map(line=>{
+    let h=esc(line);
+    h=h.replace(/'[^']*'/g,m=>`<span class="sq">${m}</span>`);
+    h=h.replace(/\b([A-Za-z_][A-Za-z_0-9]*)\(/g,'<span class="fnm">$1</span>(');
+    h=h.replace(/\b(find|isdigit|lower|upper|split|join|replace|count)\b(?!\(|<)/g,'<span class="fnm">$1</span>');
+    h=h.replace(/→ (.+?)(\s{2,}\(.*)?$/,(m,v,rest)=>'→ <span class="val">'+v+'</span>'+(rest||''));
+    h=h.replace(/\b(True|False)\b(?![^<]*<\/span>)/g,'<span class="val">$1</span>');
+    return h;}).join('<br>');
+}
 function taskBody(t,prefix,saved,locked){
   let h='';
   if(t.codeTask){const c=t.codeTask;
     h+=`<div class="q">${esc(c.t)}</div>
     <div class="exlabel">Образец (разберите, как он работает):</div><pre class="code example">${hl(c.ex)}</pre>
-    <div class="task">${esc(c.d).replace(/\n/g,'<br>')}</div>
+    <div class="task">${fmtTask(c.d)}</div>
     <textarea class="ed" id="${prefix}ed" spellcheck="false">${esc(t.src)}</textarea>
     <div class="row"><button class="btn sec" id="${prefix}run">▶ Запустить</button>${prefix==='t'?'<button class="btn" id="tcheck">Проверить</button>':''}</div>
     <pre class="term" id="${prefix}term">Здесь появится вывод программы. Чтобы увидеть результат, добавьте вызов, например print(${c.f}(...))</pre><div class="tests" id="${prefix}tests"></div>`;
@@ -1669,12 +1682,41 @@ L1:`<h3>Строка</h3><p>Строка — последовательност�
 <h3>Строку нельзя изменить «на месте»</h3><pre class="code">${hl("s = 'кот'\ns = 'К' + s[1:]   # Кот")}</pre>
 <h3>Цикл по строке</h3><pre class="code">${hl("for c in s:              # по символам\n    print(c)\nfor i in range(len(s)):  # по индексам\n    print(i, s[i])")}</pre>
 <h3>Свои функции</h3><pre class="code">${hl("def reverse(s):\n    return s[::-1]\n\ndef count_vowels(s):\n    k = 0\n    for c in s:\n        if c in 'аеёиоуыэюяАЕЁИОУЫЭЮЯ':\n            k = k + 1\n    return k")}</pre>`,
-L2:`<h3>Метод — вызывается через точку</h3><p>Методы не меняют строку, а возвращают новую. Результат нужно сохранить: s = s.upper()</p>
-<pre class="code">${hl("s = 'ПрИвЕт'\nprint(s.upper())          # ПРИВЕТ\nprint(s.lower())          # привет")}</pre>
-<h3>count, replace, find</h3><pre class="code">${hl("s = 'национальная'\nprint(s.count('на'))      # 3\nprint(s.replace('а', '*'))\nprint(s.find('ц'))        # 2\nprint(s.find('z'))        # -1 — не найдено")}</pre>
-<h3>split и join</h3><pre class="code">${hl("words = 'мама мыла раму'.split()\nprint(words)              # ['мама', 'мыла', 'раму']\nprint('12,5,7'.split(',')) # ['12', '5', '7']\nprint('_'.join(words))    # мама_мыла_раму")}</pre>
-<h3>isdigit</h3><pre class="code">${hl("print('2025'.isdigit())   # True\nprint('-5'.isdigit())     # False\nprint(''.isdigit())       # False")}</pre>
-<h3>Два метода подряд (цепочка)</h3><p>Сначала выполняется первый метод, потом второй — у полученной строки.</p><pre class="code">${hl("s = 'АтАкА'\nprint(s.lower())              # атака\nprint(s.lower().count('а'))   # 3")}</pre>
+L2:`<h3>Функция или метод?</h3><p><b>Функция</b> — строку передают в скобках: <code>len(s)</code>.<br><b>Метод</b> — вызывают у строки через точку: <code>s.upper()</code>.</p>
+<p class="note">Методы <b>не изменяют</b> исходную строку, а возвращают новую. Чтобы изменить строку, результат сохраняют: <code>s = s.upper()</code></p>
+<h3>Все методы урока — коротко</h3>
+<table class="res"><tr><th>Метод</th><th>Назначение</th></tr>
+<tr><td><code>s.upper()</code></td><td>копия строки, все буквы заглавные</td></tr>
+<tr><td><code>s.lower()</code></td><td>копия строки, все буквы строчные</td></tr>
+<tr><td><code>s.count(s1)</code></td><td>сколько раз подстрока s1 встречается в строке</td></tr>
+<tr><td><code>s.replace(old, new)</code></td><td>копия строки, где все old заменены на new</td></tr>
+<tr><td><code>s.find(s1)</code></td><td>индекс первого вхождения s1, а если его нет — −1</td></tr>
+<tr><td><code>s.split()</code></td><td>разбивает строку на части, результат — список строк</td></tr>
+<tr><td><code>r.join(список)</code></td><td>склеивает список строк в одну строку через разделитель r</td></tr>
+<tr><td><code>s.isdigit()</code></td><td>True, если строка непустая и состоит только из цифр</td></tr></table>
+<h3>upper() и lower() — регистр букв</h3>
+<p><b>s.upper()</b> возвращает копию строки, в которой все символы в верхнем регистре (заглавные).<br><b>s.lower()</b> возвращает копию строки, в которой все символы в нижнем регистре (строчные).</p>
+<pre class="code">${hl("s = 'ReD gReEn BLUE'\nprint(s.upper())     # RED GREEN BLUE\nprint(s.lower())     # red green blue")}</pre>
+<h3>count() — сколько раз встречается</h3>
+<p><b>s.count(s1)</b> определяет, сколько раз подстрока s1 встречается в строке s.<br><b>s.count(s1, начало, конец)</b> считает только в части строки: от индекса «начало» до индекса «конец» (не включая его), как в срезе.</p>
+<pre class="code">${hl("s = 'национальная'\nprint(s.count('на'))          # 3\nprint(s.count('на', 0, 8))    # 2 (в s[0:8])\nprint(s.count('z'))           # 0 — не встречается")}</pre>
+<h3>replace() — замена</h3>
+<p><b>s.replace(old, new)</b> возвращает копию строки s, в которой все вхождения подстроки old заменены на new.<br>Третий аргумент — <b>сколько замен</b> сделать: <code>s.replace(old, new, 2)</code>.</p>
+<pre class="code">${hl("s = 'один два один три один четыре'\nprint(s.replace('один', '1'))\n# 1 два 1 три 1 четыре\nprint(s.replace('один', '1', 2))\n# 1 два 1 три один четыре\nprint('м а м а'.replace(' ', ''))   # мама")}</pre>
+<h3>find() — где находится</h3>
+<p><b>s.find(s1)</b> находит индекс первого вхождения подстроки s1 в строке s. Если подстроки нет, возвращает <b>−1</b>.</p>
+<pre class="code">${hl("s = 'foo bar foo baz foo qux'\nprint(s.find('foo'))      # 0\nprint(s.find('bar'))      # 4\nprint(s.find('qu'))       # 20\nprint(s.find('python'))   # -1 — не найдено")}</pre>
+<h3>split() — разбить на части</h3>
+<p><b>s.split()</b> разбивает строку на части по пробелам (лишние пробелы не учитываются) и возвращает <b>список строк</b>.<br><b>s.split(разделитель)</b> разбивает по указанному разделителю.</p>
+<pre class="code">${hl("fio = 'Иванов Иван Иванович'\nwords = fio.split()\nprint(words)\n# ['Иванов', 'Иван', 'Иванович']\nprint(words[1], len(words))   # Иван 3\nprint('12,5,7'.split(','))    # ['12', '5', '7']")}</pre>
+<h3>join() — склеить в строку</h3>
+<p><b>разделитель.join(список)</b> склеивает список строк в одну строку, вставляя между частями разделитель. Сначала пишут разделитель, потом .join(...). <b>split</b> разбирает строку, <b>join</b> собирает.</p>
+<pre class="code">${hl("w = ['мама', 'мыла', 'раму']\nprint(' '.join(w))      # мама мыла раму\nprint('_'.join(w))      # мама_мыла_раму\nprint('-'.join('abc'))  # a-b-c")}</pre>
+<h3>isdigit() — только цифры?</h3>
+<p><b>s.isdigit()</b> определяет, состоит ли строка только из цифр. Возвращает <b>True</b>, если строка непустая и в ней одни цифры, иначе <b>False</b>. Минус, точка и пробел — не цифры. Удобно проверять ввод перед int().</p>
+<pre class="code">${hl("print('12345'.isdigit())    # True\nprint('abc123'.isdigit())   # False\nprint(''.isdigit())         # False (пусто)\nprint('-5'.isdigit())       # False")}</pre>
+<h3>Два метода подряд (цепочка)</h3><p>Сначала выполняется первый метод, потом второй — у полученной строки.</p>
+<pre class="code">${hl("s = 'АтАкА'\nprint(s.lower())              # атака\nprint(s.lower().count('а'))   # 3")}</pre>
 <h3>Методы внутри своих функций</h3><pre class="code">${hl("def count_a(s):\n    return s.lower().count('а')\n\ndef sum_numbers(s):\n    total = 0\n    for w in s.split():\n        if w.isdigit():\n            total = total + int(w)\n    return total")}</pre>`
 };
 function openRef(L){$('#refBody').innerHTML=`<h2>Справка: ${LESSONS[L].title}</h2>${REF[L]}`;$('#refModal').classList.remove('hide');$('#refModal .rbox').scrollTop=0;}
