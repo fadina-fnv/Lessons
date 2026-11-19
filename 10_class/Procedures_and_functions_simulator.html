@@ -920,9 +920,10 @@ function buildPayload(){
   const cw=cwSummary(),hw=hwSummary(),ct=ctSummary();
   const payload={
     name:studentName.trim().replace(/\s+/g,' '),cls:studentClass,
-    m1:(learnBest('m1')||{right:0}).right,m2:(learnBest('m2')||{right:0}).right,m3:(learnBest('m3')||{right:0}).right,m4:(learnBest('m4')||{right:0}).right,
-    cw_right:cw.r,cw_total:cw.t,cw_grade:cw.any?cw.g:'',
-    hw_groups:hw.groups.map(g=>g.counted+'/'+HW_N).join('; '),hw_right:hw.r,hw_total:hw.t,hw_grade:hw.any?hw.g:'',
+    // Пустая строка = «в этот раз не выполнялось»: таблица не должна затирать прежнюю оценку
+    m1:(learnBest('m1')||{right:''}).right,m2:(learnBest('m2')||{right:''}).right,m3:(learnBest('m3')||{right:''}).right,m4:(learnBest('m4')||{right:''}).right,
+    cw_right:cw.any?cw.r:'',cw_total:cw.any?cw.t:'',cw_grade:cw.any?cw.g:'',
+    hw_groups:hw.any?hw.groups.map(g=>g.counted+'/'+HW_N).join('; '):'',hw_right:hw.any?hw.r:'',hw_total:hw.any?hw.t:'',hw_grade:hw.any?hw.g:'',
     ct_m1:ct.per.m1?ct.per.m1.right+'/'+ct.per.m1.total:'',ct_m2:ct.per.m2?ct.per.m2.right+'/'+ct.per.m2.total:'',ct_m3:ct.per.m3?ct.per.m3.right+'/'+ct.per.m3.total:'',ct_m4:ct.per.m4?ct.per.m4.right+'/'+ct.per.m4.total:'',ct_m5:ct.per.m5?ct.per.m5.right+'/'+ct.per.m5.total:'',
     ct_right:ct.t?ct.r:'',ct_total:ct.t||'',ct_grade:ct.g===null?'':ct.g,
     programs:[]
