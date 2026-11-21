@@ -3,7 +3,7 @@
 <head>
 <script>
 /* GOOGLE_SHEET_URL — адрес веб-приложения Google Apps Script (вставить между кавычками) */
-const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzgH5qi-zKRKq_LXr52kJk6k9eHT3YsTvuMTC_KT1MojXAOuhkSz0hEoBmlN64fMOzGog/exec';
+const GOOGLE_SHEET_URL = '';
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -77,6 +77,23 @@ table.tt td.empty{background:#f1f5f9;color:#b6c2d2}
 table.tt td.res,table.tt th.res{background:#f5f3ff}
 table.tt td.sep,table.tt th.sep{border-left:4px solid #7c9cc9}
 .small{font-size:17px;color:var(--muted)}
+.b2{color:#1d4ed8;font-weight:bold}
+.pn{color:#ea580c;font-weight:bold}
+.rowsbox{border:3px solid #93c5fd;border-radius:16px;background:#f8fbff;padding:12px 16px;margin:10px 0}
+.formula{font-size:40px;text-align:center;margin:4px 0 10px;font-family:"Times New Roman",serif}
+.formula .b2{font-size:56px}
+.formula .pn{font-size:34px}
+.legend2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.legend2 div{border-radius:12px;padding:8px 12px;font-size:19px}
+.legend2 .lb{background:#dbeafe;border:2px solid #1d4ed8}
+.legend2 .ln{background:#ffedd5;border:2px solid #ea580c}
+.rowsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;align-items:start}
+.rowsgrid .hcard{font-size:19px}
+.rowsgrid table.tt{font-size:18px;margin:6px auto}
+.rowsgrid table.tt th,.rowsgrid table.tt td{padding:1px 6px;min-width:30px}
+.rowsgrid table.tt th{color:#ea580c;font-weight:bold}
+.rowsgrid table.tt td{color:#1d4ed8}
+@media (max-width:600px){.legend2{grid-template-columns:1fr}}
 .qtitle{font-size:20px;margin-bottom:6px}
 .eqpair{font-size:28px;display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
 .eqpair .and{font-size:20px;color:var(--muted)}
@@ -151,7 +168,7 @@ const CONTROL_PLAN=[
  {id:'frame',opt:{n:2,c:1},pts:4},
  {id:'fill',opt:{n:3,c:1},pts:4},
  {id:'full',opt:{n:3},pts:6},
- {id:'work',opt:{c:4},pts:4}
+ {id:'work',opt:{c:2,n:2,short:true,types:['count','equiv']},pts:4}   // 2 вопроса по 2 балла, короткие выражения
 ];
 
 /* ===== утилиты ===== */
@@ -397,15 +414,15 @@ const MODULES=[
  instr:()=>'Ответьте на вопросы. Для ответа постройте таблицы истинности в тетради',
  sub:()=>'Равносильные выражения — выражения, у которых совпадают таблицы истинности',
  gen(o={}){
-  const c=o.c||4;const types=shuffle(['count','choose','equiv',pick(['count','choose','equiv'])]);while(types.length<c)types.push(pick(['count','choose','equiv']));
+  const c=o.c||4;const types=o.types?shuffle(o.types.slice()):shuffle(['count','choose','equiv',pick(['count','choose','equiv'])]);while(types.length<c)types.push(pick(['count','choose','equiv']));
   return {items:types.slice(0,c).map(tp=>{
-   if(tp==='count'){const t=genN(o.n||levelN());return {tp,t,correct:vec(t.e,t.vars).split('').filter(x=>x==='1').length};}
+   if(tp==='count'){const n=o.n||levelN(),t=o.short?genT(n,2,2):genN(n);return {tp,t,correct:vec(t.e,t.vars).split('').filter(x=>x==='1').length};}
    if(tp==='choose'){
     const n=o.n||levelN(),t=genN(n),opts=[t],vs=new Set([vec(t.e,t.vars)]);let g=0;
     while(opts.length<3&&g++<500){const d=genT(n,...opsRange(n),t.nota);if(!d)continue;const v=vec(d.e,d.vars);if(vs.has(v))continue;vs.add(v);opts.push(d);}
     return {tp,t,opts:shuffle(opts),correct:t.str};
    }
-   const [s1,s2]=pick(EQ_PAIRS),nota=makeNota();
+   const [s1,s2]=pick(o.short?EQ_PAIRS.filter(([a,b])=>a.length<=7&&b.length<=7&&a.length+b.length<=12):EQ_PAIRS),nota=makeNota();
    const perm=shuffle(VARS.slice());const map={A:perm[0],B:perm[1],C:perm[2]};
    const e1=renameVars(parse(s1),map),e2=renameVars(parse(s2),map);assignIds(e1,nota.ov);assignIds(e2,nota.ov);
    if(Math.random()<0.5){const sw=[e1,e2];return mkEq(sw[1],sw[0],nota);}
@@ -612,6 +629,19 @@ function exportTraining(){
  download(lines.join('\r\n'),fname('тренировка'));
 }
 /* ===== справка ===== */
+/* наглядно: основание 2 — два значения (0 и 1), показатель — число переменных */
+function rowsBox(){
+ const mini=n=>{const vs=['A','B','C'].slice(0,n),E=envs(vs);
+  return '<table class="tt"><tr>'+vs.map(v=>`<th>${v}</th>`).join('')+'</tr>'+E.map(en=>'<tr>'+vs.map(v=>`<td>${en[v]}</td>`).join('')+'</tr>').join('')+'</table>';};
+ const card=(n,mult)=>`<div class="hcard"><b>${n} ${n===1?'переменная':(n<5?'переменные':'переменных')}</b><br><span class="b2">2</span><sup class="pn">${n}</sup> = ${mult} = <b>${1<<n}</b> ${(1<<n)<5?'строки':'строк'}${n<=3?mini(n):'<div class="small" style="margin-top:8px">таблица из 16 строк: каждая новая переменная <b>удваивает</b> число строк</div>'}</div>`;
+ return '<div class="rowsbox">'+
+  '<div class="formula">Количество строк = <span class="b2">2</span><sup class="pn">n</sup></div>'+
+  '<div class="legend2"><div class="lb"><span class="b2">2</span> — <b>основание</b>. Оно всегда равно 2, потому что у каждой переменной только <b>два значения: <span class="b2">0</span> и <span class="b2">1</span></b>.</div>'+
+  '<div class="ln"><span class="pn">n</span> — <b>показатель степени</b>. Это <b>количество разных переменных</b> в выражении (<span class="pn">A</span>, <span class="pn">B</span>, <span class="pn">C</span>…). Каждую переменную считаем <b>один раз</b>, даже если она встречается в выражении несколько раз.</div></div>'+
+  '<div class="rowsgrid">'+card(1,'<span class="b2">2</span>')+card(2,'<span class="b2">2</span> · <span class="b2">2</span>')+card(3,'<span class="b2">2</span> · <span class="b2">2</span> · <span class="b2">2</span>')+card(4,'<span class="b2">2</span> · <span class="b2">2</span> · <span class="b2">2</span> · <span class="b2">2</span>')+'</div>'+
+  '<p style="margin:10px 0 0">Пример: в выражении <span class="f">(<span class="pn">A</span> ∨ <span class="pn">B</span>) ∧ ¬<span class="pn">A</span></span> разных переменных <span class="pn">2</span> (A встречается дважды, но считается один раз), значит строк <span class="b2">2</span><sup class="pn">2</sup> = 4.</p>'+
+  '</div>';
+}
 function buildHelp(){
  const ex=parse('¬A∧(B∨C)');assignIds(ex,0);const nt={s:NOTA_STD};const cols=analyze(ex,nt);const vars=['A','B','C'],E=envs(vars);
  const exTable='<table class="tt"><tr>'+vars.map(v=>`<th class="var">${v}</th>`).join('')+cols.map((c,i)=>`<th class="${i===0?'sep ':''}${i===cols.length-1?'res':''}">${c.html}</th>`).join('')+'</tr>'+
@@ -623,17 +653,17 @@ function buildHelp(){
  $('#hbox').innerHTML='<button class="btn sec hclose" onclick="closeHelp()">Закрыть ✕</button><h2>Справка: построение таблиц истинности</h2>'+
  '<p><b>Таблица истинности</b> — это таблица, в левой части которой записываются все наборы значений переменных, а в правой — соответствующие значения логического выражения (и промежуточных операций).</p>'+
  '<h3>Алгоритм построения</h3><ol>'+
- '<li>Определить количество переменных <i>n</i>.</li>'+
+ '<li>Определить количество переменных <span class="pn"><i>n</i></span>.</li>'+
  '<li>Определить количество логических операций и порядок их выполнения.</li>'+
  '<li>Количество столбцов = количество переменных + количество операций.</li>'+
- '<li>Количество строк = 2<sup><i>n</i></sup> — это количество наборов значений переменных (строку заголовка в это число не включаем).</li>'+
+ '<li>Количество строк = <span class="b2">2</span><sup class="pn"><i>n</i></sup> — это количество наборов значений переменных (строку заголовка в это число не включаем). Подробнее — ниже, в рамке.</li>'+
  '<li>Заполнить наборы значений переменных в порядке двоичного счёта.</li>'+
  '<li>Заполнить столбцы операций в порядке их выполнения, пользуясь таблицами истинности основных операций.</li></ol>'+
- '<h3>Как не пропустить ни одного набора</h3><p>Наборы — это числа 0, 1, 2, 3, … записанные в двоичной системе счисления. Для двух переменных: 00, 01, 10, 11 (числа 0–3). Для трёх переменных: 000, 001, 010, 011, 100, 101, 110, 111 (числа 0–7).</p>'+
+ '<h3>Сколько строк (наборов) в таблице</h3>'+rowsBox()+'<h3>Как не пропустить ни одного набора</h3><p>Наборы — это числа 0, 1, 2, 3, … записанные в двоичной системе счисления. Для двух переменных: 00, 01, 10, 11 (числа 0–3). Для трёх переменных: 000, 001, 010, 011, 100, 101, 110, 111 (числа 0–7).</p>'+
  '<p>Подсказка: в последнем столбце переменных значения чередуются через одно (0, 1, 0, 1…), в предпоследнем — через два (0, 0, 1, 1…), в первом из трёх — через четыре.</p>'+
  '<p>Наборы можно записать и в другом порядке — главное, чтобы были все наборы и ни один не повторялся. Но двоичный счёт помогает не ошибиться.</p>'+
  '<h3>Пример: F = <span class="f">¬A ∧ (B ∨ C)</span></h3>'+
- '<p>Переменные: A, B, C — всего 3. Операции: ¬A, B ∨ C, ¬A ∧ (B ∨ C) — всего 3. Столбцов: 3 + 3 = 6. Строк (наборов): 2<sup>3</sup> = 8.</p><div class="twrap">'+exTable+'</div>'+
+ '<p>Переменные: A, B, C — всего 3. Операции: ¬A, B ∨ C, ¬A ∧ (B ∨ C) — всего 3. Столбцов: 3 + 3 = 6. Строк (наборов): <span class="b2">2</span><sup class="pn">3</sup> = 8.</p><div class="twrap">'+exTable+'</div>'+
  '<h3>Порядок выполнения операций</h3><ol><li>действия в скобках;</li><li>инверсия <span class="f">¬</span>;</li><li>конъюнкция <span class="f">∧</span>;</li><li>дизъюнкция <span class="f">∨</span> и исключающее ИЛИ <span class="f">⊕</span>;</li><li>импликация <span class="f">→</span>;</li><li>эквивалентность <span class="f">↔</span>.</li></ol>'+
  '<h3>Обозначения операций</h3><p>В заданиях чаще всего используется основная запись, но иногда встречаются и другие — их тоже надо узнавать.</p>'+
  '<table class="nota f"><tr><th>Операция</th><th>Основная запись</th><th>Другие записи</th></tr>'+
