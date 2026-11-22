@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script>
+/* ============ НАСТРОЙКА (для учителя) ============
+   GOOGLE_SHEET_URL — ссылка веб-приложения Google Apps Script (та же, что в контроле).
+   Сюда отправляются результаты урока (лист «Урок Логические элементы»)
+   и лучшая попытка блиц-опроса (лист «Блиц логические элементы»). */
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbzzLbfwWiQpzyhJS0ddJEq0kpOSTgM6Ekh8iswtZQ9WM_pp08s3rCifb2hv8RaqzbVa/exec";
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Логические элементы компьютера</title>
+<style>
+  :root{
+    --bg:#f2f6fc; --card:#ffffff; --head:#dbe8fa; --line:#c7d6ee; --accent:#2b67c9; --accent2:#e9f1ff;
+    --ok:#22924d; --okbg:#e3f6ea; --bad:#e58a1f; --badbg:#fff1df; --wire:#8c97ab; --on:#16a34a; --text:#1f2a3d;
+    --gate:#fff3b8; --gatestroke:#5a4a00;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Times New Roman",Times,serif;font-size:20px;line-height:1.4}
+  header{background:var(--head);border-bottom:2px solid var(--line);padding:10px 16px;position:sticky;top:0;z-index:5}
+  .hrow{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+  h1{margin:0;font-size:28px;color:#1d4f9e}
+  .who label{font-size:19px;margin-right:6px}
+  .who input,.who select{font-family:inherit;font-size:19px;padding:5px 8px;border:2px solid #a9bfe3;border-radius:8px;background:#fff}
+  .who input{width:220px}
+  .spacer{flex:1}
+  .notation{font-size:18px;display:flex;gap:6px;align-items:center}
+  .notation button{padding:5px 10px;font-size:18px}
+  nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  nav button{font-size:18px}
+  button{font-family:inherit;font-size:19px;padding:7px 14px;border-radius:10px;border:2px solid #9db6e0;background:#fff;color:#1d4f9e;cursor:pointer}
+  button:hover{background:var(--accent2)}
+  button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.main{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.main:hover{background:#2358ad}
+  button:disabled{opacity:.45;cursor:default}
+  main{max-width:1180px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:16px 20px;margin-bottom:18px}
+  .card h2{margin:0 0 8px;color:#1d4f9e;font-size:26px}
+  .card h3{margin:6px 0;color:#1d4f9e}
+  .lead{font-size:21px}
+  .rule{background:#fffbe6;border-left:6px solid #f2c200;padding:8px 12px;border-radius:8px;margin:10px 0;font-size:21px}
+  .note{color:#4b5a73;font-size:18px}
+  .elem{display:grid;grid-template-columns:minmax(300px,1.3fr) minmax(220px,1fr);gap:16px;align-items:center}
+  @media(max-width:760px){.elem{grid-template-columns:1fr}}
+  .tt{border-collapse:collapse;font-size:22px;margin:0 auto}
+  .tt th,.tt td{border:2px solid #b8c9e6;padding:4px 16px;text-align:center}
+  .tt th{background:#e6eefb}
+  .tt tr.row{cursor:pointer}
+  .tt tr.hl td{background:#ffe680;font-weight:bold}
+  .tt td.f1{color:var(--on);font-weight:bold}
+  .meta{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:6px}
+  .ansi{display:flex;align-items:center;gap:10px;font-size:17px;color:#4b5a73}
+  svg{overflow:visible}
+  svg text{font-family:"Times New Roman",Times,serif}
+  .w{fill:none;stroke:var(--wire);stroke-width:3}
+  .w.on{stroke:var(--on);stroke-width:4.5;stroke-dasharray:10 7;animation:flow .7s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-17}}
+  .gbox{fill:var(--gate);stroke:var(--gatestroke);stroke-width:2.2}
+  .gbox.hid{fill:#fff;stroke:#2b67c9;stroke-dasharray:6 4;cursor:pointer}
+  .gbox.hid.ok{fill:var(--okbg);stroke:var(--ok);stroke-dasharray:none}
+  .gbox.hid.bad{fill:var(--badbg);stroke:var(--bad);stroke-dasharray:none}
+  .word .gsym{font-size:18px}
+  .gsym{font-size:22px;font-weight:bold;text-anchor:middle;fill:#222;pointer-events:none}
+  .ginv{fill:#fff;stroke:var(--gatestroke);stroke-width:2.2}
+  .cell{fill:#fff;stroke:#2b67c9;stroke-width:2;cursor:pointer}
+  .cell.ok{fill:var(--okbg);stroke:var(--ok)}
+  .cell.bad{fill:var(--badbg);stroke:var(--bad)}
+  .cell.lock{cursor:default}
+  .ctext{font-size:22px;font-weight:bold;text-anchor:middle;pointer-events:none}
+  .cell.dim{opacity:.3}
+  .gbox.pickable{cursor:pointer;stroke:#2b67c9;stroke-width:3}
+  .gbox.pickable:hover{fill:#fff8d6}
+  .gbox.picked{cursor:pointer}
+  .num.badord circle{fill:#e58a1f}
+  .num circle{fill:#2b67c9}
+  .num text{fill:#fff;font-size:16px;font-weight:bold;text-anchor:middle}
+  .tt th small{display:block;font-weight:normal;font-size:17px;white-space:nowrap}
+  .lessonGrade{font-size:24px;background:#fffbe6;border:2px solid #f2c200;border-radius:12px;padding:8px 14px;display:inline-block;margin:6px 0}
+  .corr{font-size:17px;fill:var(--ok);font-weight:bold}
+  .given{font-size:20px;font-weight:bold;fill:#1d4f9e}
+  .lbl{font-size:22px;font-style:italic;font-weight:bold}
+  .sw{cursor:pointer}
+  .sw rect{fill:#e9edf5;stroke:#8c97ab;stroke-width:2}
+  .sw.on rect{fill:#c9f5d8;stroke:var(--on)}
+  .sw text{font-size:22px;font-weight:bold;text-anchor:middle}
+  .outv rect{fill:#e9edf5;stroke:#8c97ab;stroke-width:2}
+  .outv text{font-size:22px;font-weight:bold;text-anchor:middle}
+  .outv.on rect{fill:#c9f5d8;stroke:var(--on);filter:drop-shadow(0 0 6px #22c55e) drop-shadow(0 0 12px #86efac)}
+  .tasks{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .task{border:2px solid var(--line);border-radius:14px;padding:8px;text-align:center;background:#fff}
+  .task.ok{border-color:var(--ok);background:var(--okbg)}
+  .task.bad{border-color:var(--bad);background:var(--badbg)}
+  .ab{display:flex;gap:10px;justify-content:center;margin-top:4px}
+  .ab button{font-size:24px;padding:4px 22px;font-weight:bold}
+  .fb{font-size:18px;min-height:24px;margin-top:4px}
+  .fb.ok{color:var(--ok)} .fb.bad{color:#b45f00}
+  .scheme{border:2px solid var(--line);border-radius:14px;padding:10px;margin-bottom:14px;background:#fff}
+  .scheme.ok{border-color:var(--ok)} .scheme.bad{border-color:var(--bad)}
+  .scheme svg,.task svg{display:block;margin:0 auto;max-width:100%;height:auto}
+  .xo{font-family:"Cambria Math","Segoe UI Symbol","DejaVu Sans",sans-serif;font-size:.92em}
+  .srow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin-top:6px}
+  .score{font-size:20px;background:var(--accent2);border-radius:10px;padding:6px 12px;display:inline-block}
+  .two{display:grid;grid-template-columns:minmax(300px,1.4fr) minmax(200px,.8fr);gap:14px;align-items:center}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  .ttin td.ans{cursor:pointer;min-width:60px;background:#fff;font-weight:bold}
+  .ttin td.ans.ok{background:var(--okbg);color:var(--ok)}
+  .ttin td.ans.bad{background:var(--badbg);color:#b45f00}
+  .m5wrap{display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
+  .m5grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .m5side{position:sticky;top:175px;margin:0}
+  .m5side .pool{flex-direction:column;align-items:stretch}
+  .m5side .chip{text-align:center}
+  @media(max-width:860px){.m5wrap{grid-template-columns:1fr}.m5side{position:sticky;bottom:0;top:auto}.m5side .pool{flex-direction:row;flex-wrap:wrap;justify-content:center}}
+  .m5grid .scheme{margin:0}
+  .slot{min-height:46px;border:2px dashed #2b67c9;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;margin-top:6px;background:#f7faff}
+  .slot.ok{border:2px solid var(--ok);background:var(--okbg)}
+  .slot.bad{border:2px solid var(--bad);background:var(--badbg)}
+  .slot.target{background:#fff6cc}
+  .pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:12px;min-height:54px}
+  .chip{font-size:23px;padding:6px 14px;border:2px solid #2b67c9;border-radius:10px;background:#fff;color:#1d3f80;cursor:pointer;user-select:none}
+  .chip.sel{background:#ffe680;border-color:#d9a400}
+  .res td,.res th{border:2px solid #b8c9e6;padding:6px 12px;text-align:center}
+  .res{border-collapse:collapse;font-size:20px;margin:8px 0}
+  .res th{background:#e6eefb}
+  .hidden{display:none!important}
+  .demo2{display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:center}
+  .sum{font-size:26px;text-align:center}
+  .sum b{color:var(--on)}
+  .inst{font-size:19px;color:#2f3d55;margin:0 0 10px}
+
+
+  .rlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  .rtask{background:#fff;border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+  .rtask.ok{border-color:var(--ok);background:var(--okbg)}
+  .rtask.bad{border-color:var(--bad);background:var(--badbg)}
+  .qnum{font-size:16px;color:#4b5a73}
+  .qp{font-size:21px;font-weight:bold}
+  .qv{display:flex;justify-content:center;align-items:center;min-height:60px}
+  .qv svg{max-width:100%;height:auto}
+  .qtext{font-size:22px;background:#f4f8ff;border-left:5px solid #2b67c9;padding:8px 12px;border-radius:8px;width:100%}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .opt{font-size:20px;padding:8px 10px;text-align:center}
+  .opt.sel{background:#ffe680;border-color:#d9a400;color:#1f2a3d}
+  .opt.right{background:var(--okbg);border-color:var(--ok);color:var(--ok);opacity:1}
+  .opt.wrong{background:var(--badbg);border-color:var(--bad);color:#b45f00;opacity:1}
+  /* блиц */
+  .blitz{max-width:900px;margin:0 auto}
+  .bbar{height:14px;background:#e3e9f4;border-radius:8px;overflow:hidden;margin:8px 0}
+  .bbar div{height:100%;background:#2b67c9;transition:width .2s linear}
+  .bq .qp{font-size:26px} .bq .qtext{font-size:26px}
+  .bq .opt{font-size:26px;padding:14px}
+  .bigmsg{font-size:30px;text-align:center;margin:10px 0}
+  .bstart{text-align:center}
+  .bstart .main{font-size:26px;padding:12px 30px}
+  .errlist li{margin:6px 0}
+  /* клавиатура выражений и конструктор */
+  .exprline{font-size:28px;min-height:52px;border:2px solid #9db6e0;border-radius:10px;background:#fff;padding:6px 12px;display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+  .exprline .cursor{display:inline-block;width:2px;height:30px;background:#2b67c9;animation:blink 1s step-end infinite}
+  @keyframes blink{50%{opacity:0}}
+  .keys{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .keys button{font-size:24px;min-width:52px;padding:6px 10px}
+  .keys button.op{background:#fff8d6}
+  .builder{display:grid;grid-template-columns:minmax(260px,1fr) minmax(300px,1.3fr);gap:14px;align-items:start}
+  @media(max-width:760px){.builder{grid-template-columns:1fr}}
+  .elist{font-size:22px;margin:6px 0}
+  .elist div{padding:3px 0}
+  .addrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+  .addrow select{font-family:inherit;font-size:22px;padding:4px 8px;border:2px solid #9db6e0;border-radius:8px}
+  .typebtns{display:flex;flex-wrap:wrap;gap:6px}
+  .typebtns button.sel{background:#ffe680;border-color:#d9a400;color:#1f2a3d}
+  .bigexpr{font-size:28px;font-weight:bold;color:#1d3f80;margin:4px 0 8px}
+  .forest svg{display:block;margin:4px auto;max-width:100%;height:auto}
+  .steps{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+
+  .two>div{overflow-x:auto}
+  .rtask.wide{grid-column:span 2}
+  @media(max-width:760px){.rtask.wide{grid-column:auto}}
+  @media(max-width:760px){header{position:static} .m5side{position:static}}
+  .sign .gsym{font-family:"Cambria Math","Segoe UI Symbol","DejaVu Sans",sans-serif;font-size:26px}
+  .lamps{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0 10px}
+  .lampi{width:34px;height:34px;border-radius:50%;border:2px dashed #9db6e0;background:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;color:#7a8599}
+  .lampi.on{background:radial-gradient(circle at 40% 35%,#fff7b0,#ffd400 60%,#e0a800);border:2px solid #d9a400;color:#5a4a00;box-shadow:0 0 12px #ffd400}
+  .lampi.off{background:#c5cbd6;border:2px solid #8c97ab;color:#4b5a73}
+
+</style>
+
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <h1>Логические элементы компьютера</h1>
+    <span class="who"><label for="fio">Фамилия, имя:</label><input id="fio" autocomplete="off" spellcheck="false"></span>
+    <span class="who"><label for="cls">Класс:</label><select id="cls"><option value=""></option><option>9А</option><option>9Б</option><option>9В</option></select></span>
+    <span class="spacer"></span>
+    <span class="notation">Обозначения:
+      <button data-not="gost" class="active">ГОСТ (&amp;, 1, =1)</button>
+      <button data-not="word">Словами (И, ИЛИ…)</button>
+      <button data-not="sign">Знаками (∧, ∨, ¬, ⊕)</button></span>
+  </div>
+  <nav id="nav"><button data-tab="book" class="active">📖 Учебник</button><button data-tab="m1">1. Значение на выходе</button><button data-tab="m2">2. Узнай элемент</button><button data-tab="m3">3. Схемы из нескольких элементов</button><button data-tab="blitz">⚡ Блиц-опрос</button><button data-tab="res">Результаты</button></nav>
+</header>
+<main>
+<section id="book">
+  <div class="card">
+    <h2>Что такое логический элемент</h2>
+    <p class="lead"><b>Логический элемент</b> (вентиль) — это электронная схема, которая выполняет одну логическую операцию. На <b>входы</b> элемента подаются сигналы, на <b>выходе</b> получается результат.</p>
+    <p class="lead">В компьютере информация передаётся электрическими сигналами:<br>
+      <b>1</b> — есть напряжение (сигнал есть, «ток идёт»),<br>
+      <b>0</b> — напряжения нет (сигнала нет).</p>
+    <p class="lead">Логические элементы собирают из транзисторов. Процессор современного компьютера содержит миллиарды транзисторов: из логических элементов построены его узлы — сумматоры, регистры, память.</p>
+    <p class="lead">Основные элементы: <b>И</b> (конъюнктор), <b>ИЛИ</b> (дизъюнктор), <b>НЕ</b> (инвертор) и <b>исключающее ИЛИ</b> (XOR). Каждый элемент работает по таблице истинности своей логической операции.</p>
+    <div class="rule">Как читать схему: сигнал идёт <b>слева направо</b> — от входов к выходу. По ГОСТ 2.743-91 элемент рисуют прямоугольником, внутри — символ операции: «&amp;» — И, «1» — ИЛИ, «=1» — исключающее ИЛИ. <b>Кружок на выходе</b> означает инверсию (НЕ).</div>
+    <p class="note">В учебных схемах внутри элемента иногда пишут название («И», «ИЛИ») или знак операции (∧, ∨, ¬, <span class="xo">⊕</span>). Это упрощённая запись того же элемента. Переключайте вид кнопками «Обозначения» вверху страницы.</p>
+    <p class="note">Ниже нажимайте на входы элементов (кнопки 0/1) или на строки таблиц истинности. Зелёный «бегущий» провод — на нём сигнал 1, серый — сигнал 0. Если на выходе 1, окошко выхода светится.</p>
+  </div>
+  <div id="elemCards"></div>
+  <div class="card">
+    <h2>Схема из нескольких элементов</h2>
+    <p class="lead">Элементы соединяют: выход одного элемента подаётся на вход другого. Чтобы найти сигнал на выходе схемы:</p>
+    <ol class="lead">
+      <li>Начните с элементов, на входах которых уже известны сигналы, — это самые левые элементы.</li>
+      <li>Вычислите их выходы по таблице истинности и запишите значения на проводах.</li>
+      <li>Двигайтесь слева направо. Самый правый элемент выполняется последним — его выход и есть результат схемы.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="m1" class="hidden">
+  <div class="card">
+    <h2>1. Определите значение на выходе элемента</h2>
+    <p class="inst">Нажимайте на квадратик над выходом элемента — появится 0, затем 1. Заполните все элементы и нажмите «Проверить» внизу.</p>
+    <div id="m1lamps"></div>
+    <div class="srow" style="justify-content:flex-start"><span class="score" id="m1score"></span><button id="m1new">Новые задания</button></div>
+  </div>
+  <div class="tasks" id="m1tasks"></div>
+  <div class="card" style="margin-top:14px"><div class="srow"><button class="main" id="m1check">Проверить</button><span class="fb" id="m1fb"></span></div></div>
+</section>
+
+<section id="m2" class="hidden">
+  <div class="card">
+    <h2>2. Узнай элемент</h2>
+    <p class="inst">Узнайте элемент по описанию, таблице истинности или обозначению. Выберите ответ — он проверяется сразу. В задании «отметьте все варианты» выберите все подходящие и нажмите «Ответить».</p>
+    <div id="m2lamps"></div>
+    <div class="srow" style="justify-content:flex-start"><span class="score" id="m2score"></span><button id="m2new">Новые задания</button></div>
+  </div>
+  <div class="rlist" id="m2list"></div>
+</section>
+
+<section id="m3" class="hidden">
+  <div class="card">
+    <h2>3. Заполните пустые ячейки в схемах</h2>
+    <p class="inst">Нажимайте на квадратик — в нём появится 0, затем 1. Запишите сигнал на выходе каждого элемента, двигаясь слева направо, и нажмите «Проверить».</p>
+    <div id="m3lamps"></div>
+    <div class="srow" style="justify-content:flex-start"><span class="score" id="m3score"></span><button id="m3new">Новые задания</button></div>
+  </div>
+  <div id="m3list"></div>
+</section>
+
+<section id="blitz" class="hidden">
+  <div class="card blitz" id="blitzBox"></div>
+</section>
+
+<section id="res" class="hidden">
+  <div class="card">
+    <h2>Мои результаты</h2>
+    <div id="resTable"></div>
+    <div class="rule" style="font-size:19px"><b>Как считается оценка.</b><br>
+      • Оценка за модуль = верные ответы ÷ все задания набора × 10 (округление). Нерешённые задания считаются неверными, поэтому доделайте набор до конца.<br>
+      • Можно взять «Новые задания» и попробовать ещё раз — в модуле засчитывается <b>лучший</b> результат.<br>
+      • Блиц-опрос: оценка = число верных ответов из 10, засчитывается лучшая из трёх попыток. В блице справкой пользоваться нельзя.<br>
+      • Оценка за урок = среднее оценок за <b>четыре части</b>: три модуля и блиц. Невыполненная часть считается как 0.<br>
+      • Лампочки вверху модуля: горит — задание выполнено верно, не горит — неверно, пустая — ещё не выполнено.</div>
+    <div class="srow" style="justify-content:flex-start"><button class="main" id="bSend">📤 Отправить результаты учителю</button><button id="bExport">Сохранить в файл (.txt)</button><span class="fb" id="expMsg"></span></div>
+    <div class="fb" id="sendMsg" style="font-size:20px"></div>
+    <p class="note">После отправки результаты обновляются в таблице учителя автоматически, когда вы выполняете новые задания на этой странице. Не закрывайте страницу, пока не закончите.</p>
+  </div>
+</section>
+
+</main>
+<script>
+/* ===================== ОБЩЕЕ ===================== */
+const OPS={
+  AND:{n:2,gost:'&', word:'И',  name:'И', f:(a,b)=>a&b, sign:'∧', prec:2},
+  OR: {n:2,gost:'1', word:'ИЛИ',name:'ИЛИ', f:(a,b)=>a|b, sign:'∨', prec:1},
+  XOR:{n:2,gost:'=1',word:'XOR',name:'исключающее ИЛИ', f:(a,b)=>a^b, sign:'⊕', prec:1},
+  NOT:{n:1,gost:'1', word:'НЕ', name:'НЕ', f:a=>1-a, sign:'¬', prec:3}
+};
+const BIN=['AND','OR','XOR'];
+let NOTATION='gost';
+const R=Math.random;
+const rint=n=>Math.floor(R()*n);
+const pick=a=>a[rint(a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rint(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const $=id=>document.getElementById(id);
+const XO=str=>String(str).replace(/⊕/g,'<span class="xo">⊕</span>');
+const sym=op=>NOTATION==='gost'?OPS[op].gost:(NOTATION==='sign'?OPS[op].sign:OPS[op].word);
+const invCircle=op=>op==='NOT'&&NOTATION==='gost';
+
+/* деревья: {t:'in',name,val} | {t:'g',op,ch:[..]} */
+const L=(name)=>({t:'in',name});
+const Gt=(op,...ch)=>({t:'g',op,ch});
+function evalT(n,env){ if(n.t==='in') return env[n.name]; const v=n.ch.map(c=>evalT(c,env)); return OPS[n.op].f(...v); }
+function evalWith(n,env,types,leafv){ // для модуля 3
+  if(n.t==='in') return leafv&&leafv[n.id]!==undefined?leafv[n.id]:env[n.name];
+  const v=n.ch.map(c=>evalWith(c,env,types,leafv)); const op=(types&&types[n.id])||n.op; return OPS[op].f(...v);
+}
+function allGates(n,out=[]){ if(n.t==='g'){ n.ch.forEach(c=>allGates(c,out)); out.push(n);} return out; }
+function allLeaves(n,out=[]){ if(n.t==='in') out.push(n); else n.ch.forEach(c=>allLeaves(c,out)); return out; }
+
+/* ===================== РАСКЛАДКА И РИСОВАНИЕ СХЕМ ===================== */
+const LEAF=46, PIN=23, GW=58, COLW=150, LX=74, TOP=56;
+function layoutTree(root){
+  let row=0,id=0;
+  (function rec(n){ n.id=id++;
+    if(n.t==='in'){ n.y=TOP+row*LEAF; row++; n.depth=0; n.outY=n.y; return; }
+    n.ch.forEach(rec);
+    n.depth=1+Math.max(...n.ch.map(c=>c.depth));
+    n.cy = n.ch.length===1 ? n.ch[0].outY : (n.ch[0].outY+n.ch[1].outY)/2;
+    n.outY=n.cy;
+  })(root);
+  root.rows=row; return root;
+}
+const gLeft=c=>LX+64+(c-1)*COLW;
+function outX(n){ if(n.t==='in') return LX; return gLeft(n.depth)+GW+(invCircle(n.op)?12:0); }
+
+/* opt: {lit:env, leafMode:'label'|'value'|'switch', env, cells:{id:{v,st,corr}}, given:{id:v},
+         hid:{id:{v,st}}, hidLeaf:{id:{v,st,corr}}, outLabel, lamp, key} */
+function drawTree(root,opt){
+  const D=root.depth, endX=gLeft(D)+GW+12+(opt.lamp?110:80)+(opt.choice?14:0);
+  const H=TOP+(root.rows-1)*LEAF+50;
+  const env=opt.env||{};
+  const val=n=>evalT(n,env);
+  let s='';
+  // провода
+  (function wires(n){
+    if(n.t==='in') return;
+    n.ch.forEach((c,i)=>{
+      const pinY=n.ch.length===1?n.cy:n.cy+(i?PIN:-PIN), pinX=gLeft(n.depth);
+      const ox=outX(c), oy=c.outY; let d;
+      if(Math.abs(oy-pinY)<0.5) d=`M${ox},${oy}H${pinX}`;
+      else{ const ex=pinX-(n.ch.length===1?24:(i?18:32)); d=`M${ox},${oy}H${ex}V${pinY}H${pinX}`; }
+      const on=opt.lit&&val(c);
+      s+=`<path class="w${on?' on':''}" d="${d}"/>`;
+      wires(c);
+    });
+  })(root);
+  const rox=outX(root), rOn=opt.lit&&val(root);
+  s+=`<path class="w${rOn?' on':''}" d="M${rox},${root.outY}H${endX-(opt.lamp?40:20)}"/>`;
+  // элементы
+  for(const g of allGates(root)){
+    const h=g.ch.length===1?46:70, x=gLeft(g.depth), y=g.cy-h/2;
+    const hid=opt.hid&&opt.hid[g.id];
+    if(hid){
+      s+=`<rect class="gbox hid ${hid.st||''}" data-act="gate" data-id="${g.id}" x="${x}" y="${y}" width="${GW}" height="${h}" rx="3"/>`;
+      s+=`<text class="gsym" x="${x+GW/2}" y="${y+28}">${hid.v?sym(hid.v):'?'}</text>`;
+      if(hid.st==='bad') s+=`<text class="corr" x="${x+GW/2}" y="${y+h+18}" text-anchor="middle">${sym(hid.corr)}</text>`;
+    }else{
+      s+=`<rect class="gbox${opt.pick?(g.num?" picked":" pickable"):""}" ${opt.pick?`data-act="ord" data-id="${g.id}"`:""} x="${x}" y="${y}" width="${GW}" height="${h}" rx="2"/>`;
+      s+=`<text class="gsym" x="${x+GW/2}" y="${y+28}">${sym(g.op)}</text>`;
+      if(invCircle(g.op)) s+=`<circle class="ginv" cx="${x+GW+6}" cy="${g.cy}" r="6"/>`;
+    }
+    if(opt.nums&&g.num){ const bx=outX(g)+16, by=g.outY-20; s+=`<g class="num${opt.badIds&&opt.badIds.includes(g.id)?" badord":""}"><circle cx="${bx}" cy="${by}" r="12"/><text x="${bx}" y="${by+5.5}">${g.num}</text></g>`; }
+    const ox=outX(g);
+    if(opt.choice&&opt.choice.id===g.id){
+      const c=opt.choice;
+      [0,1].forEach((v,k)=>{ const bx=ox+6+k*40, by=g.outY-42; let cls='cell';
+        if(c.ans!==null){ cls+=' lock'; if(v===c.ans) cls+=c.ans===c.corr?' ok':' bad'; else if(c.ans!==c.corr) cls+=' ok'; else cls+=' dim'; }
+        s+=`<rect class="${cls}" data-act="choose" data-v="${v}" x="${bx}" y="${by}" width="34" height="34" rx="5"/><text class="ctext" x="${bx+17}" y="${by+25}">${v}</text>`; });
+    }
+    if(opt.cells&&opt.cells[g.id]) s+=cellSvg(ox+8,g.outY-44,opt.cells[g.id],'cell',g.id);
+    if(opt.given&&opt.given[g.id]!==undefined) s+=`<text class="given" x="${ox+14}" y="${g.outY-9}">${opt.given[g.id]}</text>`;
+    if(opt.lit&&g!==root) s+=`<text class="given" x="${ox+(opt.nums?34:12)}" y="${g.outY-9}" style="fill:${val(g)?'#16a34a':'#7a8599'}">${val(g)}</text>`;
+  }
+  // входы
+  for(const lf of allLeaves(root)){
+    const y=lf.y;
+    if(opt.leafMode==='switch'){
+      const v=env[lf.name];
+      s+=`<text class="lbl" x="${LX-62}" y="${y+8}" text-anchor="middle">${lf.name}</text>`;
+      s+=`<g class="sw${v?' on':''}" data-act="sw" data-name="${lf.name}"><rect x="${LX-44}" y="${y-17}" width="40" height="34" rx="8"/><text x="${LX-24}" y="${y+8}">${v}</text></g>`;
+    }else if(opt.hidLeaf&&opt.hidLeaf[lf.id]){
+      s+=cellSvg(LX-44,y-38,opt.hidLeaf[lf.id],'leaf',lf.id);
+    }else if(opt.leafMode==='value'){
+      s+=`<text class="given" x="${LX-24}" y="${y-8}" text-anchor="middle">${env[lf.name]}</text>`;
+    }else{
+      s+=`<text class="lbl" x="${LX-12}" y="${y+8}" text-anchor="end">${lf.name}</text>`;
+    }
+    if(opt.leafMode!=='label'&&opt.leafMode!=='switch') s+=`<path class="w${opt.lit&&env[lf.name]?' on':''}" d="M${LX-44},${y}H${LX}"/>`;
+  }
+  // выход
+  if(opt.lamp){
+    s+=`<g class="outv${rOn?' on':''}"><rect x="${endX-40}" y="${root.outY-17}" width="40" height="34" rx="8"/><text x="${endX-20}" y="${root.outY+8}">${val(root)}</text></g>`;
+  }
+  if(opt.outLabel) s+=`<text class="lbl" x="${endX-12}" y="${root.outY+8}">${opt.outLabel}</text>`;
+  const W=endX+(opt.outLabel?20:0)+(opt.lamp?18:0);
+  return `<svg class="${NOTATION}" viewBox="0 0 ${W} ${H}" width="${Math.round(W*(opt.scale||1))}" data-key="${opt.key||''}">${s}</svg>`;
+}
+function cellSvg(x,y,c,act,id){
+  const cls=c.st?(c.st+' lock'):'';
+  let s=`<rect class="cell ${cls}" data-act="${act}" data-id="${id}" x="${x}" y="${y}" width="34" height="34" rx="5"/>`;
+  s+=`<text class="ctext" x="${x+17}" y="${y+25}" style="fill:${c.st==='bad'?'#b45f00':'#1f2a3d'}">${c.v===null||c.v===undefined?'':c.v}</text>`;
+  if(c.st==='bad') s+=`<text class="corr" x="${x+40}" y="${y+24}">${c.corr}</text>`;
+  return s;
+}
+
+
+/* ===================== ГЕНЕРАЦИЯ ДЕРЕВЬЕВ ===================== */
+function randTree(nGates,ops,notShare=0.3){
+  // вырастить дерево из nGates элементов
+  const mk=()=>{ const op=R()<notShare?'NOT':pick(ops); return op==='NOT'?Gt('NOT',L('?')):Gt(op,L('?'),L('?')); };
+  let root=Gt(pick(ops),L('?'),L('?')); let cnt=1;
+  while(cnt<nGates){
+    const gs=allGates(root); const g=pick(gs); const i=rint(g.ch.length);
+    if(g.ch[i].t!=='in') continue;
+    let ng=mk(); if(ng.op==='NOT'&&g.op==='NOT') continue;
+    g.ch[i]=ng; cnt++;
+  }
+  return root;
+}
+function nameLeaves(root,vars){
+  const ls=allLeaves(root); let tries=0;
+  while(tries++<200){
+    ls.forEach(l=>l.name=pick(vars));
+    if(vars.every(v=>ls.some(l=>l.name===v)) && allGates(root).every(g=>g.ch.length<2||!(g.ch[0].t==='in'&&g.ch[1].t==='in'&&g.ch[0].name===g.ch[1].name))) return true;
+  }
+  return false;
+}
+function exprStr(n,parent,isRight){
+  if(n.t==='in') return n.name;
+  if(n.op==='NOT'){ const c=n.ch[0]; return '¬'+(c.t==='in'||c.op==='NOT'?exprStr(c):'('+exprStr(c)+')'); }
+  const s=exprStr(n.ch[0],n,false)+' '+OPS[n.op].sign+' '+exprStr(n.ch[1],n,true);
+  if(parent&&parent.op!=='NOT'){ const pp=OPS[parent.op].prec, cp=OPS[n.op].prec;
+    if(cp<pp||(cp===pp&&(isRight||n.op!==parent.op))) return '('+s+')'; }
+  return s;
+}
+
+
+const CIRC=['','①','②','③','④','⑤','⑥'];
+function numberGates(t){ // порядок выполнения: слева направо, сверху вниз
+  const gs=allGates(t).sort((a,b)=>a.depth-b.depth||a.cy-b.cy); gs.forEach((g,k)=>g.num=k+1); return gs;
+}
+function gateHeader(g){
+  const opd=c=>c.t==='in'?c.name:CIRC[c.num];
+  return g.op==='NOT'?'¬'+opd(g.ch[0]):opd(g.ch[0])+' '+OPS[g.op].sign+' '+opd(g.ch[1]);
+}
+function stepsTable(order,vars,rows,root,opts){ // rows: [{env, cells:[{v,st,corr}]}] или режим показа
+  let h=`<table class="tt ${opts.input?'ttin':''}"><tr>${vars.map(v=>`<th>${v}</th>`).join('')}`;
+  order.forEach(g=>{ h+=`<th>${g===root?'F':CIRC[g.num]}<small>${XO(gateHeader(g))}</small></th>`; });
+  h+='</tr>';
+  rows.forEach((r,ri)=>{
+    h+=`<tr class="${opts.input?'':'row'}${opts.hl&&opts.hl(r)?' hl':''}" data-r="${ri}">${vars.map(v=>`<td>${r.env[v]}</td>`).join('')}`;
+    order.forEach((g,ci)=>{
+      if(opts.input){ const c=r.cells[ci]; h+=`<td class="ans ${c.st||''}" data-r="${ri}" data-c="${ci}">${c.v===null?'':c.v}${c.st==='bad'?` <span style="color:#22924d;font-size:16px">(${c.corr})</span>`:''}</td>`; }
+      else{ const v=evalT(g,r.env); h+=`<td class="${v?'f1':''}">${v}</td>`; }
+    });
+    h+='</tr>';
+  });
+  return h+'</table>';
+}
+
+/* ===================== ЗАДАНИЯ «УЗНАЙ ЭЛЕМЕНТ» ===================== */
+const ENAME={AND:'И (конъюнктор)',OR:'ИЛИ (дизъюнктор)',NOT:'НЕ (инвертор)',XOR:'Исключающее ИЛИ'};
+const ANSI={
+  AND:'<path d="M6,4 H26 A18,18 0 0 1 26,40 H6 Z" fill="#fff3b8" stroke="#5a4a00" stroke-width="2"/><path d="M0,12H6M0,32H6M44,22H54" stroke="#5a4a00" stroke-width="2"/>',
+  OR:'<path d="M4,4 Q16,22 4,40 Q34,40 48,22 Q34,4 4,4 Z" fill="#fff3b8" stroke="#5a4a00" stroke-width="2"/><path d="M0,12H9M0,32H9M48,22H56" stroke="#5a4a00" stroke-width="2"/>',
+  XOR:'<path d="M10,4 Q22,22 10,40 Q40,40 52,22 Q40,4 10,4 Z" fill="#fff3b8" stroke="#5a4a00" stroke-width="2"/><path d="M3,4 Q15,22 3,40" fill="none" stroke="#5a4a00" stroke-width="2"/><path d="M0,12H12M0,32H12M52,22H58" stroke="#5a4a00" stroke-width="2"/>',
+  NOT:'<path d="M8,6 L40,22 L8,38 Z" fill="#fff3b8" stroke="#5a4a00" stroke-width="2"/><circle cx="44" cy="22" r="4" fill="#fff" stroke="#5a4a00" stroke-width="2"/><path d="M0,22H8M48,22H58" stroke="#5a4a00" stroke-width="2"/>'
+};
+const DESC={
+  AND:['На выходе 1 только тогда, когда на обоих входах 1.','Если хотя бы на одном входе 0, на выходе 0.','Выполняет логическое умножение (конъюнкцию).'],
+  OR:['На выходе 0 только тогда, когда на обоих входах 0.','Чтобы на выходе была 1, достаточно сигнала 1 хотя бы на одном входе.','Выполняет логическое сложение (дизъюнкцию).'],
+  NOT:['У элемента один вход, а сигнал на выходе противоположен входному.','Превращает 1 в 0, а 0 — в 1.','Выполняет логическое отрицание (инверсию).'],
+  XOR:['На выходе 1, когда сигналы на входах разные.','Если сигналы на входах одинаковые, на выходе 0.','Складывает сигналы по модулю 2: 1 + 1 даёт 0.']
+};
+const TF=[
+  ['Элемент И выдаёт 0, если хотя бы на одном входе 0.',1],
+  ['Элемент ИЛИ выдаёт 1, если на обоих входах 1.',1],
+  ['Исключающее ИЛИ выдаёт 0, если на входах 1 и 1.',1],
+  ['У инвертора (элемента НЕ) один вход.',1],
+  ['Кружок на выходе элемента в схеме по ГОСТ означает инверсию.',1],
+  ['Символ «=1» в прямоугольнике обозначает исключающее ИЛИ.',1],
+  ['Символ «&» в прямоугольнике обозначает элемент И.',1],
+  ['Сигнал 1 означает, что в цепи есть напряжение.',1],
+  ['Элемент ИЛИ выдаёт 0 только тогда, когда на обоих входах 0.',1],
+  ['Элемент ИЛИ выдаёт 1 только тогда, когда на обоих входах 1.',0],
+  ['Элемент И выдаёт 1, если хотя бы на одном входе 1.',0],
+  ['Исключающее ИЛИ выдаёт 1, если на входах 1 и 1.',0],
+  ['У инвертора два входа.',0],
+  ['Символ «=1» в прямоугольнике обозначает элемент И.',0],
+  ['Элемент ИЛИ выдаёт 0, если хотя бы на одном входе 0.',0],
+  ['Элемент НЕ не изменяет сигнал.',0],
+  ['Символ «&» в прямоугольнике обозначает элемент ИЛИ.',0],
+  ['Исключающее ИЛИ выдаёт 1, когда на обоих входах 0.',0]
+];
+const pv=v=>/^-?\d+$/.test(v)?+v:v; // значение ответа: число или название элемента
+const SHORTN={AND:'И',OR:'ИЛИ',NOT:'НЕ',XOR:'исключающее ИЛИ'};
+const OPERN={AND:'конъюнкция (логическое умножение)',OR:'дизъюнкция (логическое сложение)',NOT:'инверсия (отрицание)',XOR:'строгая дизъюнкция (исключающее ИЛИ)'};
+const COMBOS=[[0,0],[0,1],[1,0],[1,1]];
+function nameOpts(){ return shuffle(['AND','OR','NOT','XOR'].map(o=>({label:ENAME[o],value:o}))); }
+function withNot(n,fn){ const k=NOTATION; NOTATION=n; try{ return fn(); } finally{ NOTATION=k; } }
+function gateTree(op){ return layoutTree(op==='NOT'?Gt('NOT',L('A')):Gt(op,L('A'),L('B'))); }
+
+function makeRecog(kind){
+  const op=pick(['AND','OR','NOT','XOR']), op2=pick(BIN);
+  switch(kind){
+    case 'desc': return {kind,prompt:'Какой элемент работает так?',text:pick(DESC[op]),opts:nameOpts(),corr:op};
+    case 'table': return {kind,prompt:'Какому элементу соответствует таблица истинности?',op,opts:nameOpts(),corr:op};
+    case 'symbol': return {kind,prompt:NOTATION==='sign'?'Как называется элемент на схеме?':'Как называется элемент на схеме (обозначение по ГОСТ)?',op,opts:nameOpts(),corr:op};
+    case 'oper': return {kind,prompt:`Какую операцию выполняет элемент «${SHORTN[op]}»?`,op,opts:shuffle(['AND','OR','NOT','XOR'].map(o=>({label:OPERN[o],value:o}))),corr:op};
+    case 'sign': return {kind,prompt:`Каким знаком обозначают операцию элемента «${SHORTN[op]}»?`,op,opts:shuffle(['AND','OR','NOT','XOR'].map(o=>({label:OPS[o].sign,value:o}))),corr:op,big:true};
+    case 'count': return R()<0.5
+      ? {kind,prompt:'Сколько входов у элемента «НЕ» (инвертора)?',opts:[1,2,3,4].map(v=>({label:String(v),value:v})),corr:1}
+      : {kind,prompt:'У какого элемента только один вход?',opts:nameOpts(),corr:'NOT'};
+    case 'ansi': return {kind,prompt:'Так элемент рисуют в зарубежных схемах. Как он называется?',op,opts:nameOpts(),corr:op};
+    case 'inputs': { const v=rint(2); const corr=COMBOS.map((c,i)=>OPS[op2].f(...c)===v?i:-1).filter(i=>i>=0);
+      return {kind,prompt:`При каких сигналах на входах A и B элемент «${ENAME[op2]}» выдаёт <b>${v}</b>? Отметьте все подходящие варианты.`,op:op2,v,multi:true,
+        opts:COMBOS.map((c,i)=>({label:`A = ${c[0]}, B = ${c[1]}`,value:i})),corr}; }
+    case 'tf': { const t=pick(TF); return {kind,prompt:'Верно ли утверждение?',text:t[0],opts:[{label:'Верно',value:1},{label:'Неверно',value:0}],corr:t[1]}; }
+    case 'out': { const a=rint(2), b=rint(2); return {kind,prompt:'Какой сигнал будет на выходе?',op,a,b,opts:[{label:'0',value:0},{label:'1',value:1}],corr:op==='NOT'?1-a:OPS[op].f(a,b)}; }
+  }
+}
+function recogVisual(t){
+  if(t.kind==='desc'||t.kind==='tf') return `<div class="qtext">${t.text}</div>`;
+  if(t.kind==='table'){ const one=t.op==='NOT';
+    let h=`<table class="tt"><tr><th>A</th>${one?'':'<th>B</th>'}<th>F</th></tr>`;
+    (one?[[0],[1]]:COMBOS).forEach(r=>h+=`<tr><td>${r[0]}</td>${one?'':`<td>${r[1]}</td>`}<td>${OPS[t.op].f(...r)}</td></tr>`);
+    return h+'</table>'; }
+  if(t.kind==='symbol') return withNot(NOTATION==='word'?'gost':NOTATION,()=>drawTree(gateTree(t.op),{leafMode:'label',scale:1.2}));
+  if(t.kind==='ansi') return `<svg viewBox="0 0 60 44" width="150" height="110">${ANSI[t.op]}</svg>`;
+  if(t.kind==='inputs') return drawTree(gateTree(t.op),{leafMode:'label',outLabel:'F',scale:1.1});
+  if(t.kind==='out'){ const tr=gateTree(t.op); return drawTree(tr,{leafMode:'value',env:{A:t.a,B:t.b},scale:1.2}); }
+  return '';
+}
+function recogCorrect(t,ans){
+  if(t.multi){ const a=(ans||[]).slice().sort().join(','), c=t.corr.slice().sort().join(','); return a===c; }
+  return ans===t.corr;
+}
+function corrLabel(t){ if(t.multi) return t.corr.map(i=>t.opts.find(o=>o.value===i).label).join('; ');
+  return t.opts.find(o=>o.value===t.corr).label; }
+/* html одного задания. st: {ans, sel(multi), done}; showFb — показывать ли проверку */
+function recogHtml(t,st,i,showFb){
+  const done=st.done, ok=done&&recogCorrect(t,st.ans);
+  let h=`<div class="rtask${t.wide?' wide':''} ${showFb&&done?(ok?'ok':'bad'):''}" data-i="${i}"><div class="qnum">Задание ${i+1}</div><div class="qp">${t.prompt}</div><div class="qv">${recogVisual(t)}</div><div class="opts">`;
+  t.opts.forEach(o=>{
+    let cls='opt';
+    const chosen=t.multi?(st.sel||[]).includes(o.value):st.ans===o.value;
+    if(chosen) cls+=' sel';
+    if(showFb&&done){ const isC=t.multi?t.corr.includes(o.value):o.value===t.corr; if(isC) cls+=' right'; else if(chosen) cls+=' wrong'; }
+    h+=`<button class="${cls}" data-v="${o.value}" ${done?'disabled':''}>${XO(o.label)}</button>`;
+  });
+  h+='</div>';
+  if(t.multi&&!done&&showFb) h+=`<div class="srow"><button class="main" data-answer="${i}">Ответить</button></div>`;
+  if(showFb&&done) h+=`<div class="fb ${ok?'ok':'bad'}">${ok?'Верно!':'Неверно. Правильно: '+corrLabel(t)}</div>`;
+  return h+'</div>';
+}
+
+/* ===================== МОДУЛИ И РЕЗУЛЬТАТЫ ===================== */
+// MODS[key] = {name, graded, gen(), render(), stat() -> {ok,all,ans,done}}
+const SID=Date.now().toString(36)+Math.random().toString(36).slice(2,7); // код ученика на этой странице
+const MODS={}, BEST={}, generated={}, EXTRA_GRADED=[]; // EXTRA_GRADED: {name, get()->{ok,all}|null}
+function reg(key,o){ MODS[key]=Object.assign({graded:true},o); }
+const g10=(ok,all)=>all?Math.round(10*ok/all):0;
+const gradedKeys=()=>Object.keys(MODS).filter(k=>MODS[k].graded);
+function addRes(m){
+  const st=MODS[m].stat();
+  const cur=g10(st.ok,st.all), b=BEST[m];
+  if(st.ans>0 && (!b || cur>g10(b.ok,b.all) || (cur===g10(b.ok,b.all)&&st.ans>=st.all))) BEST[m]={ok:st.ok,all:st.all};
+  showScore(m); lessonChanged();
+}
+function showScore(m){
+  const el=$(m+'score'); if(!el) return;
+  const st=MODS[m].stat(), b=BEST[m];
+  el.innerHTML=`Этот набор: выполнено <b>${st.ans}</b> из <b>${st.all}</b>, верно <b>${st.ok}</b> → оценка <b>${g10(st.ok,st.all)}</b> из 10`+
+    (st.done?'':' <span class="note">(нерешённые считаются неверными)</span>')+
+    (b&&MODS[m].graded?` &nbsp;·&nbsp; лучшая в модуле: <b>${g10(b.ok,b.all)}</b>`:'');
+}
+function gradedItems(){ return [...gradedKeys().map(k=>({name:MODS[k].name,r:BEST[k]||null})),...EXTRA_GRADED.map(x=>({name:x.name,r:x.get()}))]; }
+function lessonGrade(){
+  const it=gradedItems(), done=it.filter(x=>x.r); if(!done.length) return null;
+  return {g:Math.round(done.reduce((s,x)=>s+g10(x.r.ok,x.r.all),0)/it.length), n:done.length, total:it.length};
+}
+function renderRes(){
+  let t='<table class="res"><tr><th>Модуль</th><th>Лучший результат</th><th>Оценка (из 10)</th></tr>';
+  for(const x of gradedItems()){ const b=x.r; t+=`<tr><td style="text-align:left">${x.name}</td><td>${b?`${b.ok} из ${b.all}`:'не начат'}</td><td><b>${b?g10(b.ok,b.all):'—'}</b></td></tr>`; }
+  t+='</table>';
+  const L=lessonGrade();
+  t+=L?`<div class="lessonGrade">Оценка за урок: <b>${L.g}</b> из 10 <span class="note">(среднее по всем ${L.total} частям; выполнено: ${L.n} из ${L.total}${L.n<L.total?', невыполненные считаются как 0':''})</span></div>`:'<p class="note">Пока нет выполненных заданий.</p>';
+  if(typeof resExtra==='function') t+=resExtra();
+  $('resTable').innerHTML=t;
+}
+function exportTxt(title){
+  const fio=$('fio').value.trim(), cls=$('cls').value;
+  if(!fio){ $('expMsg').className='fb bad'; $('expMsg').textContent='Введите фамилию и имя вверху страницы.'; $('fio').focus(); return; }
+  const d=new Date();
+  let txt=`${title}\r\nУченик: ${fio}\r\nКласс: ${cls||'—'}\r\nДата: ${d.toLocaleDateString('ru-RU')} ${d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}\r\n\r\n`;
+  for(const x of gradedItems()){ const b=x.r; txt+=`${x.name}: `+(b?`верно ${b.ok} из ${b.all}, оценка ${g10(b.ok,b.all)} из 10`:'не выполнялся')+'\r\n'; }
+  if(typeof txtExtra==='function') txt+=txtExtra();
+  const LG=lessonGrade(); txt+=`\r\nОценка за урок: ${LG?LG.g+' из 10 (среднее по всем '+LG.total+' частям, выполнено: '+LG.n+')':'—'}\r\n`;
+  const blob=new Blob(['﻿'+txt],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`${title.replace(/[«»"]/g,'').replace(/\s+/g,'_')}_${fio.replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_')}.txt`;
+  document.body.appendChild(a); a.click(); a.remove();
+  $('expMsg').className='fb ok'; $('expMsg').textContent='Файл сохранён.';
+}
+const cyc=v=>v===null?0:(v===0?1:null); // пусто → 0 → 1 → пусто
+
+/* ===================== НАВИГАЦИЯ ===================== */
+const PAGES={}; // book, res, blitz...
+let cur='book';
+function openTab(t){
+  cur=t;
+  document.querySelectorAll('main>section').forEach(s=>s.classList.toggle('hidden',s.id!==t));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  if(MODS[t]){ const o=MODS[t];
+    if(!generated[t]||o.stat().done){ o.gen(); generated[t]=true; if(o.reset) o.reset(); } // незавершённый набор сохраняется
+    showScore(t); o.render(); }
+  else if(PAGES[t]) PAGES[t]();
+  window.scrollTo(0,0);
+}
+function rerender(){ if(MODS[cur]) MODS[cur].render(); else if(PAGES[cur]) PAGES[cur](); }
+function initNav(){
+  document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>openTab(b.dataset.tab));
+  document.querySelectorAll('[data-not]').forEach(b=>b.onclick=()=>{
+    NOTATION=b.dataset.not; document.querySelectorAll('[data-not]').forEach(x=>x.classList.toggle('active',x===b)); rerender(); });
+  $('fio').value='';
+  openTab('book');
+}
+
+/* ===================== ОТПРАВКА РЕЗУЛЬТАТОВ УРОКА УЧИТЕЛЮ ===================== */
+let lessonSender=null, lessonSent=false, lessonTimer=null;
+function lessonStatus(m,c){ const el=$('sendMsg'); if(el){ el.className='fb '+(c||''); el.textContent=m; } }
+function lessonPayload(){
+  const d=new Date(), L=lessonGrade(), it=gradedItems();
+  return {type:'lesson',sheet:LESSON_SHEET,id:SID,date:d.toLocaleDateString('ru-RU'),time:d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}),
+    fio:$('fio').value.trim(),cls:$('cls').value,
+    parts:it.map(x=>({name:x.name,grade:x.r?g10(x.r.ok,x.r.all):''})),
+    lessonGrade:L?L.g:0,done:L?L.n:0,total:it.length};
+}
+function sendLesson(){
+  const f=$('fio').value.trim(), c=$('cls').value;
+  if(f.split(/\s+/).length<2||!c){ lessonStatus('Введите вверху страницы фамилию, имя и выберите класс.','bad'); $('fio').focus(); return; }
+  if(!lessonSender) lessonSender=makeSender(lessonStatus);
+  lessonSent=true; lessonSender.send(lessonPayload());
+}
+// после первой отправки результаты обновляются в таблице сами, когда ученик выполняет новые задания
+function lessonChanged(){ if(!lessonSent) return; clearTimeout(lessonTimer); lessonTimer=setTimeout(()=>{ if($('fio').value.trim()&&$('cls').value) lessonSender.send(lessonPayload()); },1500); }
+function initSendLesson(){
+  $('bSend').onclick=sendLesson;
+  const orig=PAGES.res; PAGES.res=()=>{ orig(); if(lessonSender) lessonStatus(lessonSender.msg,lessonSender.cls); };
+}
+
+/* ===================== НАДЁЖНАЯ ОТПРАВКА В GOOGLE-ТАБЛИЦУ ===================== */
+// ждёт ответа {ok:true}; при «занято» или нет связи — до 5 повторов с разными паузами и повтор при появлении интернета
+function makeSender(onStatus){
+  const S={payload:null,tries:0,busy:false,done:false,timer:null,msg:'',cls:''};
+  const DEL=[3000,6000,12000,20000,30000];
+  const st=(m,c)=>{ S.msg=m; S.cls=c||''; onStatus(m,S.cls); };
+  async function go(){
+    if(!S.payload||S.done||S.busy) return;
+    if(typeof GOOGLE_SHEET_URL==='undefined'||!/^https:\/\//.test(GOOGLE_SHEET_URL)){ st('Отправка учителю не настроена — сохраните результат в файл (вкладка «Результаты»).','bad'); return; }
+    S.busy=true; const p=S.payload; st('Отправка результата учителю…');
+    try{
+      const r=await fetch(GOOGLE_SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});
+      const j=await r.json();
+      if(j&&j.ok){ S.busy=false; if(p===S.payload){ S.done=true; st('✓ Результат сохранён в таблице учителя.','ok'); } else go(); return; }
+      throw new Error(j&&j.busy?'busy':'error');
+    }catch(err){
+      S.busy=false; S.tries++;
+      const why=err.message==='busy'?'таблица занята другими учениками':'нет связи с таблицей';
+      if(S.tries<5){ const d=DEL[S.tries-1]+Math.floor(Math.random()*1500); st(`Не удалось отправить (${why}). Повтор через ${Math.round(d/1000)} с… (попытка ${S.tries+1} из 5)`,'bad'); S.timer=setTimeout(go,d); }
+      else st('Отправить не удалось. Нажмите «Отправить ещё раз» или сохраните результат в файл.','bad');
+    }
+  }
+  S.send=p=>{ if(p){ S.payload=p; S.done=false; } S.tries=0; clearTimeout(S.timer); go(); };
+  window.addEventListener('online',()=>{ if(S.payload&&!S.done&&!S.busy){ S.tries=0; go(); } });
+  return S;
+}
+
+/* ===================== УЧЕБНИК ===================== */
+const BOOK=[
+  {op:'AND', title:'Элемент И (конъюнктор)', oper:'конъюнкция (логическое умножение)', rec:'A ∧ B, &nbsp;A И B, &nbsp;A &amp; B',
+   rule:'На выходе 1 только тогда, когда на <b>обоих</b> входах 1.',
+   anal:'Как два выключателя, соединённых последовательно: лампа горит, только если включены оба.'},
+  {op:'OR', title:'Элемент ИЛИ (дизъюнктор)', oper:'дизъюнкция (логическое сложение)', rec:'A ∨ B, &nbsp;A ИЛИ B, &nbsp;A + B',
+   rule:'На выходе 1, если <b>хотя бы на одном</b> входе 1. Выход 0 — только когда на обоих входах 0.',
+   anal:'Как два выключателя, соединённых параллельно: лампа горит, если включён любой из них.'},
+  {op:'NOT', title:'Элемент НЕ (инвертор)', oper:'инверсия (логическое отрицание)', rec:'¬A, &nbsp;НЕ A, &nbsp;A̅',
+   rule:'На выходе сигнал, <b>противоположный</b> входному: 1 превращается в 0, 0 — в 1. У элемента один вход.',
+   anal:'Как «наоборот»: есть сигнал на входе — нет сигнала на выходе.'},
+  {op:'XOR', title:'Элемент «исключающее ИЛИ» (XOR)', oper:'строгая дизъюнкция (сложение по модулю 2)', rec:'A ⊕ B, &nbsp;A XOR B',
+   rule:'На выходе 1, когда сигналы на входах <b>разные</b>. Если сигналы одинаковые — на выходе 0.',
+   anal:'Как выключатели на лестнице — внизу и наверху: щёлкнешь любым — лампа меняет состояние.'}
+];
+const bookState={}; BOOK.forEach(b=>bookState[b.op]={A:0,B:0});
+const bookTrees={};
+BOOK.forEach(b=>{ bookTrees[b.op]=layoutTree(b.op==='NOT'?Gt('NOT',L('A')):Gt(b.op,L('A'),L('B'))); });
+
+function renderBook(){
+  $('elemCards').innerHTML=XO(BOOK.map(b=>{
+    const env=bookState[b.op], one=b.op==='NOT';
+    let tt=`<table class="tt"><tr><th>A</th>${one?'':'<th>B</th>'}<th>${one?'¬A':'A '+OPS[b.op].sign+' B'}</th></tr>`;
+    const rows=one?[[0],[1]]:[[0,0],[0,1],[1,0],[1,1]];
+    rows.forEach(r=>{ const f=OPS[b.op].f(...r); const hl=one?env.A===r[0]:(env.A===r[0]&&env.B===r[1]);
+      tt+=`<tr class="row${hl?' hl':''}" data-op="${b.op}" data-a="${r[0]}" data-b="${r[1]??''}"><td>${r[0]}</td>${one?'':`<td>${r[1]}</td>`}<td class="${f?'f1':''}">${f}</td></tr>`; });
+    tt+='</table>';
+    return `<div class="card"><h2>${b.title}</h2>
+      <div class="elem"><div>${drawTree(bookTrees[b.op],{lit:true,env,leafMode:'switch',lamp:true,key:'book-'+b.op,scale:1.35})}</div><div>${tt}</div></div>
+      <div class="rule">${b.rule}</div>
+      <p class="lead" style="margin:6px 0">Операция: <b>${b.oper}</b>. Запись: <b>${b.rec}</b></p>
+      <div class="meta"><span class="note">💡 ${b.anal}</span>
+      <span class="ansi"><svg viewBox="0 0 60 44" width="75" height="55">${ANSI[b.op]}</svg>так элемент рисуют в зарубежных схемах</span></div></div>`;
+  }).join(''));
+  
+}
+const haState={A:1,B:1};
+const haS=layoutTree(Gt('XOR',L('A'),L('B'))), haP=layoutTree(Gt('AND',L('A'),L('B')));
+function renderHA(){
+  $('haSvg').innerHTML=`<div style="display:flex;align-items:center;gap:6px">${drawTree(haS,{lit:true,env:haState,leafMode:'switch',lamp:true,key:'ha',scale:1.2})}<b style="font-size:26px">S</b></div>
+    <div style="display:flex;align-items:center;gap:6px">${drawTree(haP,{lit:true,env:haState,leafMode:'switch',lamp:true,key:'ha',scale:1.2})}<b style="font-size:26px">P</b></div>`;
+  const S=haState.A^haState.B, P=haState.A&haState.B;
+  $('haSum').innerHTML=`${haState.A} + ${haState.B} = <b>${P}${S}</b><sub>2</sub><br><span class="note">P = ${P}, S = ${S}<br>(в десятичной: ${haState.A} + ${haState.B} = ${haState.A+haState.B})</span>`;
+}
+$('book').addEventListener('click',e=>{
+  const sw=e.target.closest('[data-act="sw"]');
+  if(sw){ const svg=sw.closest('svg'); const key=svg.dataset.key; const nm=sw.dataset.name;
+    if(key==='ha'){ haState[nm]^=1; renderHA(); return; }
+    const op=key.split('-')[1]; bookState[op][nm]^=1; renderBook(); return; }
+  const tr=e.target.closest('tr.row');
+  if(tr){ const st=bookState[tr.dataset.op]; st.A=+tr.dataset.a; if(tr.dataset.b!=='') st.B=+tr.dataset.b; renderBook(); }
+});
+
+
+/* ===================== М1. ЗНАЧЕНИЕ НА ВЫХОДЕ ===================== */
+let M1=[];
+reg('m1',{name:'1. Значение на выходе',
+  gen(){
+    const items=[];
+    ['AND','OR','XOR','AND','OR','XOR','NOT','NOT'].forEach(op=>{
+      let a,b,g=0; do{ a=rint(2); b=rint(2); g++; }while(g<20&&items.some(it=>it.op===op&&it.a===a&&(op==='NOT'||it.b===b)));
+      items.push({op,a,b});
+    });
+    M1=shuffle(items).map(it=>{ it.tree=gateTree(it.op); it.corr=evalT(it.tree,{A:it.a,B:it.b}); it.v=null; it.ans=null; return it; });
+  },
+  reset(){ $('m1fb').className='fb'; $('m1fb').textContent=''; },
+  stat(){ const ans=M1.filter(t=>t.ans!==null).length; return {all:M1.length,ans,ok:M1.filter(t=>t.ans!==null&&t.ans===t.corr).length,done:ans===M1.length}; },
+  render(){
+    $('m1tasks').innerHTML=M1.map((it,i)=>{
+      const done=it.ans!==null, ok=done&&it.ans===it.corr;
+      return `<div class="task ${done?(ok?'ok':'bad'):''}" data-i="${i}">${drawTree(it.tree,{leafMode:'value',env:{A:it.a,B:it.b},cells:{[it.tree.id]:{v:it.v,st:done?(ok?'ok':'bad'):null,corr:it.corr}},scale:1.25})}
+        <div class="fb ${done?(ok?'ok':'bad'):''}">${done?(ok?'Верно!':`Неверно. Правильно: ${it.corr}`):'&nbsp;'}</div></div>`;
+    }).join('');
+    $('m1lamps').innerHTML=lampRow(M1.map(t=>t.ans===null?null:t.ans===t.corr));
+    const checked=M1.every(t=>t.ans!==null); $('m1check').disabled=checked;
+    if(checked){ const ok=M1.filter(t=>t.ans===t.corr).length; $('m1fb').className='fb '+(ok===M1.length?'ok':'bad');
+      $('m1fb').textContent=ok===M1.length?'Все ответы верные!':`Верно: ${ok} из ${M1.length}. Ошибки отмечены оранжевым.`; }
+  }
+});
+$('m1tasks').addEventListener('click',e=>{
+  const card=e.target.closest('.task'); if(!card) return; const it=M1[+card.dataset.i]; if(it.ans!==null) return;
+  if(e.target.closest('[data-act="cell"]')){ it.v=cyc(it.v); $('m1fb').textContent=''; MODS.m1.render(); }
+});
+$('m1check').onclick=()=>{
+  if(M1.some(t=>t.v===null)){ $('m1fb').className='fb bad'; $('m1fb').textContent='Заполните все квадратики.'; return; }
+  M1.forEach(t=>t.ans=t.v); MODS.m1.render(); addRes('m1');
+};
+$('m1new').onclick=()=>{ MODS.m1.gen(); MODS.m1.reset(); MODS.m1.render(); showScore('m1'); };
+
+/* ===================== М2. УЗНАЙ ЭЛЕМЕНТ ===================== */
+let M2=[];
+reg('m2',{name:'2. Узнай элемент',
+  gen(){ M2=shuffle(['desc','desc','table','symbol','ansi','inputs','tf','tf']).map(k=>({t:makeRecog(k),st:{ans:null,sel:[],done:false}})); },
+  stat(){ const d=M2.filter(x=>x.st.done); return {all:M2.length,ans:d.length,ok:d.filter(x=>recogCorrect(x.t,x.st.ans)).length,done:d.length===M2.length}; },
+  render(){ $('m2lamps').innerHTML=lampRow(M2.map(x=>x.st.done?recogCorrect(x.t,x.st.ans):null)); $('m2list').innerHTML=M2.map((x,i)=>recogHtml(x.t,x.st,i,true)).join(''); }
+});
+$('m2list').addEventListener('click',e=>{
+  const card=e.target.closest('.rtask'); if(!card) return; const x=M2[+card.dataset.i]; if(x.st.done) return;
+  const b=e.target.closest('button[data-v]');
+  if(b){ const v=pv(b.dataset.v);
+    if(x.t.multi){ const s=x.st.sel; const k=s.indexOf(v); if(k>=0) s.splice(k,1); else s.push(v); MODS.m2.render(); }
+    else{ x.st.ans=v; x.st.done=true; MODS.m2.render(); addRes('m2'); }
+    return; }
+  if(e.target.closest('[data-answer]')){ if(!x.st.sel.length) return; x.st.ans=x.st.sel.slice(); x.st.done=true; MODS.m2.render(); addRes('m2'); }
+});
+$('m2new').onclick=()=>{ MODS.m2.gen(); MODS.m2.render(); showScore('m2'); };
+
+/* ===================== М3. СХЕМЫ ИЗ НЕСКОЛЬКИХ ЭЛЕМЕНТОВ ===================== */
+let M3=[];
+reg('m3',{name:'3. Схемы из нескольких элементов',
+  gen(){
+    M3=[2,2,3,3,4].map(k=>{
+      const t=randTree(k,BIN,0.3); allLeaves(t).forEach((l,i)=>l.name='v'+i); layoutTree(t);
+      const env={}; allLeaves(t).forEach(l=>env[l.name]=rint(2));
+      const cells={}; allGates(t).forEach(g=>cells[g.id]={v:null,st:null,corr:evalT(g,env)});
+      return {t,env,cells,checked:false};
+    });
+  },
+  stat(){ let all=0,ans=0,ok=0; M3.forEach(s=>{ const cs=Object.values(s.cells); all+=cs.length; if(s.checked){ ans+=cs.length; ok+=cs.filter(c=>c.st==='ok').length; } }); return {all,ans,ok,done:M3.every(s=>s.checked)}; },
+  render(){
+    $('m3lamps').innerHTML=lampRow(M3.map(s=>s.checked?Object.values(s.cells).every(c=>c.st==='ok'):null));
+    $('m3list').innerHTML=M3.map((s,i)=>{
+      const ok=s.checked&&Object.values(s.cells).every(c=>c.st==='ok');
+      return `<div class="scheme ${s.checked?(ok?'ok':'bad'):''}" data-i="${i}"><b>Схема ${i+1}</b>${drawTree(s.t,{leafMode:'value',env:s.env,cells:s.cells,scale:1.2})}
+        <div class="srow">${s.checked?`<span class="fb ${ok?'ok':'bad'}">${ok?'Всё верно!':'Есть ошибки — правильные значения показаны зелёным рядом с ячейкой.'}</span>`:`<button class="main" data-chk="${i}">Проверить</button><span class="fb bad" id="m3w${i}"></span>`}</div></div>`;
+    }).join('');
+  }
+});
+$('m3list').addEventListener('click',e=>{
+  const sc=e.target.closest('.scheme'); if(!sc) return; const i=+sc.dataset.i, s=M3[i];
+  const c=e.target.closest('[data-act="cell"]');
+  if(c&&!s.checked){ const cell=s.cells[c.dataset.id]; cell.v=cyc(cell.v); MODS.m3.render(); return; }
+  if(e.target.closest('[data-chk]')){ const cs=Object.values(s.cells);
+    if(cs.some(c=>c.v===null)){ $('m3w'+i).textContent='Заполните все ячейки.'; return; }
+    cs.forEach(c=>c.st=c.v===c.corr?'ok':'bad'); s.checked=true; MODS.m3.render(); addRes('m3'); }
+});
+$('m3new').onclick=()=>{ MODS.m3.gen(); MODS.m3.render(); showScore('m3'); };
+
+/* ===================== БЛИЦ-ОПРОС ===================== */
+const BLITZ={N:10,SEC:15,MAXTRY:3,tries:0,qs:[],k:0,left:0,timer:null,phase:'start',log:[],scores:[],best:null,msg:''};
+const bSender=makeSender((m,c)=>{ const el=$('bsend'); if(el){ el.className='fb '+c; el.textContent=m; } const rb=$('bresend'); if(rb) rb.classList.toggle('hidden',!/Отправить ещё раз/.test(m)); });
+function blitzNew(){
+  const f=$('fio').value.trim(), c=$('cls').value;
+  if(f.split(/\s+/).length<2||!c){ BLITZ.msg='Перед началом введите вверху страницы фамилию, имя и выберите класс — результат блица отправляется учителю.'; renderBlitz(); return; }
+  BLITZ.msg=''; BLITZ.fio=f; BLITZ.cls=c;
+  BLITZ.qs=shuffle(['out','out','out','out','symbol','symbol','ansi','oper','sign','count']).map(makeRecog);
+  BLITZ.k=0; BLITZ.log=[]; BLITZ.tries++; BLITZ.phase='q'; blitzQ();
+}
+function blitzQ(){ BLITZ.left=BLITZ.SEC; BLITZ.answered=false; renderBlitz();
+  clearInterval(BLITZ.timer);
+  BLITZ.timer=setInterval(()=>{ if(cur!=='blitz') return; BLITZ.left-=0.2; const bar=$('bbar'); if(bar) bar.style.width=Math.max(0,100*BLITZ.left/BLITZ.SEC)+'%';
+    const tl=$('btime'); if(tl) tl.textContent=Math.max(0,Math.ceil(BLITZ.left));
+    if(BLITZ.left<=0) blitzAnswer(null); },200);
+}
+function blitzAnswer(v){
+  if(BLITZ.answered) return; BLITZ.answered=true; clearInterval(BLITZ.timer);
+  const q=BLITZ.qs[BLITZ.k]; const ok=v!==null&&recogCorrect(q,v);
+  BLITZ.log.push({q,v,ok});
+  document.querySelectorAll('#blitzBox .opt').forEach(b=>{ const bv=pv(b.dataset.v); b.disabled=true;
+    if(bv===q.corr) b.classList.add('right'); else if(bv===v) b.classList.add('wrong'); });
+  $('blamps').innerHTML=blitzLamps();
+  $('bfb').className='bigmsg '+(ok?'fb ok':'fb bad'); $('bfb').textContent=ok?'Верно!':(v===null?'Время вышло!':'Неверно');
+  setTimeout(()=>{ BLITZ.k++; if(BLITZ.k<BLITZ.N) blitzQ(); else blitzEnd(); },1100);
+}
+function blitzEnd(){
+  BLITZ.phase='end';
+  const sc=BLITZ.log.filter(x=>x.ok).length; BLITZ.scores.push(sc);
+  if(BLITZ.best===null||sc>BLITZ.best) BLITZ.best=sc;
+  renderBlitz(); lessonChanged();
+  const d=new Date();
+  bSender.send({type:'blitz',id:SID,date:d.toLocaleDateString('ru-RU'),time:d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}),
+    fio:BLITZ.fio,cls:BLITZ.cls,best:BLITZ.best,max:BLITZ.N,grade:g10(BLITZ.best,BLITZ.N),tries:BLITZ.tries,scores:BLITZ.scores.join(', '),notation:{gost:'ГОСТ',word:'словами',sign:'знаками операций'}[NOTATION]});
+}
+function blitzLamps(){ const a=[]; for(let i=0;i<BLITZ.N;i++) a.push(i<BLITZ.log.length?BLITZ.log[i].ok:null); return lampRow(a); }
+function renderBlitz(){
+  const box=$('blitzBox');
+  if(BLITZ.phase==='start'||BLITZ.phase==='end'){
+    let h='';
+    if(BLITZ.phase==='end'){ const ok=BLITZ.log.filter(x=>x.ok).length;
+      h+=`<h2>Блиц завершён</h2><div id="blamps">${blitzLamps()}</div><div class="bigmsg">Эта попытка: <b>${ok}</b> из ${BLITZ.N} · лучшая: <b>${BLITZ.best}</b> из ${BLITZ.N} (оценка ${g10(BLITZ.best,BLITZ.N)})</div>
+        <div class="fb" id="bsend" style="text-align:center;font-size:20px">${bSender.msg}</div><div class="srow"><button id="bresend" class="hidden">Отправить ещё раз</button></div>`;
+      const errs=BLITZ.log.filter(x=>!x.ok);
+      if(errs.length) h+=`<p class="lead">Ошибки:</p><ul class="errlist lead">${errs.map(x=>`<li>${x.q.prompt.replace(/<[^>]+>/g,'')}${x.q.text?' «'+x.q.text+'»':''}${x.q.kind==='out'?` (${ENAME[x.q.op]}, ${x.q.op==='NOT'?'вход A = '+x.q.a:'входы A = '+x.q.a+', B = '+x.q.b})`:''}${['table','symbol','ansi'].includes(x.q.kind)?' ('+(x.q.kind==='table'?'таблица':'рисунок')+')':''} → правильно: <b>${XO(corrLabel(x.q))}</b>${x.v===null?' <span class="note">(время вышло)</span>':''}</li>`).join('')}</ul>`;
+    }else h+=`<h2>Блиц-опрос: логические элементы</h2><p class="lead">${BLITZ.N} простых вопросов: назовите элемент, определите сигнал на выходе, вспомните операцию и её знак. Справкой пользоваться нельзя — элементы нужно знать наизусть. На каждый вопрос — ${BLITZ.SEC} секунд. Лампочки вверху: горит — ответ верный, не горит — неверный.</p>
+      <p class="lead">Оценка за блиц = число верных ответов из 10. Она входит в оценку за урок наравне с модулями. Попыток: ${BLITZ.MAXTRY}, засчитывается и отправляется учителю <b>лучшая</b> из них.</p>`;
+    h+=`<div class="bstart">${BLITZ.tries<BLITZ.MAXTRY?`<button class="main" id="bgo">${BLITZ.tries?'Ещё попытка':'Начать'} (попытка ${BLITZ.tries+1} из ${BLITZ.MAXTRY})</button>`:'<p class="lead">Попытки закончились.</p>'}</div>`;
+    if(BLITZ.msg) h+=`<div class="fb bad" style="text-align:center">${BLITZ.msg}</div>`;
+    box.innerHTML=h; const g=$('bgo'); if(g) g.onclick=blitzNew;
+    const rb=$('bresend'); if(rb){ rb.classList.toggle('hidden',!/Отправить ещё раз/.test(bSender.msg)); rb.onclick=()=>bSender.send(); }
+    if($('bsend')) $('bsend').className='fb '+bSender.cls;
+    return;
+  }
+  const q=BLITZ.qs[BLITZ.k];
+  box.innerHTML=`<div id="blamps">${blitzLamps()}</div><div class="srow" style="justify-content:space-between"><b>Вопрос ${BLITZ.k+1} из ${BLITZ.N}</b><span>Попытка ${BLITZ.tries} из ${BLITZ.MAXTRY} · осталось <b id="btime">${BLITZ.SEC}</b> с</span></div>
+    <div class="bbar"><div id="bbar" style="width:100%"></div></div>
+    <div class="bq rtask" style="border:none"><div class="qp">${q.prompt}</div><div class="qv">${recogVisual(q)}</div>
+    <div class="opts">${q.opts.map(o=>`<button class="opt" data-v="${o.value}">${XO(o.label)}</button>`).join('')}</div></div>
+    <div id="bfb" class="bigmsg">&nbsp;</div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>blitzAnswer(pv(b.dataset.v)));
+}
+PAGES.blitz=renderBlitz;
+function resExtra(){ return BLITZ.best===null?'':`<p class="note">Блиц: попыток ${BLITZ.tries} из ${BLITZ.MAXTRY}, результаты попыток: ${BLITZ.scores.join(', ')}.</p>`; }
+EXTRA_GRADED.push({name:'⚡ Блиц-опрос (лучшая из 3 попыток)',get:()=>BLITZ.best===null?null:{ok:BLITZ.best,all:BLITZ.N}});
+function txtExtra(){ return BLITZ.best===null?'':`  (блиц: попыток ${BLITZ.tries}, результаты ${BLITZ.scores.join(', ')})\r\n`; }
+function lampRow(arr){ return `<div class="lamps">${arr.map((v,i)=>`<span class="lampi ${v===true?'on':v===false?'off':''}" title="Задание ${i+1}">${i+1}</span>`).join('')}</div>`; }
+
+/* ===================== ЗАПУСК ===================== */
+PAGES.book=renderBook; PAGES.res=renderRes;
+$('bExport').onclick=()=>exportTxt('Логические элементы компьютера');
+const LESSON_SHEET='Урок Логические элементы';
+initSendLesson();
+initNav();
+
+</script>
+</body>
+</html>
