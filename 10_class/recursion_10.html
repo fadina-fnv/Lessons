@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script>
+/* ===== GOOGLE_SHEET_URL ===== вставьте между кавычками адрес веб-приложения Apps Script */
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxIyHFsXCzz9RAPdLUrpGCrxwSxLUxE3EHvYwbMYmqSqtWk0NkaCDIRmJKJZ-_QGc5FHA/exec';
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Что такое рекурсия — учебник-тренажёр</title>
+<style>
+:root{
+  --bg:#eef4fa; --card:#ffffff; --line:#d3e0ee; --text:#1e2b3a; --muted:#52667a;
+  --blue:#2369c4; --blue-l:#e6f0fc; --green:#1c8a4b; --green-l:#e2f6e9;
+  --orange:#c46a00; --orange-l:#fff1dc; --violet:#7b45c2; --violet-l:#f2eafc;
+  --yellow-l:#fff8d6; --shadow:0 4px 16px rgba(35,105,196,.10);
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--text);font-family:"Times New Roman",Times,serif;font-size:21px;line-height:1.5;
+  background:radial-gradient(circle at 10% 0%,#e3eefc 0,transparent 40%),radial-gradient(circle at 95% 10%,#f1e8fc 0,transparent 35%),var(--bg);min-height:100vh}
+code,.code,pre,select.gap,.mono{font-family:"JetBrains Mono",Consolas,"Courier New",monospace}
+code{background:#f1f5fb;border-radius:5px;padding:0 4px;font-size:.88em}
+header{background:#fff;padding:16px 24px 14px;position:relative;box-shadow:var(--shadow)}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,#2369c4,#7b45c2 50%,#1c8a4b)}
+.hwrap{max-width:1040px;margin:0 auto;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between}
+header h1{margin:0;font-size:34px;color:#1d4f8f;letter-spacing:.3px}
+header .sub{color:var(--muted);font-size:18px}
+.who{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--blue-l);padding:8px 14px;border-radius:14px}
+.who label{font-weight:bold;color:#1d4f8f}
+.who input,.who select{font-family:inherit;font-size:19px;padding:6px 10px;border:2px solid #b9cfe8;border-radius:10px;background:#fff}
+.who input{width:240px;max-width:100%}
+.who input:focus,.who select:focus{outline:none;border-color:var(--blue)}
+nav{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);box-shadow:0 2px 10px rgba(35,105,196,.08)}
+.nwrap{max-width:1040px;margin:0 auto;display:flex;flex-wrap:wrap;gap:8px;padding:10px 16px}
+nav button{font-family:inherit;font-size:19px;padding:8px 18px;border:2px solid transparent;background:#f1f5fb;border-radius:999px;cursor:pointer;color:var(--text);transition:all .15s}
+nav button:hover{border-color:#b9cfe8;background:#fff}
+nav button.active{background:var(--blue);color:#fff;font-weight:bold;box-shadow:0 3px 10px rgba(35,105,196,.3)}
+nav .nst{font-size:15px;margin-left:4px}
+main{max-width:1040px;margin:0 auto;padding:20px 16px 40px}
+.tab{display:none}.tab.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:20px;padding:20px 26px;margin:0 0 20px;box-shadow:var(--shadow);border:1px solid #e1eaf4}
+h2{color:#1d4f8f;margin:2px 0 12px;font-size:28px;padding-left:14px;border-left:6px solid var(--blue);line-height:1.25}
+h3{color:#1d4f8f;margin:14px 0 8px;font-size:23px}
+.box{border-radius:14px;padding:12px 18px;margin:12px 0;border-left:7px solid}
+.box.def{background:var(--blue-l);border-color:var(--blue)}
+.box.base{background:var(--green-l);border-color:var(--green)}
+.box.step{background:var(--violet-l);border-color:var(--violet)}
+.box.warn{background:var(--orange-l);border-color:var(--orange)}
+.box.idea{background:var(--yellow-l);border-color:#d6b200}
+.box.goal{background:linear-gradient(90deg,#e6f0fc,#f2eafc);border-color:var(--violet)}
+.box.goal ul{margin:6px 0 0;padding-left:26px}
+pre.code{background:#fffef9;border:2px solid #e4e9f0;border-radius:12px;padding:12px 16px;font-size:18px;overflow-x:auto;margin:10px 0;line-height:1.55}
+pre.code code,pre code{background:none;padding:0}
+.code .ln{display:inline-block;width:2em;color:#9aa9ba;user-select:none}
+.kw{color:#ff7700;font-weight:bold}.bi{color:#900090}.st{color:#00aa00}.cm{color:#dd0000}.df{color:#0000ff}
+.hl-base{background:#d6f3e0;display:inline-block;width:100%;border-radius:4px}
+.hl-step{background:#eadcfb;display:inline-block;width:100%;border-radius:4px}
+.callmark{background:#ffe08a;border-radius:5px;padding:1px 3px;outline:2px dashed #d69e00}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.colhead{font-weight:bold;font-size:20px;padding:6px 12px;border-radius:10px;display:inline-block}
+.colhead.a{background:#eef2f6;color:#3d5166}.colhead.b{background:var(--violet-l);color:var(--violet)}
+@media(max-width:760px){.two{grid-template-columns:1fr}body{font-size:19px}header h1{font-size:26px}.card{padding:16px}}
+.pic{text-align:center;margin:8px 0}
+.pic img{max-width:100%;height:auto;border-radius:14px;border:2px solid #e4e9f0;background:#fff}
+.btn{font-family:inherit;font-size:19px;padding:9px 20px;border-radius:999px;border:2px solid var(--blue);background:var(--blue);color:#fff;cursor:pointer;margin:6px 8px 4px 0;transition:all .15s}
+.btn:hover{filter:brightness(1.08);box-shadow:0 3px 10px rgba(35,105,196,.25)}
+.btn.sec{background:#fff;color:var(--blue)}
+.btn:disabled{opacity:.45;cursor:default;box-shadow:none}
+table.t{border-collapse:separate;border-spacing:0;margin:10px 0;border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+table.t td,table.t th{border-bottom:1px solid var(--line);padding:7px 14px;text-align:left}
+table.t tr:last-child td{border-bottom:none}
+table.t th{background:var(--blue-l);color:#1d4f8f}
+.viz-ctrl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.viz-ctrl select,.viz-ctrl input{font-family:inherit;font-size:19px;padding:6px 10px;border:2px solid var(--line);border-radius:10px}
+main:has(#tab-viz.active){max-width:1340px}
+.vgrid{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+@media(max-width:860px){.vgrid{grid-template-columns:1fr}}
+.stackwrap{background:#f7fafd;border:2px solid var(--line);border-radius:16px;padding:10px 12px 0}
+.stack{display:flex;flex-direction:column-reverse;gap:6px;min-height:90px;justify-content:flex-start}
+.floor{height:12px;margin:8px -12px 0;background:repeating-linear-gradient(45deg,#c9b48a 0 8px,#d9c79f 8px 16px);border-radius:0 0 14px 14px}
+.crate{border:3px solid #c49a55;background:#fff6e4;border-radius:10px;padding:5px 10px;font-size:17px;transition:all .25s}
+.crate .ch{font-family:"JetBrains Mono",Consolas,monospace;font-weight:bold;color:#7a5414;font-size:16px}
+.crate .row{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;margin-top:3px}
+.crate .ex{font-family:"JetBrains Mono",Consolas,monospace;font-size:15px;color:#3d5166}
+.vb{display:inline-block;min-width:38px;text-align:center;font-family:"JetBrains Mono",Consolas,monospace;font-weight:bold;font-size:17px;border:2px solid var(--blue);background:#fff;border-radius:6px;padding:0 6px;color:#1d4f8f}
+.vb.q{color:#9aa9ba;border-color:#b9cfe8;border-style:dashed}
+.vb.res{border-color:var(--green);color:var(--green);background:var(--green-l)}
+.lbl{font-size:15px;color:var(--muted)}
+.crate.cur{border-color:var(--blue);box-shadow:0 0 0 3px #c4dcf7;background:#fffdf5}
+.crate.base{border-color:var(--green)}
+.crate.ghost{opacity:.6;border-style:dashed;background:#fff}
+.crate .ch .lbl{font-family:"Times New Roman",serif;font-weight:normal;font-size:16px}
+.stacknote{font-size:16px;color:var(--muted);margin:6px 0 4px}
+.calls{padding:4px 0}
+.call{font-family:"JetBrains Mono",Consolas,monospace;font-size:18px;border:2px solid var(--line);border-radius:12px;padding:8px 14px;margin:6px 0;background:#fff;transition:all .2s}
+.call.cur{border-color:var(--blue);background:var(--blue-l);box-shadow:0 0 0 3px #c4dcf7}
+.call.isbase{border-color:var(--green);background:var(--green-l)}
+.call.done{color:#6c7d8f;background:#f5f8fb;border-style:dashed}
+.call .tag{font-family:"Times New Roman",serif;font-size:16px;margin-left:8px;padding:1px 9px;border-radius:999px}
+.tag.b{background:var(--green);color:#fff}.tag.r{background:var(--green-l);color:var(--green);border:1px solid var(--green)}
+.arrow-down{color:var(--blue);font-size:16px;margin-left:8px}
+.viz-msg{background:var(--yellow-l);border:2px solid #ecd982;border-radius:14px;padding:12px 16px;min-height:60px;font-size:20px}
+.phase{font-weight:bold}
+.sendst{margin-top:10px;padding:0;border-radius:12px;font-size:19px}
+.sendst.wait,.sendst.ok,.sendst.warn{padding:10px 14px}
+.sendst.wait{background:var(--blue-l);color:#1d4f8f}
+.sendst.ok{background:var(--green-l);color:#14603a;font-weight:bold}
+.sendst.warn{background:var(--orange-l);color:#7a4300}
+.vout{margin-top:10px;border:2px solid var(--line);border-radius:14px;padding:10px 16px;background:#fff;font-size:20px}
+.vout .o{font-family:"JetBrains Mono",Consolas,monospace;color:#0000ff;font-size:22px;font-weight:bold}
+.task{border:2px solid var(--line);border-radius:16px;padding:14px 18px;margin:14px 0;background:#fff;transition:border-color .2s}
+.task .num{display:inline-block;font-weight:bold;color:#fff;background:var(--blue);padding:1px 12px;border-radius:999px;font-size:17px;margin-bottom:6px}
+.task.ok{border-color:var(--green);background:#f7fcf9}
+.task.ok .num{background:var(--green)}
+.task.bad{border-color:#e6a14a;background:#fffaf2}
+.task.bad .num{background:var(--orange)}
+.opts label{display:block;padding:8px 12px;margin:6px 0;border:2px solid var(--line);border-radius:12px;cursor:pointer;background:#fff}
+.opts label:hover{border-color:var(--blue);background:#f8fbff}
+.opts input{transform:scale(1.3);margin-right:10px}
+.opts label.right{border-color:var(--green);background:var(--green-l)}
+.opts label.wrongpick{border-color:#e6a14a;background:var(--orange-l)}
+.task input.ans{font-family:"JetBrains Mono",monospace;font-size:20px;width:150px;padding:6px 10px;border:2px solid #b9cfe8;border-radius:10px}
+select.gap{font-size:17px;padding:3px 4px;border:2px solid var(--blue);border-radius:7px;background:#f3f8ff}
+select.gap.right{border-color:var(--green);background:var(--green-l)}
+select.gap.wrong{border-color:#e6a14a;background:var(--orange-l)}
+.fb{margin-top:10px;padding:10px 14px;border-radius:12px;display:none}
+.fb.ok{display:block;background:var(--green-l);color:#14603a}
+.fb.bad{display:block;background:var(--orange-l);color:#7a4300}
+.score{font-size:21px;font-weight:bold;padding:10px 16px;border-radius:14px;background:var(--blue-l);margin:10px 0;color:#1d4f8f}
+.res-table td{font-size:19px}
+.grade{display:inline-block;font-size:48px;font-weight:bold;color:#fff;background:linear-gradient(135deg,#2369c4,#7b45c2);border-radius:18px;padding:0 22px;vertical-align:middle}
+details{margin:10px 0}
+summary{cursor:pointer;color:var(--blue);font-weight:bold}
+table.trace{border-collapse:collapse;width:100%;margin:8px 0;font-size:18px}
+table.trace th,table.trace td{border:1.5px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+table.trace th{background:var(--blue-l);font-size:17px}
+table.trace th small{display:block;font-weight:normal;color:var(--blue)}
+table.trace td.m{font-family:"JetBrains Mono",Consolas,monospace;font-size:17px}
+table.trace tr.cur td{background:#fff6c8}
+table.trace tr.base td{background:var(--green-l)}
+table.trace tr.cur.base td{background:#d9f5c0}
+table.trace td.ret{font-weight:bold;color:#14603a}
+table.trace .wait{color:var(--blue);font-family:"Times New Roman",serif;font-size:16px}
+.tw{overflow-x:auto}
+.hl-cur{background:#fff0a0;display:inline-block;width:100%;outline:2px solid #e0c000}
+.chg{color:var(--violet);background:var(--violet-l);padding:0 3px;border-radius:4px}
+.hint{display:none;margin-top:8px;padding:8px 12px;border-radius:9px;background:var(--yellow-l);border:1.5px solid #e6d27a}
+</style>
+</head>
+<body>
+<header><div class="hwrap">
+  <div><h1>🪆 Что такое рекурсия</h1>
+  <div class="sub">Учебник-тренажёр: функция вызывает саму себя · базовый случай · рекурсивный шаг</div></div>
+<div class="who">
+  <span><label for="fio">Фамилия, имя:</label> <input id="fio" type="text" autocomplete="off"></span>
+  <span><label for="cls">Класс:</label>
+    <select id="cls"><option value="">—</option><option>10А</option><option>10Б</option></select></span>
+</div></div></header>
+
+<nav id="nav"><div class="nwrap">
+  <button data-tab="book" class="active">📖 Учебник</button>
+  <button data-tab="viz">🔍 Как это работает</button>
+  <button data-tab="m1">1. Понятия <span class="nst" id="st-m1"></span></button>
+  <button data-tab="m2">2. Что вернёт? <span class="nst" id="st-m2"></span></button>
+  <button data-tab="m3">3. Собери функцию <span class="nst" id="st-m3"></span></button>
+  <button data-tab="res">📊 Мой результат</button>
+</div></nav>
+
+<main>
+<!-- ================= УЧЕБНИК ================= -->
+<section class="tab active" id="tab-book">
+  <div class="card">
+    <h2>1. Матрёшка и очередь</h2>
+    <p>Откройте матрёшку — внутри такая же матрёшка, только меньше. Откройте её — снова матрёшка, ещё меньше. И так до самой маленькой, которая <b>уже не открывается</b>. На ней всё и заканчивается.</p>
+    <p>Ещё пример. Вы стоите в длинной очереди и хотите узнать, какой вы по счёту. Вы спрашиваете стоящего впереди: «Ты какой по счёту?» Он не знает и спрашивает того, кто впереди него… Первый в очереди отвечает сразу: «Я первый!» Ответ идёт обратно: «Я второй», «Я третий»… И вы узнаёте свой номер: <b>его номер + 1</b>.</p>
+    <div class="box def"><b>Рекурсия</b> — это способ решения задачи, когда задача сводится к <b>такой же задаче, но меньшего размера</b>.<br>
+    <b>Рекурсивная функция</b> — это функция, которая <b>вызывает саму себя</b>.</div>
+  </div>
+
+  <div class="card">
+    <h2>2. Обычная функция и рекурсивная</h2>
+    <p>Обе функции считают сумму чисел от 1 до n. Обе для <code>summa(4)</code> возвращают 10. Найдите главное отличие.</p>
+    <div class="two">
+      <div><span class="colhead a">Обычная функция (с циклом)</span>
+<pre class="code" data-code="def summa(n):
+    s = 0
+    for i in range(1, n + 1):
+        s = s + i
+    return s"></pre></div>
+      <div><span class="colhead b">Рекурсивная функция</span>
+<pre class="code" id="cmp-rec"></pre></div>
+    </div>
+    <details><summary>Проверить себя: в чём отличие?</summary>
+      <div class="box step">В рекурсивной функции в <b>return</b> стоит <code><span class="df">summa</span>(n - 1)</code> — <b>вызов этой же функции</b>. Цикла нет: повторение получается за счёт того, что функция снова и снова вызывает саму себя, каждый раз с меньшим n.<br>
+      А строки <code>if n == 1: return 1</code> останавливают эти вызовы.</div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>3. Две обязательные части</h2>
+    <p>В каждой рекурсивной функции обязательно есть две части:</p>
+    <div class="box base"><b>Базовый случай (условие остановки)</b> — самая простая ситуация, когда ответ известен сразу, без новых вызовов.<br>
+    Это «самая маленькая матрёшка» и «первый в очереди».</div>
+    <div class="box step"><b>Рекурсивный шаг</b> — функция вызывает саму себя, но для <b>меньшего</b> значения (n − 1, n // 10 …) и из полученного ответа строит свой.<br>
+    Это «открыть матрёшку» и «спросить того, кто впереди».</div>
+    <h3>Шаблон</h3>
+    <pre class="code" data-code="def имя(n):
+    if базовый_случай:          # 1) условие остановки
+        return простой_ответ
+    return ... имя(меньшее_n) ...  # 2) рекурсивный шаг"></pre>
+    <div class="box warn">⚠️ Если забыть базовый случай, функция будет вызывать себя снова и снова. Python остановит программу с ошибкой <code>RecursionError</code> (по умолчанию разрешено около 1000 вложенных вызовов).</div>
+  </div>
+
+  <div class="card">
+    <h2>4. Пример 1. Сумма чисел от 1 до n</h2>
+    <p>Сумма от 1 до 4: 1 + 2 + 3 + 4 = 10. Заметим: <b>сумма до 4 = 4 + сумма до 3</b>. А сумма до 3 = 3 + сумма до 2… Сумма до 1 равна просто 1.</p>
+    <div class="two">
+      <div>
+        <table class="t">
+          <tr><th>Математика</th></tr>
+          <tr><td>S(1) = 1 <span style="color:var(--green)">← базовый случай</span></td></tr>
+          <tr><td>S(n) = n + S(n − 1) <span style="color:var(--violet)">← шаг</span></td></tr>
+        </table>
+      </div>
+      <div>
+<pre class="code" data-code="def summa(n):
+    if n == 1:
+        return 1
+    return n + summa(n - 1)
+
+print(summa(4))   # 10" data-base="2" data-step="4"></pre>
+      </div>
+    </div>
+    <p>Как считается <code>summa(4)</code>:</p>
+    <pre class="code" data-plain="1">summa(4) = 4 + summa(3)
+         = 4 + 3 + summa(2)
+         = 4 + 3 + 2 + summa(1)
+         = 4 + 3 + 2 + 1  = 10</pre>
+    <button class="btn sec" onclick="openViz('summa',4)">🔍 Посмотреть по шагам</button>
+  </div>
+
+  <div class="card">
+    <h2>5. Пример 2. Факториал</h2>
+    <p><b>Факториал</b> числа n (пишут <b>n!</b>) — произведение всех чисел от 1 до n: 4! = 1 · 2 · 3 · 4 = 24.<br>
+    Заметим: <b>4! = 4 · 3!</b>, а 1! = 1.</p>
+    <div class="two">
+      <table class="t">
+        <tr><th>Математика</th></tr>
+        <tr><td>1! = 1 <span style="color:var(--green)">← базовый случай</span></td></tr>
+        <tr><td>n! = n · (n − 1)! <span style="color:var(--violet)">← шаг</span></td></tr>
+      </table>
+<pre class="code" data-code="def fact(n):
+    if n == 1:
+        return 1
+    return n * fact(n - 1)
+
+print(fact(4))   # 24" data-base="2" data-step="4"></pre>
+    </div>
+    <p>Посмотрите: функция <code>fact</code> устроена так же, как <code>summa</code>. Отличие одно: <b>*</b> вместо <b>+</b>.</p>
+    <details><summary>Для любознательных: а 0! ?</summary>
+      <p>В математике считают, что 0! = 1. Если нужно, чтобы функция работала и для 0, базовый случай пишут так: <code>if n &lt;= 1: return 1</code>.</p>
+    </details>
+    <button class="btn sec" onclick="openViz('fact',4)">🔍 Посмотреть по шагам</button>
+  </div>
+
+  <div class="card">
+    <h2>6. Пример 3. Сумма цифр числа</h2>
+    <p>Вспомним две операции:</p>
+    <table class="t">
+      <tr><th>Операция</th><th>Что даёт</th><th>Пример для 527</th></tr>
+      <tr><td><code>n % 10</code></td><td>последнюю цифру</td><td><code>527 % 10 = 7</code></td></tr>
+      <tr><td><code>n // 10</code></td><td>число без последней цифры</td><td><code>527 // 10 = 52</code></td></tr>
+    </table>
+    <p>Сумма цифр 527 = <b>7 + сумма цифр 52</b>. Если число однозначное (n &lt; 10), его сумма цифр — оно само.</p>
+<pre class="code" data-code="def sum_digits(n):
+    if n < 10:
+        return n
+    return n % 10 + sum_digits(n // 10)
+
+print(sum_digits(527))   # 14" data-base="2" data-step="4"></pre>
+    <pre class="code" data-plain="1">sum_digits(527) = 7 + sum_digits(52)
+                = 7 + 2 + sum_digits(5)
+                = 7 + 2 + 5  = 14</pre>
+    <button class="btn sec" onclick="openViz('sum_digits',527)">🔍 Посмотреть по шагам</button>
+  </div>
+
+  <div class="card">
+    <h2>7. Пример 4. Когда n только считает вызовы</h2>
+    <p>Бывает, что <b>n не участвует в вычислении</b>. Посмотрите на рекурсивный шаг: в выражении <code>3 * h(n - 1)</code> нет действий с n — n только уменьшается и <b>считает, сколько раз</b> выполнится умножение на 3.</p>
+<pre class="code" data-code="def h(n):
+    if n == 0:
+        return 1
+    return 3 * h(n - 1)" data-base="2" data-step="4"></pre>
+    <pre class="code" data-plain="1">h(3) = 3 * h(2)
+     = 3 * 3 * h(1)
+     = 3 * 3 * 3 * h(0)
+     = 3 * 3 * 3 * 1  = 27</pre>
+    <p>Снизу вверх: h(0) = 1 → h(1) = 3 → h(2) = 9 → h(3) = 27. Умножили на 3 ровно <b>3 раза</b> — столько, сколько было n.</p>
+    <div class="box warn">⚠️ Не путайте: <code>3 * h(n - 1)</code> — умножаем на <b>3</b>; <code>n * h(n - 1)</code> — умножаем на <b>n</b> (это факториал).</div>
+    <div id="tt-h"></div>
+    <button class="btn sec" onclick="openViz('h',3)">🔍 Посмотреть по шагам</button>
+  </div>
+
+  <div class="card">
+    <h2>8. Трассировочная таблица: как выполняется рекурсия</h2>
+    <div class="box idea">🔑 <b>Главная идея.</b> Каждый вызов функции — это отдельная «копия» со <b>своим собственным n</b> (как отдельный ящик со своей переменной n).
+    Компьютер всё делает за долю секунды, но <b>порядок</b> вычислений такой же, как в примере <code>2 * (3 + 4)</code>: умножить нельзя, пока не посчитаны скобки.
+    Так и в строке <code>return 4 + summa(3)</code>: сложить нельзя, пока не известно значение <code>summa(3)</code>. Поэтому Python сначала вычисляет <code>summa(3)</code>, а сложение <b>откладывает</b> — строка остаётся <b>не досчитанной</b>.
+    Когда <code>summa(3)</code> вернёт число, Python возвращается к отложенной строке и досчитывает её.</div>
+    <p>Выполнение рекурсии удобно записывать в <b>трассировочную таблицу</b>. Вот таблица для <code>summa(4)</code>:</p>
+    <div id="tt-summa"></div>
+    <div class="box def"><b>Как заполнять таблицу:</b><br>
+    ① Столбцы «Вызов», «Условие остановки», «Что вычисляем» — <b>сверху вниз</b>: каждый вызов создаёт новый, пока не сработает условие остановки.<br>
+    ② Столбец «Возвращает» — <b>снизу вверх</b>: сначала ответ базового случая, затем каждая ждущая строка досчитывает своё выражение.</div>
+    <p>Таблица для <code>sum_digits(527)</code>:</p>
+    <div id="tt-digits"></div>
+    <p><b>Попробуйте сами:</b> заполните на листочке таблицу для <code>fact(4)</code>, потом проверьте.</p>
+    <details><summary>Проверить таблицу fact(4)</summary><div id="tt-fact"></div></details>
+    <button class="btn sec" onclick="openViz('summa',4)">🔍 Заполнить таблицу по шагам</button>
+  </div>
+
+  <div class="card">
+    <h2>9. Пишем рекурсивную функцию за 4 шага</h2>
+    <p>Пример: функция <code>count_digits(n)</code> — количество цифр числа.</p>
+    <table class="t">
+      <tr><th>Шаг</th><th>Что делаем</th><th>Для count_digits</th></tr>
+      <tr><td>1</td><td>Считаем ответ вручную для маленьких чисел</td><td>7 → 1 цифра; 47 → 2; 347 → 3</td></tr>
+      <tr><td>2</td><td>Ищем связь с <b>такой же задачей поменьше</b></td><td>цифр у 347 = <b>1 +</b> цифр у 34, а 34 = <code>347 // 10</code></td></tr>
+      <tr><td>3</td><td>Когда ответ очевиден? → <span style="color:var(--green)"><b>базовый случай</b></span></td><td>однозначное число (<code>n &lt; 10</code>) → 1 цифра</td></tr>
+      <tr><td>4</td><td>Записываем по шаблону</td><td>см. код ниже</td></tr>
+    </table>
+<pre class="code" data-code="def count_digits(n):
+    if n < 10:                       # шаг 3
+        return 1
+    return 1 + count_digits(n // 10)  # шаг 2" data-base="2" data-step="4"></pre>
+
+    <details><summary>Похожие функции — посмотреть</summary>
+    <p>Многие рекурсивные функции устроены почти одинаково — меняется только выделенное.</p>
+    <p><b>Числа от n до 1</b>: n уменьшается на 1 → <code>(n - 1)</code>, остановка при <code>n == 1</code>.</p>
+    <table class="t mono" style="font-size:17px">
+      <tr><th>Функция</th><th>Базовый случай</th><th>Рекурсивный шаг</th></tr>
+      <tr><td>summa — сумма 1..n</td><td>return 1</td><td>return n <b class="chg">+</b> summa(n - 1)</td></tr>
+      <tr><td>fact — n!</td><td>return 1</td><td>return n <b class="chg">*</b> fact(n - 1)</td></tr>
+      <tr><td>sum_squares — 1²+…+n²</td><td>return 1</td><td>return <b class="chg">n * n</b> + sum_squares(n - 1)</td></tr>
+    </table>
+    <p><b>Цифры числа</b>: отрезаем последнюю цифру → <code>(n // 10)</code>, остановка при <code>n &lt; 10</code>.</p>
+    <table class="t mono" style="font-size:17px">
+      <tr><th>Функция</th><th>Базовый случай</th><th>Рекурсивный шаг</th></tr>
+      <tr><td>sum_digits — сумма цифр</td><td>return <b class="chg">n</b></td><td>return n % 10 <b class="chg">+</b> sum_digits(n // 10)</td></tr>
+      <tr><td>product_digits — произв. цифр</td><td>return <b class="chg">n</b></td><td>return n % 10 <b class="chg">*</b> product_digits(n // 10)</td></tr>
+      <tr><td>count_digits — кол-во цифр</td><td>return <b class="chg">1</b></td><td>return <b class="chg">1</b> + count_digits(n // 10)</td></tr>
+    </table>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>10. Частые ошибки</h2>
+<pre class="code" data-code="# ❌ Нет базового случая — RecursionError
+def summa(n):
+    return n + summa(n - 1)
+
+# ❌ n не уменьшается — RecursionError
+def summa(n):
+    if n == 1:
+        return 1
+    return n + summa(n)
+
+# ❌ Забыли return — функция вернёт None
+def summa(n):
+    if n == 1:
+        return 1
+    n + summa(n - 1)"></pre>
+  </div>
+
+  <div class="card">
+    <h2>11. Практика в IDLE</h2>
+    <p>Напишите рекурсивные функции и проверьте их. Ответы для проверки даны в скобках.</p>
+    <ol>
+      <li><code>sum_squares(n)</code> — сумма квадратов 1² + 2² + … + n². (<code>sum_squares(3)</code> → 14)</li>
+      <li><code>sum_even(n)</code> — сумма чётных чисел n + (n − 2) + … + 2, n чётное. (<code>sum_even(8)</code> → 20)</li>
+      <li><code>countdown(n)</code> — процедура: выводит n, n − 1, …, 1, а потом «Старт!». (<code>countdown(3)</code> → 3 2 1 Старт!)</li>
+    </ol>
+    <details><summary>Подсказка</summary>
+      <p>1) Как <code>summa</code>, только прибавляем <code>n * n</code>.<br>
+      2) Числа уменьшаются на 2: <code>sum_even(n - 2)</code>. Остановиться при <code>n &lt;= 0</code> и вернуть 0.<br>
+      3) Если <code>n == 0</code> — выводим «Старт!», иначе выводим n и вызываем <code>countdown(n - 1)</code>. Здесь <code>return</code> не нужен: это процедура.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= ВИЗУАЛИЗАЦИЯ ================= -->
+<section class="tab" id="tab-viz">
+  <div class="card">
+    <h2>🔍 Как работает рекурсия — по шагам</h2>
+    <p>Компьютер выполняет всё мгновенно — здесь то же самое показано «в замедленной съёмке». Сначала вызовы <b>уходят вглубь</b> (таблица заполняется сверху вниз), пока не сработает условие остановки. Потом отложенные строки <b>досчитываются обратно</b> (столбец «Возвращает» заполняется снизу вверх).</p>
+    <div class="viz-ctrl">
+      <label>Функция:
+        <select id="vf">
+          <option value="summa">summa(n) — сумма 1..n</option>
+          <option value="fact">fact(n) — факториал</option>
+          <option value="sum_squares">sum_squares(n) — сумма квадратов</option>
+          <option value="sum_digits">sum_digits(n) — сумма цифр</option>
+          <option value="count_digits">count_digits(n) — количество цифр</option>
+          <option value="product_digits">product_digits(n) — произведение цифр</option>
+          <option value="h">h(n) — n только считает вызовы</option>
+        </select></label>
+      <label>n = <input id="vn" type="number" value="4" style="width:120px"></label>
+      <button class="btn" onclick="vizStart()">Начать сначала</button>
+    </div>
+    <pre class="code" id="vcode"></pre>
+    <div class="viz-ctrl">
+      <button class="btn sec" id="vb" onclick="vizMove(-1)">◀ Назад</button>
+      <button class="btn" id="vfw" onclick="vizMove(1)">Вперёд ▶</button>
+      <button class="btn sec" onclick="vizAuto()" id="vauto">▶▶ Авто</button>
+      <button class="btn sec" onclick="V.i=V.steps.length-1;vizRender()">⏭ Сразу к ответу</button>
+      <span id="vcount" style="color:var(--muted)"></span>
+    </div>
+    <div class="vgrid">
+      <div><h3>Стопка вызовов (стек)</h3>
+        <div class="stacknote">Вызов кладёт ящик <b>наверх</b>. <code>return</code> снимает <b>верхний</b> ящик и отдаёт число ящику под ним.</div>
+        <div class="stackwrap"><div class="stack" id="vstack"></div><div class="floor"></div></div></div>
+      <div><h3>Трассировочная таблица</h3>
+        <div id="vtrace"></div></div>
+    </div>
+    <div style="margin-top:14px">
+    <div class="viz-msg" id="vmsg"></div>
+    <div class="vout" id="vout"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= МОДУЛИ ================= -->
+<section class="tab" id="tab-m1">
+  <div class="card"><h2>Модуль 1. Понятия</h2>
+  <p>Найдите базовый случай и рекурсивный шаг, найдите ошибки. После каждого задания нажмите «Проверить».</p>
+  <div class="score" id="score-m1"></div>
+  <div id="list-m1"></div>
+  <button class="btn sec" onclick="newSet('m1')">🔄 Новый набор заданий</button></div>
+</section>
+<section class="tab" id="tab-m2">
+  <div class="card"><h2>Модуль 2. Что вернёт функция?</h2>
+  <p>Посчитайте, какое число вернёт вызов. Можно считать на листочке: распишите вызовы, как в учебнике.</p>
+  <div class="score" id="score-m2"></div>
+  <div id="list-m2"></div>
+  <button class="btn sec" onclick="newSet('m2')">🔄 Новый набор заданий</button></div>
+</section>
+<section class="tab" id="tab-m3">
+  <div class="card"><h2>Модуль 3. Собери функцию</h2>
+  <p>Выберите в каждом пропуске правильный вариант, чтобы функция работала верно.</p>
+  <div class="score" id="score-m3"></div>
+  <div id="list-m3"></div>
+  <button class="btn sec" onclick="newSet('m3')">🔄 Новый набор заданий</button></div>
+</section>
+
+<section class="tab" id="tab-res">
+  <div class="card"><h2>📊 Мой результат</h2>
+  <div id="res-body"></div>
+  <p style="color:var(--muted);font-size:17px">Оценка ставится за все три модуля. Нерешённые задания считаются неверными.</p>
+  <button class="btn" id="sendBtn" onclick="sendResult()">📤 Отправить результат учителю</button>
+  <button class="btn sec" onclick="exportTxt()">💾 Сохранить результат (.txt)</button>
+  <div class="sendst" id="sendSt"></div></div>
+</section>
+</main>
+
+<script>
+/* ---------- подсветка в стиле IDLE ---------- */
+const KW=new Set(['def','if','elif','else','return','for','in','while','and','or','not','True','False','None','import','from','break','continue']);
+const BI=new Set(['print','range','len','input','int','str','abs']);
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function hlLine(line){
+  let out='',prevDef=false,m;
+  const re=/(#.*$)|("[^"]*"|'[^']*')|([A-Za-zА-Яа-яЁё_][A-Za-zА-Яа-яЁё_0-9]*)|(\s+)|(.)/gy;
+  while(line.length && (m=re.exec(line))!==null){
+    if(m[1]) out+='<span class="cm">'+esc(m[1])+'</span>';
+    else if(m[2]) out+='<span class="st">'+esc(m[2])+'</span>';
+    else if(m[3]){
+      const w=m[3];
+      if(prevDef){out+='<span class="df">'+w+'</span>';prevDef=false;}
+      else if(KW.has(w)){out+='<span class="kw">'+w+'</span>'; if(w==='def')prevDef=true;}
+      else if(BI.has(w)) out+='<span class="bi">'+w+'</span>';
+      else out+=w;
+    } else out+=esc(m[0]);
+    if(re.lastIndex>=line.length)break;
+  }
+  return out;
+}
+function codeHTML(lines,opt={}){
+  return lines.map((l,i)=>{
+    let h=hlLine(l), cls='';
+    if(opt.base===i+1)cls='hl-base'; if(opt.step===i+1)cls='hl-step'; if(opt.cur===i+1)cls='hl-cur';
+    const ln=opt.nums?'<span class="ln">'+(i+1)+'</span>':'';
+    return cls?'<span class="'+cls+'">'+ln+h+'</span>':ln+h;
+  }).join('\n');
+}
+document.querySelectorAll('pre.code[data-code]').forEach(p=>{
+  p.innerHTML=codeHTML(p.dataset.code.split('\n'),{base:+p.dataset.base||0,step:+p.dataset.step||0,nums:!!p.dataset.base});
+});
+
+document.getElementById('cmp-rec').innerHTML=codeHTML(['def summa(n):','    if n == 1:','        return 1','    return n + summa(n - 1)']).replace(/(<span class="kw">return<\/span> n \+ )summa/,'$1<span class="df">summa</span>');
+
+/* ---------- вспомогательное ---------- */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function digitsOf(n){return String(n).split('').map(Number)}
+function randNoZero(k){let s='';for(let i=0;i<k;i++)s+=rnd(1,9);return +s}
+const idiv=n=>Math.floor(n/10);
+
+/* ================= БАНК ФУНКЦИЙ ================= */
+const FN={
+  summa:{lines:['def summa(n):','    if n == 1:','        return 1','    return n + summa(n - 1)'],base:2,step:4},
+  fact:{lines:['def fact(n):','    if n == 1:','        return 1','    return n * fact(n - 1)'],base:2,step:4},
+  sum_digits:{lines:['def sum_digits(n):','    if n < 10:','        return n','    return n % 10 + sum_digits(n // 10)'],base:2,step:4},
+  count_digits:{lines:['def count_digits(n):','    if n < 10:','        return 1','    return 1 + count_digits(n // 10)'],base:2,step:4},
+  sum_squares:{lines:['def sum_squares(n):','    if n == 1:','        return 1','    return n * n + sum_squares(n - 1)'],base:2,step:4},
+  sum_even:{lines:['def sum_even(n):','    if n <= 0:','        return 0','    return n + sum_even(n - 2)'],base:2,step:4},
+  product_digits:{lines:['def product_digits(n):','    if n < 10:','        return n','    return n % 10 * product_digits(n // 10)'],base:2,step:4},
+  countdown:{lines:['def countdown(n):','    if n == 0:','        print("Старт!")','    else:','        print(n)','        countdown(n - 1)'],base:2,step:6}
+};
+
+/* ================= ОПИСАНИЯ ДЛЯ ТРАССИРОВКИ ================= */
+function mk(o){return o}
+const SPEC={
+  summa:{name:'summa',code:FN.summa.lines,cond:'n == 1',condTxt:n=>`${n} == 1`,isBase:n=>n===1,baseVal:()=>1,next:n=>n-1,
+    stepTxt:n=>`${n} + summa(${n-1})`,resTxt:(n,s)=>`${n} + ${s}`,comb:(n,s)=>n+s,min:1,max:8},
+  fact:{name:'fact',code:FN.fact.lines,cond:'n == 1',condTxt:n=>`${n} == 1`,isBase:n=>n===1,baseVal:()=>1,next:n=>n-1,
+    stepTxt:n=>`${n} * fact(${n-1})`,resTxt:(n,s)=>`${n} * ${s}`,comb:(n,s)=>n*s,min:1,max:7},
+  sum_squares:{name:'sum_squares',code:FN.sum_squares.lines,cond:'n == 1',condTxt:n=>`${n} == 1`,isBase:n=>n===1,baseVal:()=>1,next:n=>n-1,
+    stepTxt:n=>`${n}*${n} + sum_squares(${n-1})`,resTxt:(n,s)=>`${n*n} + ${s}`,comb:(n,s)=>n*n+s,min:1,max:7},
+  sum_even:{name:'sum_even',code:FN.sum_even.lines,cond:'n <= 0',condTxt:n=>`${n} <= 0`,isBase:n=>n<=0,baseVal:()=>0,next:n=>n-2,
+    stepTxt:n=>`${n} + sum_even(${n-2})`,resTxt:(n,s)=>`${n} + ${s}`,comb:(n,s)=>n+s,min:0,max:16},
+  sum_digits:{name:'sum_digits',code:FN.sum_digits.lines,cond:'n < 10',condTxt:n=>`${n} < 10`,isBase:n=>n<10,baseVal:n=>n,next:idiv,
+    stepTxt:n=>`${n%10} + sum_digits(${idiv(n)})`,resTxt:(n,s)=>`${n%10} + ${s}`,comb:(n,s)=>n%10+s,min:0,max:99999999,
+    extra:n=>` (${n} % 10 = ${n%10}, ${n} // 10 = ${idiv(n)})`},
+  count_digits:{name:'count_digits',code:FN.count_digits.lines,cond:'n < 10',condTxt:n=>`${n} < 10`,isBase:n=>n<10,baseVal:()=>1,next:idiv,
+    stepTxt:n=>`1 + count_digits(${idiv(n)})`,resTxt:(n,s)=>`1 + ${s}`,comb:(n,s)=>1+s,min:0,max:99999999,
+    extra:n=>` (${n} // 10 = ${idiv(n)})`},
+  product_digits:{name:'product_digits',code:FN.product_digits.lines,cond:'n < 10',condTxt:n=>`${n} < 10`,isBase:n=>n<10,baseVal:n=>n,next:idiv,
+    stepTxt:n=>`${n%10} * product_digits(${idiv(n)})`,resTxt:(n,s)=>`${n%10} * ${s}`,comb:(n,s)=>(n%10)*s,min:0,max:99999999,
+    extra:n=>` (${n} % 10 = ${n%10}, ${n} // 10 = ${idiv(n)})`},
+  g:{name:'g',code:['def g(n):','    if n == 1:','        return 1','    return 2 * g(n - 1)'],cond:'n == 1',condTxt:n=>`${n} == 1`,isBase:n=>n===1,baseVal:()=>1,next:n=>n-1,
+    stepTxt:n=>`2 * g(${n-1})`,resTxt:(n,s)=>`2 * ${s}`,comb:(n,s)=>2*s,min:1,max:10}
+};
+SPEC.h={name:'h',code:['def h(n):','    if n == 0:','        return 1','    return 3 * h(n - 1)'],cond:'n == 0',condTxt:n=>`${n} == 0`,isBase:n=>n===0,baseVal:()=>1,next:n=>n-1,
+    stepTxt:n=>`3 * h(${n-1})`,resTxt:(n,s)=>`3 * ${s}`,comb:(n,s)=>3*s,min:0,max:8};
+function specF(K){return {name:'f',code:['def f(n):','    if n == 0:','        return 0',`    return f(n - 1) + ${K}`],cond:'n == 0',condTxt:n=>`${n} == 0`,isBase:n=>n===0,baseVal:()=>0,next:n=>n-1,
+  stepTxt:n=>`f(${n-1}) + ${K}`,resTxt:(n,s)=>`${s} + ${K}`,comb:(n,s)=>s+K,min:0,max:10}}
+function getSpec(key,K){return key==='f'?specF(K):SPEC[key]}
+
+function buildTrace(F,n){
+  const args=[n]; while(!F.isBase(args[args.length-1])) args.push(F.next(args[args.length-1]));
+  const k=args.length-1, vals=[]; vals[k]=F.baseVal(args[k]);
+  for(let i=k-1;i>=0;i--) vals[i]=F.comb(args[i],vals[i+1]);
+  return {args,vals,k};
+}
+/* step: {phase:'down'|'up'|'end', i} или null — вся таблица */
+function stepView(T,s){
+  if(!s) return {deepest:T.k,resolvedFrom:0,cur:-1};
+  if(s.phase==='down') return {deepest:s.i,resolvedFrom:s.i===T.k?T.k:T.k+1,cur:s.i};
+  if(s.phase==='up') return {deepest:T.k,resolvedFrom:s.i,cur:s.i};
+  return {deepest:T.k,resolvedFrom:0,cur:0};
+}
+function traceHTML(F,T,s){
+  const v=stepView(T,s);
+  let h=`<div class="tw"><table class="trace"><tr><th>№</th><th>Вызов<small>↓ сверху вниз</small></th><th>n<small>↓ сверху вниз</small></th><th>Условие остановки<br><code>${esc(F.cond)}</code>?<small>↓ сверху вниз</small></th><th>Что вычисляем<small>↓ сверху вниз</small></th><th>Возвращает<small>↑ снизу вверх</small></th></tr>`;
+  for(let j=0;j<=T.k;j++){
+    const a=T.args[j], isB=j===T.k, shown=j<=v.deepest, res=j>=v.resolvedFrom;
+    let cls=(j===v.cur?'cur ':'')+(isB&&shown?'base':'');
+    if(!shown){h+=`<tr><td>${j+1}</td><td class="m"></td><td class="m"></td><td></td><td class="m"></td><td class="m"></td></tr>`;continue}
+    const cond=`${esc(F.condTxt(a))} → <b>${isB?'да':'нет'}</b>`;
+    const what=isB?'ответ известен сразу':esc(F.stepTxt(a))+(res?'':' <span class="wait">⏸ не досчитано</span>');
+    const ret=res?(isB?String(T.vals[j]):`${esc(F.stepTxt(a))} = ${esc(F.resTxt(a,T.vals[j+1]))} = ${T.vals[j]}`):'';
+    h+=`<tr class="${cls}"><td>${j+1}</td><td class="m">${F.name}(${a})</td><td class="m"><span class="vb">${a}</span></td><td>${cond}</td><td class="m">${what}</td><td class="m ret">${ret}</td></tr>`;
+  }
+  return h+'</table></div>';
+}
+function staticTrace(id,key,n){const F=SPEC[key];document.getElementById(id).innerHTML=traceHTML(F,buildTrace(F,n),null)}
+staticTrace('tt-summa','summa',4); staticTrace('tt-digits','sum_digits',527); staticTrace('tt-fact','fact',4); staticTrace('tt-h','h',3);
+
+/* ---------- вкладки ---------- */
+const nav=document.getElementById('nav');
+nav.addEventListener('click',e=>{const b=e.target.closest('button');if(b)showTab(b.dataset.tab)});
+function showTab(t){
+  nav.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+t));
+  if(['m1','m2','m3'].includes(t)) enterModule(t);
+  if(t==='res') renderRes();
+  window.scrollTo(0,0);
+}
+
+/* ================= ВИЗУАЛИЗАЦИЯ ================= */
+let V={steps:[],i:0,timer:null};
+function openViz(f,n){document.getElementById('vf').value=f;document.getElementById('vn').value=n;showTab('viz');vizStart()}
+function vizStart(){
+  clearInterval(V.timer);document.getElementById('vauto').textContent='▶▶ Авто';
+  const F=SPEC[document.getElementById('vf').value];
+  let n=parseInt(document.getElementById('vn').value,10);
+  if(isNaN(n))n=4; n=Math.max(F.min,Math.min(F.max,n)); document.getElementById('vn').value=n;
+  const T=buildTrace(F,n),{args,vals,k}=T, nm=F.name, steps=[];
+  for(let i=0;i<=k;i++){
+    const a=args[i], ex=F.extra?F.extra(a):'';
+    if(i<k) steps.push({phase:'down',i,line:4,msg:`<span class="phase">Вызов ${nm}(${a}).</span> Строка 2: ${esc(F.condTxt(a))}? <b>Нет.</b> Строка 4: нужно вычислить <code>${esc(F.stepTxt(a))}</code>${ex}. Значение ${nm}(${args[i+1]}) пока неизвестно, поэтому эта строка <b>откладывается</b> (не досчитана), а Python вызывает ${nm}(${args[i+1]}).`});
+    else steps.push({phase:'down',i,line:3,msg:`<span class="phase">Вызов ${nm}(${a}).</span> Строка 2: ${esc(F.condTxt(a))}? <b>Да!</b> Это базовый случай. Строка 3: сразу возвращаем <b>${vals[i]}</b>. Новых вызовов нет — начинается <b>обратный ход</b>.`});
+  }
+  for(let i=k-1;i>=0;i--) steps.push({phase:'up',i,line:4,msg:`<span class="phase">Обратный ход.</span> ${nm}(${args[i+1]}) вернула <b>${vals[i+1]}</b>. Python досчитывает отложенную строку 4 для ${nm}(${args[i]}): ${esc(F.resTxt(args[i],vals[i+1]))} = <b>${vals[i]}</b>.`+(i>0?` Значит, ${nm}(${args[i]}) возвращает ${vals[i]}.`:'')});
+  steps.push({phase:'end',i:0,line:0,msg:`✅ <b>Ответ: ${nm}(${n}) = ${vals[0]}</b>. Всего вызовов функции: ${k+1}.`});
+  V={steps,i:0,timer:null,F,T,n};
+  vizRender();
+}
+function vizRender(){
+  const {steps,i,F,T}=V, s=steps[i], {args,vals,k}=T, v=stepView(T,s);
+  document.getElementById('vcode').innerHTML=codeHTML(F.code,{nums:true,cur:s.line});
+  document.getElementById('vout').innerHTML=`Итог: <span class="mono">${F.name}(${V.n})</span> возвращает <span class="o">${vals[0]}</span>`+(s.phase==='end'?'':` <span style="color:var(--muted)">— стопка и таблица выше показывают, как получается это число</span>`);
+  document.getElementById('vtrace').innerHTML=traceHTML(F,T,s);
+  document.getElementById('vstack').innerHTML=stackHTML(F,T,s);
+  document.getElementById('vmsg').innerHTML=s.msg;
+  document.getElementById('vcount').textContent=`Шаг ${i+1} из ${steps.length}`;
+  document.getElementById('vb').disabled=i===0;
+  document.getElementById('vfw').disabled=i===steps.length-1;
+}
+
+function stackHTML(F,T,s){
+  const {args,vals,k}=T;
+  let top, ghost=-1;
+  if(s.phase==='down') top=s.i;
+  else if(s.phase==='up'){top=s.i; ghost=s.i+1}
+  else {top=-1; ghost=0}
+  const crate=(j,cls)=>{
+    const a=args[j], isB=j===k;
+    const resolved = (s.phase==='up'&&j===s.i)||(s.phase==='down'&&isB&&j===s.i)||cls.includes('ghost');
+    let ex = isB?`return ${vals[j]}`:(resolved?`${esc(F.resTxt(a,vals[j+1]))} = ${vals[j]}`:`${esc(F.stepTxt(a))} <span class="lbl">⏸ не досчитано</span>`);
+    let ret = resolved?`<span class="vb res">${vals[j]}</span>`:`<span class="vb q">?</span>`;
+    let head = `${F.name}(${a})`+(isB?' <span class="lbl">— базовый случай</span>':'');
+    if(cls.includes('ghost')) head += ` <span class="lbl">— снят, отдал ${vals[j]} ${j>0?'вниз':'как ответ'}</span>`;
+    return `<div class="crate ${cls}${isB?' base':''}"><div class="ch">📦 ${head}</div>
+      <div class="row"><span class="lbl">n</span><span class="vb">${a}</span><span class="ex">${ex}</span></div>
+      <div class="row"><span class="lbl">вернёт</span>${ret}</div></div>`;
+  };
+  let h='';
+  for(let j=0;j<=top;j++) h+=crate(j,j===top?'cur':'');
+  if(ghost>=0) h+=crate(ghost,'ghost');
+  if(s.phase==='end') h=`<div class="stacknote" style="text-align:center">Стопка пуста — все вызовы завершены</div>`+h;
+  return h;
+}
+function vizMove(d){if(!V.steps.length)return;V.i=Math.max(0,Math.min(V.steps.length-1,V.i+d));vizRender();if(V.i===V.steps.length-1&&V.timer){clearInterval(V.timer);V.timer=null;document.getElementById('vauto').textContent='▶▶ Авто'}}
+function vizAuto(){
+  if(V.timer){clearInterval(V.timer);V.timer=null;document.getElementById('vauto').textContent='▶▶ Авто';return}
+  if(V.i===V.steps.length-1){V.i=0;vizRender()}
+  document.getElementById('vauto').textContent='⏸ Пауза';
+  V.timer=setInterval(()=>vizMove(1),2200);
+}
+document.getElementById('vf').addEventListener('change',vizStart);
+document.getElementById('vn').addEventListener('change',vizStart);
+vizStart();
+
+/* ================= МОДУЛЬ 1 ================= */
+const BUGGY={
+  summa:{noBase:['def summa(n):','    return n + summa(n - 1)'],noDec:['def summa(n):','    if n == 1:','        return 1','    return n + summa(n)'],noRet:['def summa(n):','    if n == 1:','        return 1','    n + summa(n - 1)']},
+  fact:{noBase:['def fact(n):','    return n * fact(n - 1)'],noDec:['def fact(n):','    if n == 1:','        return 1','    return n * fact(n)'],noRet:['def fact(n):','    if n == 1:','        return 1','    n * fact(n - 1)']},
+  sum_digits:{noBase:['def sum_digits(n):','    return n % 10 + sum_digits(n // 10)'],noDec:['def sum_digits(n):','    if n < 10:','        return n','    return n % 10 + sum_digits(n)'],noRet:['def sum_digits(n):','    if n < 10:','        return n','    n % 10 + sum_digits(n // 10)']},
+  sum_squares:{noBase:['def sum_squares(n):','    return n * n + sum_squares(n - 1)'],noDec:['def sum_squares(n):','    if n == 1:','        return 1','    return n * n + sum_squares(n + 1)'],noRet:['def sum_squares(n):','    if n == 1:','        return 1','    n * n + sum_squares(n - 1)']}
+};
+const NODEC={summa:['summa(n)','summa(n - 1)','не меняется'],fact:['fact(n)','fact(n - 1)','не меняется'],sum_digits:['sum_digits(n)','sum_digits(n // 10)','не меняется'],sum_squares:['sum_squares(n + 1)','sum_squares(n - 1)','увеличивается, а не уменьшается']};
+const BUG_OPTS=['Нет базового случая (условия остановки) — функция будет вызывать себя бесконечно',
+ 'Параметр n в рекурсивном вызове не уменьшается — вызовы никогда не дойдут до базового случая, функция будет вызывать себя бесконечно',
+ 'Нет return в рекурсивном шаге — результат потеряется, функция вернёт None',
+ 'Ошибок нет, функция работает верно'];
+const BUG_EXPL=['Без условия остановки вызовы никогда не закончатся → RecursionError.',
+ 'Значение в вызове должно уменьшаться и дойти до базового случая. Здесь оно не уменьшается.',
+ 'Выражение вычисляется, но не возвращается. Нужно написать return перед ним.',
+ 'Есть базовый случай, значение уменьшается, ответ возвращается через return.'];
+const THEORY=[
+ {q:'Рекурсивная функция — это функция, которая…',o:['вызывает саму себя','обязательно содержит цикл for','выводит результат с помощью print','вызывает только встроенные функции'],c:0,e:'Главный признак рекурсии: внутри функции есть вызов этой же функции.'},
+ {q:'Зачем нужен базовый случай?',o:['чтобы рекурсия остановилась','чтобы функция работала быстрее','чтобы вывести ответ на экран','он не обязателен'],c:0,e:'Базовый случай — условие остановки. Без него функция вызывает себя бесконечно.'},
+ {q:'Что делает рекурсивный шаг?',o:['сводит задачу к такой же задаче, но меньшего размера','останавливает выполнение функции','выводит результат на экран','увеличивает n на 1'],c:0,e:'Шаг вызывает функцию для меньшего значения и строит свой ответ из полученного.'},
+ {q:'Что произойдёт, если в рекурсивной функции нет базового случая?',o:['программа остановится с ошибкой RecursionError','функция вернёт 0','функция вернёт None','функция выполнится один раз'],c:0,e:'Вызовы не заканчиваются. Python разрешает около 1000 вложенных вызовов, потом выдаёт RecursionError.'},
+ {q:'Самая маленькая матрёшка, которая уже не открывается, — это в рекурсии…',o:['базовый случай','рекурсивный шаг','бесконечная рекурсия','параметр функции'],c:0,e:'На ней всё заканчивается — это условие остановки.'},
+ {q:'Что даёт выражение n % 10?',o:['последнюю цифру числа n','число n без последней цифры','количество цифр числа n','первую цифру числа n'],c:0,e:'Остаток от деления на 10 — последняя цифра: 527 % 10 = 7.'},
+ {q:'Что даёт выражение n // 10?',o:['число n без последней цифры','последнюю цифру числа n','n, делённое на 10, с дробной частью','сумму цифр числа n'],c:0,e:'Целочисленное деление на 10 «отрезает» последнюю цифру: 527 // 10 = 52.'},
+ {q:'Какая строка правильно записывает рекурсивный шаг для n! = n · (n − 1)! ?',o:['return n * fact(n - 1)','return n * fact(n)','return fact(n - 1)','return n * (n - 1)'],c:0,e:'Умножаем n на факториал меньшего числа n − 1.'},
+ {q:'Для summa(n) (сумма от 1 до n) базовый случай — это…',o:['n == 1, ответ 1','n == 10, ответ 10','n > 1, ответ n','базовый случай не нужен'],c:0,e:'Сумма от 1 до 1 равна 1 — ответ известен сразу.'},
+ {q:'Вызов summa(4) дошёл до строки return 4 + summa(3). Что происходит с ним дальше?',o:['сложение откладывается: сначала вычисляется summa(3), потом досчитывается 4 + …','он сразу возвращает 4','он заканчивается, а ответ считает summa(3)','он начинается заново с n = 4'],c:0,e:'Сложить нельзя, пока неизвестно summa(3) — как в 2 * (3 + 4) сначала считают скобки.'},
+ {q:'В трассировочной таблице столбец «Возвращает» заполняется…',o:['снизу вверх — начиная с базового случая','сверху вниз — начиная с первого вызова','в любом порядке','только в последней строке'],c:0,e:'Первым ответ получает базовый случай (нижняя строка), потом ответы поднимаются вверх.'}
+];
+function lineOpts(lines){return lines.map((l,i)=>`Строка ${i+1}: <code>${esc(l.trim())}</code>`)}
+function genM1(){
+  const tasks=[], names=shuffle(Object.keys(FN));
+  for(let t=0;t<3;t++){
+    const nm=names[t], f=FN[nm], isBase=t<2;
+    tasks.push({type:'mc',code:f.lines,nums:true,
+      q:isBase?'В какой строке записано <b>условие остановки (базовый случай)</b>?':'В какой строке функция <b>вызывает саму себя (рекурсивный шаг)</b>?',
+      o:lineOpts(f.lines),c:(isBase?f.base:f.step)-1,noShuffle:true,
+      e:isBase?`Строка ${f.base}: здесь проверяется, когда ответ известен сразу.`:`Строка ${f.step}: внутри функции ${nm} есть вызов ${nm} с меньшим значением.`});
+  }
+  const notRec=[
+    ['def summa(n):','    s = 0','    for i in range(1, n + 1):','        s = s + i','    return s'],
+    ['def fact(n):','    p = 1','    for i in range(1, n + 1):','        p = p * i','    return p'],
+    ['def double_sum(n):','    return summa(n) * 2'],
+    ['def count_digits(n):','    return len(str(n))']
+  ];
+  if(Math.random()<0.5){
+    const L=pick(notRec);
+    tasks.push({type:'mc',code:L,q:'Является ли эта функция <b>рекурсивной</b>?',o:['Да','Нет'],c:1,noShuffle:true,
+      e:'Нет: функция не вызывает саму себя'+(L[1].includes('summa(n) * 2')?' (она вызывает другую функцию summa).':'.')});
+  } else {
+    const nm=pick(['summa','fact','sum_digits','count_digits','sum_even']);
+    tasks.push({type:'mc',code:FN[nm].lines,q:'Является ли эта функция <b>рекурсивной</b>?',o:['Да','Нет'],c:0,noShuffle:true,e:`Да: в строке ${FN[nm].step} функция ${nm} вызывает саму себя.`});
+  }
+  const kinds=shuffle(['noBase','noDec','noRet','ok']).slice(0,2), bn=shuffle(Object.keys(BUGGY));
+  kinds.forEach((k,idx)=>{
+    const nm=bn[idx], L=k==='ok'?FN[nm].lines:BUGGY[nm][k], c={noBase:0,noDec:1,noRet:2,ok:3}[k];
+    let e=BUG_EXPL[c];
+    if(k==='noDec'){const w=NODEC[nm]; e=`В последней строке вызывается <code>${w[0]}</code> — n ${w[2]}. Вызовы никогда не дойдут до базового случая (будет RecursionError). Нужно: <code>${w[1]}</code>.`}
+    tasks.push({type:'mc',code:L,q:'Найдите ошибку в функции. Что не так?',o:BUG_OPTS,c,noShuffle:true,e});
+  });
+  shuffle(THEORY).slice(0,2).forEach(T=>tasks.push({type:'mc',q:T.q,o:T.o,c:T.c,e:T.e}));
+  return shuffle(tasks);
+}
+
+/* ================= МОДУЛЬ 2 ================= */
+function genM2(){
+  const list=[
+    ['summa',rnd(3,6)],['fact',rnd(3,6)],['sum_digits',rnd(100,9999)],['count_digits',rnd(10,99999)],
+    Math.random()<0.5?['sum_squares',rnd(2,5)]:['sum_even',2*rnd(2,6)],
+    ['product_digits',randNoZero(3)],['f',rnd(3,5),rnd(2,5)],['g',rnd(3,6)]
+  ];
+  return list.map(([key,n,K])=>{
+    const F=getSpec(key,K), T=buildTrace(F,n);
+    return {type:'num',code:F.code,q:`Что вернёт вызов <code>${F.name}(${n})</code>?`,ans:T.vals[0],key,n,K};
+  });
+}
+function m2Note(t){
+  if(t.key==='f'){const ch=[0];for(let i=1;i<=t.n;i++)ch.push(i*t.K);
+    return `<div class="box idea" style="margin:8px 0">💡 Здесь n в вычислении <b>не участвует</b> — оно только считает вызовы. Каждый вызов прибавляет ${t.K} к ответу вызова поменьше. Снизу вверх: ${ch.join(' → ')}. Итого ${t.K} прибавили ${t.n} раз: ${t.K} · ${t.n} = ${t.K*t.n}.</div>`}
+  if(t.key==='g'){const ch=[1];for(let i=2;i<=t.n;i++)ch.push(ch[ch.length-1]*2);
+    return `<div class="box idea" style="margin:8px 0">💡 Здесь n в вычислении <b>не участвует</b> — оно только считает вызовы. Каждый вызов умножает ответ вызова поменьше на 2. Начинаем с g(1) = 1 и удваиваем: ${ch.join(' → ')}.</div>`}
+  return '';
+}
+function m2Trace(t){const F=getSpec(t.key,t.K);return traceHTML(F,buildTrace(F,t.n),null)}
+
+/* ================= МОДУЛЬ 3 ================= */
+const GAPS=[
+  {t:'Сумма чисел от 1 до n',lines:['def summa(n):','    if {0}:','        return {1}','    return n + summa({2})'],g:[['n == 1','n == 10','n > 1'],['1','0','n - 1'],['n - 1','n','n + 1']],
+   h:['Когда ответ очевиден? Сумма чисел от 1 до 1 равна … ', 'Сумма до n = n + сумма до (n − 1). Какое число передаём в вызов, чтобы дойти до 1?']},
+  {t:'Факториал n!',lines:['def fact(n):','    if n == 1:','        return {0}','    return n {1} fact({2})'],g:[['1','0','2'],['*','+','-'],['n - 1','n','n + 1']],
+   h:['1! = 1.','4! = 4 · 3! — какое действие стоит между n и fact(…)?','Чтобы дойти до 1, n должно уменьшаться на 1.']},
+  {t:'Сумма цифр числа',lines:['def sum_digits(n):','    if {0}:','        return n','    return {1} + sum_digits({2})'],g:[['n < 10','n > 10','n == 10'],['n % 10','n // 10','n'],['n // 10','n % 10','n - 1']],
+   h:['Ответ очевиден, когда число однозначное. Какое это условие?','Прибавляем последнюю цифру (n % 10), дальше передаём число без неё (n // 10).']},
+  {t:'Количество цифр числа',lines:['def count_digits(n):','    if n < 10:','        return {0}','    return {1} + count_digits({2})'],g:[['1','0','10'],['1','n % 10','n'],['n // 10','n % 10','n']],
+   h:['Сколько цифр у однозначного числа?','Каждый шаг «отрезает» одну цифру — значит, прибавляем 1 и передаём число без последней цифры.']},
+  {t:'Сумма квадратов 1² + 2² + … + n²',lines:['def sum_squares(n):','    if n == 1:','        return 1','    return {0} + {1}({2})'],g:[['n * n','n * 2','n'],['sum_squares','summa','print'],['n - 1','n','n * n']],
+   h:['Квадрат числа n — это n · n.','Рекурсивная функция вызывает саму себя — как называется эта функция?','n уменьшается на 1, как в summa.']},
+  {t:'Сумма чётных чисел n + (n − 2) + … (n — чётное)',lines:['def sum_even(n):','    if {0}:','        return {1}','    return n + sum_even({2})'],g:[['n <= 0','n > 0','n == 1'],['0','1','2'],['n - 2','n - 1','n']],
+   h:['Числа 8, 6, 4, 2 … дойдут до 0. Когда остановиться?','Сумма «пустого» набора чисел равна 0.','Соседние чётные числа отличаются на 2.']},
+  {t:'Обратный отсчёт: n, n − 1, …, 1, «Старт!»',lines:['def countdown(n):','    if n == {0}:','        print("Старт!")','    else:','        print({1})','        countdown({2})'],g:[['0','10','n'],['n','n - 1','"n"'],['n - 1','n','n + 1']],
+   h:['Отсчёт 3, 2, 1, а дальше — «Старт!». При каком n это происходит?','Выводим текущее число n. В кавычках "n" выведется буква n, а не число.','Следующее число в отсчёте — на 1 меньше.']},
+  {t:'Произведение цифр числа',lines:['def product_digits(n):','    if n < 10:','        return {0}','    return n % 10 {1} product_digits({2})'],g:[['n','0','1'],['*','+','//'],['n // 10','n % 10','n - 1']],
+   h:['Произведение цифр однозначного числа — само это число.','Цифры перемножаем.','Отрезаем последнюю цифру: n // 10.']}
+];
+function genM3(){
+  return shuffle(GAPS).slice(0,6).map(G=>({type:'gaps',title:G.t,lines:G.lines,hints:G.h,gaps:G.g.map(o=>({opts:shuffle(o),right:o[0]}))}));
+}
+
+/* ================= СОСТОЯНИЕ МОДУЛЕЙ ================= */
+const MOD={m1:{name:'Понятия',gen:genM1},m2:{name:'Что вернёт?',gen:genM2},m3:{name:'Собери функцию',gen:genM3}};
+const ST={m1:null,m2:null,m3:null}, RES={m1:null,m2:null,m3:null};
+function enterModule(m){const s=ST[m]; if(!s||s.done.every(x=>x)) newSet(m,true); else renderModule(m)}
+function newSet(m,silent){
+  const s=ST[m];
+  if(!silent && s && !s.done.every(x=>x) && s.done.some(x=>x) && !confirm('Текущий набор не закончен. Начать новый?'))return;
+  const tasks=MOD[m].gen();
+  ST[m]={tasks,done:tasks.map(()=>false),ok:tasks.map(()=>false),pick:tasks.map(()=>null)};
+  renderModule(m);
+}
+function renderModule(m){
+  const s=ST[m], box=document.getElementById('list-'+m);
+  box.innerHTML='';
+  s.tasks.forEach((t,i)=>{
+    const d=document.createElement('div'); d.className='task'; d.id=`${m}-t${i}`;
+    let h=`<div class="num">Задание ${i+1}</div>`;
+    if(t.type==='mc'){
+      if(!t.order) t.order=t.noShuffle?t.o.map((_,k)=>k):shuffle(t.o.map((_,k)=>k));
+      h+=`<div>${t.q}</div>`;
+      if(t.code)h+=`<pre class="code">${codeHTML(t.code,{nums:t.nums})}</pre>`;
+      h+='<div class="opts">'+t.order.map(k=>`<label data-k="${k}"><input type="radio" name="${m}r${i}" value="${k}">${t.o[k]}</label>`).join('')+'</div>';
+    } else if(t.type==='num'){
+      h+=`<pre class="code">${codeHTML(t.code)}</pre><div>${t.q} <input class="ans" type="text" inputmode="numeric" autocomplete="off"></div>
+      <div class="hint">💡 Заполните на листочке трассировочную таблицу: столбцы «Вызов», «Условие», «Что вычисляем» — сверху вниз до базового случая, потом «Возвращает» — снизу вверх.</div>`;
+    } else {
+      h+=`<div><b>${t.title}</b></div>`;
+      const ls=t.lines.map(l=>hlLine(l).replace(/\{(\d)\}/g,(_,n)=>{const g=t.gaps[+n];return `<select class="gap" data-g="${n}"><option value="">?</option>${g.opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`}));
+      h+=`<pre class="code">${ls.join('\n')}</pre><div class="hint">💡 ${t.hints.join('<br>💡 ')}</div>`;
+    }
+    h+=`<button class="btn chk">Проверить</button>`+(t.type!=='mc'?`<button class="btn sec hb">💡 Подсказка</button>`:'')+`<div class="fb"></div>`;
+    d.innerHTML=h;
+    d.querySelector('.chk').onclick=()=>check(m,i);
+    const hb=d.querySelector('.hb'); if(hb) hb.onclick=()=>{d.querySelector('.hint').style.display='block';hb.style.display='none'};
+    box.appendChild(d);
+    if(s.done[i]) restore(m,i);
+  });
+  updScore(m);
+}
+function check(m,i){
+  const s=ST[m],t=s.tasks[i],d=document.getElementById(`${m}-t${i}`);
+  let ok=false,ans;
+  if(t.type==='mc'){
+    const r=d.querySelector('input:checked'); if(!r){alert('Выберите вариант ответа');return}
+    ans=+r.value; ok=ans===t.c;
+  } else if(t.type==='num'){
+    const v=d.querySelector('.ans').value.trim().replace(',','.'); if(v===''){alert('Введите ответ');return}
+    ans=v; ok=Number(v)===t.ans;
+  } else {
+    const sels=[...d.querySelectorAll('select.gap')];
+    if(sels.some(x=>x.value==='')){alert('Заполните все пропуски');return}
+    ans=sels.map(x=>x.value); ok=sels.every(x=>x.value===t.gaps[+x.dataset.g].right);
+  }
+  s.done[i]=true; s.ok[i]=ok; s.pick[i]=ans;
+  restore(m,i);
+  if(s.done.every(x=>x)) RES[m]={total:s.tasks.length,right:s.ok.filter(x=>x).length};
+  updScore(m);
+}
+function restore(m,i){
+  const s=ST[m],t=s.tasks[i],d=document.getElementById(`${m}-t${i}`),ok=s.ok[i],ans=s.pick[i];
+  d.classList.add(ok?'ok':'bad');
+  d.querySelector('.chk').disabled=true;
+  const hb=d.querySelector('.hb'); if(hb)hb.style.display='none';
+  const fb=d.querySelector('.fb');
+  if(t.type==='mc'){
+    d.querySelectorAll('input').forEach(x=>{x.disabled=true; if(+x.value===ans)x.checked=true});
+    d.querySelectorAll('.opts label').forEach(l=>{const k=+l.dataset.k; if(k===t.c)l.classList.add('right'); else if(k===ans)l.classList.add('wrongpick')});
+    fb.innerHTML=(ok?'✅ Верно! ':'Неверно. Правильный ответ отмечен зелёным. ')+t.e;
+  } else if(t.type==='num'){
+    const inp=d.querySelector('.ans'); inp.value=ans; inp.disabled=true;
+    const note=m2Note(t);
+    fb.innerHTML=ok?`✅ Верно!${note}<details><summary>Трассировочная таблица</summary>${m2Trace(t)}</details>`
+                   :`Неверно. Правильный ответ: <b>${t.ans}</b>.${note} Таблицу читаем снизу вверх: каждое число в «Возвращает» берётся из строки ниже.${m2Trace(t)}`;
+  } else {
+    d.querySelectorAll('select.gap').forEach((x,k)=>{x.value=ans[k];x.disabled=true;const r=t.gaps[+x.dataset.g].right;x.classList.add(x.value===r?'right':'wrong')});
+    const full=t.lines.map(l=>l.replace(/\{(\d)\}/g,(_,n)=>t.gaps[+n].right));
+    fb.innerHTML=ok?'✅ Верно! Функция собрана правильно.':`Неверно. Правильная функция:<pre class="code">${codeHTML(full)}</pre>💡 ${t.hints.join('<br>💡 ')}`;
+  }
+  fb.className='fb '+(ok?'ok':'bad');
+}
+function updScore(m){
+  const s=ST[m]; if(!s)return;
+  const n=s.tasks.length,dn=s.done.filter(x=>x).length,r=s.ok.filter(x=>x).length;
+  document.getElementById('score-'+m).innerHTML=`Решено: ${dn} из ${n} · верно: ${r} (${Math.round(100*r/n)}%)`+(dn===n?' · ✅ модуль решён':'');
+  const R=modResult(m);
+  document.getElementById('st-'+m).textContent=R.finished?`✅ ${R.pct}%`:(dn?`… ${dn}/${n}`:'');
+}
+function modResult(m){
+  if(RES[m]) return {...RES[m],pct:Math.round(100*RES[m].right/RES[m].total),finished:true};
+  const s=ST[m], total=s?s.tasks.length:{m1:8,m2:8,m3:6}[m], right=s?s.ok.filter(x=>x).length:0;
+  return {total,right,pct:Math.round(100*right/total),finished:false};
+}
+function overall(){
+  let T=0,R=0; ['m1','m2','m3'].forEach(m=>{const r=modResult(m);T+=r.total;R+=r.right});
+  const pct=Math.round(100*R/T); return {T,R,pct,grade:Math.max(1,Math.round(pct/10))};
+}
+function renderRes(){
+  let h='<table class="t res-table"><tr><th>Модуль</th><th>Статус</th><th>Верно</th><th>%</th></tr>';
+  ['m1','m2','m3'].forEach((m,i)=>{const r=modResult(m);h+=`<tr><td>${i+1}. ${MOD[m].name}</td><td>${r.finished?'✅ решён':'не решён'}</td><td>${r.right} из ${r.total}</td><td>${r.pct}%</td></tr>`});
+  const o=overall();
+  h+=`</table><p>Всего верно: <b>${o.R} из ${o.T}</b> (${o.pct}%)</p><p>Оценка за урок: <span class="grade">${o.grade}</span> из 10</p>`;
+  document.getElementById('res-body').innerHTML=h;
+}
+
+/* ================= ОТПРАВКА В GOOGLE-ТАБЛИЦУ ================= */
+const SEND={busy:false,pending:null,attempt:0,timer:null};
+const RETRY_DELAYS=[3,6,10,15,25]; // секунды между попытками
+function setSendSt(cls,html){const e=document.getElementById('sendSt');e.className='sendst '+cls;e.innerHTML=html}
+function buildPayload(){
+  const o=overall(), mods={};
+  ['m1','m2','m3'].forEach((m,i)=>{const r=modResult(m);mods['m'+(i+1)]=`${r.right} из ${r.total} (${r.pct}%) — ${r.finished?'решён':'не решён'}`});
+  return {trainer:'Что такое рекурсия',fio:document.getElementById('fio').value.trim(),cls:document.getElementById('cls').value,
+    m1:mods.m1,m2:mods.m2,m3:mods.m3,right:o.R,total:o.T,pct:o.pct,grade:o.grade,clientTime:new Date().toLocaleString('ru-RU')};
+}
+function sendResult(){
+  const fio=document.getElementById('fio').value.trim(), cls=document.getElementById('cls').value;
+  if(!fio||!cls){alert('Укажите фамилию, имя и класс вверху страницы');document.getElementById('fio').focus();return}
+  if(!GOOGLE_SHEET_URL){setSendSt('warn','Адрес таблицы учителя не настроен. Сохраните результат в .txt.');return}
+  if(SEND.busy)return;
+  renderRes();
+  clearTimeout(SEND.timer);
+  SEND.pending=buildPayload(); SEND.attempt=0;
+  trySend();
+}
+async function trySend(){
+  if(!SEND.pending)return;
+  SEND.busy=true; SEND.attempt++;
+  document.getElementById('sendBtn').disabled=true;
+  setSendSt('wait',`⏳ Отправка… (попытка ${SEND.attempt} из ${RETRY_DELAYS.length})`);
+  let why='net';
+  try{
+    const resp=await fetch(GOOGLE_SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(SEND.pending)});
+    const data=await resp.json();
+    if(data&&data.ok){
+      SEND.pending=null; SEND.busy=false;
+      document.getElementById('sendBtn').disabled=false;
+      setSendSt('ok','✅ Результат сохранён в таблице учителя.');
+      return;
+    }
+    why=data&&data.busy?'busy':'err';
+  }catch(e){why=navigator.onLine===false?'offline':'net'}
+  SEND.busy=false;
+  if(why==='offline'){
+    setSendSt('warn','📶 Нет интернета. Результат отправится сам, когда появится связь. Не закрывайте страницу.');
+    return;
+  }
+  if(SEND.attempt>=RETRY_DELAYS.length){
+    document.getElementById('sendBtn').disabled=false;
+    setSendSt('warn','Не удалось отправить. Нажмите «Отправить результат учителю» ещё раз или сохраните результат в .txt и покажите учителю.');
+    return;
+  }
+  const d=RETRY_DELAYS[SEND.attempt-1]+Math.floor(Math.random()*3);
+  setSendSt('warn',(why==='busy'?'Таблица сейчас занята':'Нет ответа от таблицы')+` — повтор через ${d} с (попытка ${SEND.attempt+1} из ${RETRY_DELAYS.length}).`);
+  SEND.timer=setTimeout(trySend,d*1000);
+}
+window.addEventListener('online',()=>{ if(SEND.pending&&!SEND.busy){clearTimeout(SEND.timer);SEND.attempt=Math.max(0,SEND.attempt-1);trySend()} });
+
+function exportTxt(){
+  const fio=document.getElementById('fio').value.trim(), cls=document.getElementById('cls').value;
+  if(!fio||!cls){alert('Укажите фамилию, имя и класс вверху страницы');document.getElementById('fio').focus();return}
+  const o=overall(), now=new Date();
+  let t=`Учебник-тренажёр «Что такое рекурсия»\r\nУченик: ${fio}\r\nКласс: ${cls}\r\nДата: ${now.toLocaleString('ru-RU')}\r\n\r\n`;
+  ['m1','m2','m3'].forEach((m,i)=>{const r=modResult(m);t+=`Модуль ${i+1}. ${MOD[m].name}: ${r.right} из ${r.total} (${r.pct}%) — ${r.finished?'решён':'не решён'}\r\n`});
+  t+=`\r\nИтого: ${o.R} из ${o.T} (${o.pct}%)\r\nОценка: ${o.grade} из 10\r\n`;
+  const blob=new Blob(['﻿'+t],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`Рекурсия_${fio.replace(/\s+/g,'_')}_${cls}.txt`; document.body.appendChild(a); a.click(); a.remove();
+}
+</script>
+</body>
+</html>
