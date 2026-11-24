@@ -179,7 +179,7 @@ table.sh td.sel{background:#e7f0ff}
       <b>Правила:</b>
       <ul>
         <li id="ruleCount">18 заданий: адресация, математические функции, функция ЕСЛИ.</li>
-        <li>Ответы можно менять. Проверка — в конце, по кнопке «Завершить».</li>
+        <li>После ответа нажмите «Проверить» — сразу увидите, верно ли, и объяснение. Проверенный ответ изменить нельзя.</li>
         <li>Пока идёт работа, вкладка «Теория» закрыта. Повторите теорию <b>до</b> начала.</li>
         <li>Не уходите со страницы: каждый выход и время вне страницы фиксируются и видны учителю.</li>
         <li>Неотвеченные задания при завершении считаются неверными. Оценка — по 10-балльной шкале.</li>
@@ -197,7 +197,7 @@ table.sh td.sel{background:#e7f0ff}
       <div class="progress"><div id="prog"></div></div>
     </div>
     <div class="card" id="qcard"></div>
-    <div style="text-align:center"><button class="btn ok" id="finishBtn">Завершить и проверить</button></div>
+    <div style="text-align:center"><button class="btn ok" id="finishBtn">Завершить работу</button></div>
   </div>
 
   <!-- результат -->
@@ -576,7 +576,7 @@ function buildSet(){
 }
 
 /* ---------- состояние ---------- */
-let Q = [], ans = [], cur = 0, running = false, finished = false;
+let Q = [], ans = [], chk = [], cur = 0, running = false, finished = false;
 let startTime = 0, exits = 0, awayMs = 0, awayStart = 0;
 let result = null;
 let suppress = false; // не считать выходом системное окно подтверждения
@@ -602,7 +602,7 @@ $("startBtn").onclick = ()=>{
   if (fio.split(" ").length < 2){ err.textContent="Введите фамилию и имя."; err.classList.remove("hidden"); return; }
   if (!cls){ err.textContent="Выберите класс."; err.classList.remove("hidden"); return; }
   err.classList.add("hidden");
-  Q = buildSet(); ans = Q.map(()=>null); cur = 0;
+  Q = buildSet(); ans = Q.map(()=>null); chk = Q.map(()=>null); cur = 0;
   running = true; finished = false; startTime = Date.now(); exits = 0; awayMs = 0;
   $("tabTheory").disabled = true;
   $("startCard").classList.add("hidden"); $("work").classList.remove("hidden"); $("result").classList.add("hidden");
@@ -615,37 +615,63 @@ function renderDots(){
   const box = $("dots"); box.innerHTML = "";
   Q.forEach((q,i)=>{
     const b = document.createElement("button");
-    b.className = "dot" + (ans[i]!==null && ans[i]!=="" ? " done":"") + (i===cur?" cur":"");
+    b.className = "dot" + (chk[i]===true?" r-ok":chk[i]===false?" r-bad":"") + (i===cur?" cur":"");
     b.textContent = i+1; b.onclick = ()=>{ cur=i; renderDots(); renderQ(); };
     box.appendChild(b);
   });
-  const n = ans.filter(a=>a!==null && a!=="").length;
-  $("answeredInfo").textContent = `Отвечено: ${n} из ${Q.length}`;
+  const n = chk.filter(x=>x!==null).length, k = chk.filter(x=>x===true).length;
+  $("answeredInfo").textContent = `Отвечено: ${n} из ${Q.length} · верно: ${k}`;
   $("prog").style.width = (n/Q.length*100)+"%";
 }
+function nextUnanswered(from){
+  for (let d=1; d<=Q.length; d++){ const i=(from+d)%Q.length; if (chk[i]===null) return i; }
+  return -1;
+}
 function renderQ(){
-  const q = Q[cur], c = $("qcard");
+  const q = Q[cur], c = $("qcard"), done = chk[cur]!==null;
   let h = `<div class="qhead"><b>Задание ${cur+1} из ${Q.length}</b><span>${q.topic}</span></div>`;
   h += `<div class="qtext">${q.text}</div>${q.sheet||""}`;
   if (q.type==="choice"){
     h += '<div class="opts">';
     q.options.forEach((o,i)=>{
       const on = ans[cur]===o;
-      h += `<label class="opt${on?" on":""}"><input type="radio" name="o" value="${i}"${on?" checked":""}><span class="mono">${esc(o)}</span></label>`;
+      let st = "";
+      if (done){ if (o===q.answer) st = ' style="border-color:var(--ok);background:var(--ok-soft)"'; else if (on) st = ' style="border-color:var(--bad);background:var(--bad-soft)"'; }
+      h += `<label class="opt${on&&!done?" on":""}"${st}><input type="radio" name="o" value="${i}"${on?" checked":""}${done?" disabled":""}><span class="mono">${esc(o)}</span></label>`;
     });
     h += '</div>';
   } else {
-    h += `<div class="ans"><label class="fld" for="inp">Ответ (число):</label><input type="text" id="inp" inputmode="decimal" autocomplete="off" value="${ans[cur]!==null?esc(ans[cur]):""}"></div>`;
+    h += `<div class="ans"><label class="fld" for="inp">Ответ (число):</label><input type="text" id="inp" inputmode="decimal" autocomplete="off" value="${ans[cur]!==null?esc(ans[cur]):""}"${done?" disabled":""}></div>`;
   }
-  h += `<div class="navq"><button class="btn sec" id="prevB"${cur===0?" disabled":""}>← Назад</button><button class="btn" id="nextB">${cur===Q.length-1?"К первому":"Далее →"}</button></div>`;
-  c.innerHTML = h;
-  if (q.type==="choice"){
-    c.querySelectorAll('input[name=o]').forEach(r=>r.onchange = ()=>{ ans[cur] = q.options[+r.value]; c.querySelectorAll(".opt").forEach(l=>l.classList.toggle("on", l.querySelector("input").checked)); renderDots(); });
+  if (done){
+    const ok = chk[cur];
+    h += `<div class="rev ${ok?"ok":"bad"}" style="margin-top:14px"><p><span class="tag ${ok?"ok":"bad"}">${ok?"✓ Верно!":"✗ Неверно"}</span></p>
+      ${ok?"":`<p>Правильный ответ: <b class="mono">${esc(num(q.answer))}</b></p>`}
+      <p>${esc(q.explain)}</p></div>`;
   } else {
-    const inp = $("inp"); inp.oninput = ()=>{ ans[cur] = inp.value.trim(); renderDots(); };
+    h += `<div style="margin-top:14px"><button class="btn ok" id="checkB" disabled>Проверить</button></div>`;
+  }
+  const nu = nextUnanswered(cur);
+  h += `<div class="navq"><button class="btn sec" id="prevB"${cur===0?" disabled":""}>← Назад</button>`;
+  h += nu===-1 ? `<button class="btn" id="nextB">Итог →</button></div>` : `<button class="btn" id="nextB">Далее →</button></div>`;
+  c.innerHTML = h;
+  if (!done){
+    const cb = $("checkB");
+    const upd = ()=>{ cb.disabled = !(ans[cur]!==null && String(ans[cur]).trim()!==""); };
+    if (q.type==="choice"){
+      c.querySelectorAll('input[name=o]').forEach(r=>r.onchange = ()=>{ ans[cur] = q.options[+r.value]; c.querySelectorAll(".opt").forEach(l=>l.classList.toggle("on", l.querySelector("input").checked)); upd(); });
+    } else {
+      const inp = $("inp"); inp.oninput = ()=>{ ans[cur] = inp.value.trim(); upd(); };
+      inp.onkeydown = e=>{ if(e.key==="Enter" && !cb.disabled) cb.click(); };
+    }
+    upd();
+    cb.onclick = ()=>{ chk[cur] = isRight(q, ans[cur]); renderDots(); renderQ(); };
   }
   $("prevB").onclick = ()=>{ if(cur>0){cur--; renderDots(); renderQ(); window.scrollTo(0,0);} };
-  $("nextB").onclick = ()=>{ cur = (cur+1)%Q.length; renderDots(); renderQ(); window.scrollTo(0,0); };
+  $("nextB").onclick = ()=>{
+    if (nu===-1){ finishAsk(); return; }
+    cur = done ? nu : (cur+1)%Q.length; renderDots(); renderQ(); window.scrollTo(0,0);
+  };
 }
 
 /* ---------- проверка ---------- */
@@ -655,20 +681,21 @@ function isRight(q,a){
   const x = parseFloat(String(a).replace(/\s/g,"").replace(",","."));
   return !isNaN(x) && Math.abs(x - Number(q.answer)) < 1e-6;
 }
-$("finishBtn").onclick = ()=>{
-  const left = ans.filter(a=>a===null||a==="").length;
+$("finishBtn").onclick = ()=>finishAsk();
+function finishAsk(){
+  const left = chk.filter(x=>x===null).length;
   suppress = true;
   const go = left===0 || confirm(`Не отвечено заданий: ${left}. Они будут засчитаны как неверные. Завершить?`);
   setTimeout(()=>{ suppress = false; }, 300);
   if (!go) return;
   finish();
-};
+}
 function fmtSec(s){ s=Math.round(s); const m=Math.floor(s/60); return m? `${m} мин ${s%60} с` : `${s} с`; }
 function finish(){
   if (awayStart){ awayMs += Date.now()-awayStart; awayStart=0; }
   running = false; finished = true;
   $("tabTheory").disabled = false; $("awaybar").classList.add("hidden");
-  const right = Q.map((q,i)=>isRight(q,ans[i]));
+  const right = Q.map((q,i)=>chk[i]===true);
   const n = right.filter(Boolean).length, total = Q.length;
   const g10 = Math.round(n/total*10);
   const dur = (Date.now()-startTime)/1000;
@@ -693,7 +720,7 @@ function finish(){
     </div></div>
     <div class="card"><h2>Разбор заданий</h2>`;
   Q.forEach((q,i)=>{
-    const ok = right[i], a = ans[i];
+    const ok = right[i], a = chk[i]===null ? null : ans[i];
     h += `<div class="rev ${ok?"ok":"bad"}"><div class="qhead"><b>${i+1}. ${q.topic}</b><span class="tag ${ok?"ok":"bad"}">${ok?"верно":"неверно"}</span></div>
       <div>${q.text}</div>${q.sheet||""}
       <p>Ваш ответ: <b class="mono">${a===null||a===""?"— нет ответа —":esc(a)}</b></p>
@@ -718,7 +745,7 @@ function downloadTxt(){
     `По темам: ${result.topics}`, `Ошибки в заданиях: ${result.wrong||"нет"}`,
     `Выходов со страницы: ${result.exits}; вне страницы: ${result.away} с`, `Время работы: ${result.dur} с`, "",
   ];
-  Q.forEach((q,i)=>lines.push(`${i+1}. [${q.topic}] ${isRight(q,ans[i])?"верно":"неверно"} | ответ: ${ans[i]??"—"} | правильно: ${num(q.answer)}`));
+  Q.forEach((q,i)=>lines.push(`${i+1}. [${q.topic}] ${chk[i]===true?"верно":"неверно"} | ответ: ${chk[i]===null?"—":ans[i]} | правильно: ${num(q.answer)}`));
   const blob = new Blob(["﻿"+lines.join("\r\n")], {type:"text/plain;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
