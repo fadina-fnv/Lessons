@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Функции и адресация в Excel — домашнее задание</title>
+<script>
+// ===== АДРЕС GOOGLE APPS SCRIPT: вставьте ссылку между кавычками =====
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwSyEvY-moeyuD-tbjdzl5sUcWx0tpukS-7DMZGaIJg_nKFrUvVvt7elHAwF6LGDo1ORQ/exec";
+// ======================================================================
+</script>
+<style>
+:root{
+  --bg:#f4f7fb; --card:#ffffff; --ink:#1f2a37; --muted:#5b6777;
+  --pri:#2f6fd6; --pri-soft:#e3edfd; --ok:#21894a; --ok-soft:#e2f5e9;
+  --bad:#e0682b; --bad-soft:#fdeee4; --warn:#b7791f; --warn-soft:#fdf4dc;
+  --line:#cfd8e3; --hdr:#e8f0fb;
+  --c-blue:#1f5fa8; --c-green:#2e8b3a; --c-orange:#c2571a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Times New Roman",Times,serif;font-size:19px;color:var(--ink);background:var(--bg);line-height:1.4}
+.mono, code, .f{font-family:"JetBrains Mono",Consolas,"Courier New",monospace}
+code{background:#eef2f7;border-radius:5px;padding:1px 5px;font-size:.92em;white-space:nowrap}
+header{background:var(--hdr);border-bottom:1px solid var(--line);padding:12px 16px;position:sticky;top:0;z-index:20}
+header h1{margin:0;font-size:22px;color:#1d4f9c}
+.tabs{display:flex;gap:8px;margin-top:10px}
+.tab{flex:1;border:2px solid var(--pri);background:#fff;color:var(--pri);border-radius:10px;padding:9px 6px;font:inherit;font-weight:bold;cursor:pointer}
+.tab.on{background:var(--pri);color:#fff}
+.tab:disabled{opacity:.45;cursor:not-allowed}
+main{max-width:820px;margin:0 auto;padding:14px 12px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 3px rgba(30,50,80,.06)}
+h2{font-size:22px;margin:0 0 10px;color:#1d4f9c}
+h3{font-size:20px;margin:16px 0 6px;color:#1d4f9c}
+p{margin:6px 0}
+ul{margin:6px 0;padding-left:22px}
+li{margin:3px 0}
+.btn{display:inline-block;border:none;border-radius:10px;padding:12px 18px;font:inherit;font-weight:bold;cursor:pointer;background:var(--pri);color:#fff}
+.btn.sec{background:#fff;color:var(--pri);border:2px solid var(--pri)}
+.btn.ok{background:var(--ok)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+label.fld{display:block;margin:10px 0 4px;font-weight:bold}
+input[type=text],select{width:100%;font:inherit;padding:10px;border:2px solid var(--line);border-radius:10px;background:#fff}
+input[type=text]:focus,select:focus{outline:none;border-color:var(--pri)}
+.note{background:var(--pri-soft);border-radius:10px;padding:10px 12px;margin:10px 0}
+.warn{background:var(--warn-soft);border-radius:10px;padding:10px 12px;margin:10px 0;color:#7a4f0f}
+.hidden{display:none!important}
+/* мини-таблица */
+.xl{margin:10px 0;overflow-x:auto}
+.fbar{display:flex;align-items:stretch;border:1px solid #b9c4d0;border-bottom:none;background:#fff;font-size:16px;max-width:100%}
+.fbar .nm{min-width:54px;padding:4px 8px;border-right:1px solid #b9c4d0;background:#f3f6f9;font-family:"JetBrains Mono",Consolas,monospace}
+.fbar .fx{padding:4px 8px;color:#7a8696;border-right:1px solid #b9c4d0;font-style:italic}
+.fbar .fv{padding:4px 8px;font-family:"JetBrains Mono",Consolas,monospace;white-space:nowrap}
+table.sh{border-collapse:collapse;font-size:16px;background:#fff}
+table.sh th{background:#eef1f5;color:#4a5563;font-weight:normal;border:1px solid #b9c4d0;padding:3px 6px;min-width:30px;font-family:Arial,sans-serif;font-size:14px}
+table.sh td{border:1px solid #cfd6de;padding:4px 8px;min-width:56px;text-align:right;font-family:Arial,sans-serif;white-space:nowrap}
+table.sh td.t{text-align:left}
+table.sh td.h{text-align:center;font-weight:bold;background:#e2efda;white-space:normal}
+table.sh td.act{outline:3px solid var(--c-green);outline-offset:-3px}
+table.sh td.src{outline:3px solid var(--pri);outline-offset:-3px;background:#eef4fe}
+table.sh td.q{outline:3px solid var(--c-orange);outline-offset:-3px;background:#fff3e8;text-align:center;font-weight:bold;color:var(--c-orange)}
+table.sh td.fm{font-family:"JetBrains Mono",Consolas,monospace;font-size:14px;text-align:left}
+table.sh td.sel{background:#e7f0ff}
+/* задания */
+.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--muted);font-size:16px}
+.qtext{font-size:20px;margin:6px 0 4px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.opt{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff}
+.opt input{width:22px;height:22px;flex:none}
+.opt.on{border-color:var(--pri);background:var(--pri-soft)}
+.ans{margin-top:12px}
+.ans input{max-width:260px}
+.navq{display:flex;gap:10px;justify-content:space-between;margin-top:14px}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 0}
+.dot{width:38px;height:38px;border-radius:9px;border:2px solid var(--line);background:#fff;font:inherit;font-size:16px;cursor:pointer}
+.dot.done{background:var(--pri-soft);border-color:var(--pri)}
+.dot.cur{outline:3px solid var(--c-orange)}
+.dot.r-ok{background:var(--ok-soft);border-color:var(--ok)}
+.dot.r-bad{background:var(--bad-soft);border-color:var(--bad)}
+.progress{height:8px;background:#e3e8ef;border-radius:5px;overflow:hidden;margin-top:6px}
+.progress>div{height:100%;background:var(--pri);width:0}
+.res-big{font-size:44px;font-weight:bold;color:#1d4f9c;text-align:center;margin:4px 0}
+.res-sub{text-align:center;color:var(--muted)}
+.rev{border-left:5px solid var(--line);padding:8px 12px;margin:12px 0;background:#fafcff;border-radius:6px}
+.rev.ok{border-color:var(--ok)} .rev.bad{border-color:var(--bad)}
+.tag{display:inline-block;border-radius:6px;padding:1px 8px;font-size:15px;font-weight:bold}
+.tag.ok{background:var(--ok-soft);color:var(--ok)} .tag.bad{background:var(--bad-soft);color:#a8471a}
+.status{margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef2f7}
+.status.ok{background:var(--ok-soft);color:var(--ok)}
+.status.bad{background:var(--bad-soft);color:#8f3e14}
+.awaybar{position:fixed;left:0;right:0;bottom:0;background:var(--warn-soft);color:#7a4f0f;border-top:2px solid #e8c26a;padding:8px 14px;font-size:16px;text-align:center;z-index:30}
+.protect{user-select:none;-webkit-user-select:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){
+  body{font-size:18px}
+  header h1{font-size:19px}
+  .qtext{font-size:19px}
+  .grid2{grid-template-columns:1fr}
+  table.sh td{min-width:44px;padding:4px 6px;font-size:15px}
+  .card{padding:13px}
+}
+.c-blue{color:var(--c-blue);font-weight:bold}.c-green{color:var(--c-green);font-weight:bold}.c-orange{color:var(--c-orange);font-weight:bold}
+</style>
+</head>
+<body>
+<header>
+  <h1>Функции и адресация в электронных таблицах</h1>
+  <div class="tabs">
+    <button class="tab on" id="tabTheory">📖 Теория</button>
+    <button class="tab" id="tabTest">✏️ Задания</button>
+  </div>
+</header>
+
+<main>
+<!-- ================= ТЕОРИЯ ================= -->
+<section id="theory">
+  <div class="card">
+    <h2>1. Виды адресации (ссылок)</h2>
+    <p>При копировании формулы Excel <b>сдвигает ссылки</b> на столько строк и столбцов, на сколько сдвинулась сама формула. Знак <code>$</code> «замораживает» то, перед чем стоит.</p>
+    <ul>
+      <li><b>Относительная</b> <code>A1</code> — меняются и столбец, и строка.</li>
+      <li><b>Абсолютная</b> <code>$A$1</code> — не меняется ничего.</li>
+      <li><b>Смешанная</b> <code>$A1</code> — закреплён столбец A; <code>A$1</code> — закреплена строка 1.</li>
+    </ul>
+    <div id="thAddr"></div>
+    <p>Формулу <code>=B2*$E$1</code> из C2 скопировали вниз в C3: <code>B2</code> сдвинулась на одну строку → <code>B3</code>, а <code>$E$1</code> осталась на месте.</p>
+    <div class="note">Клавиша <b>F4</b> переключает вид ссылки по кругу: <code>A1</code> → <code>$A$1</code> → <code>A$1</code> → <code>$A1</code> → <code>A1</code>.</div>
+    <p><b>Когда нужна абсолютная ссылка?</b> Когда все формулы столбца берут одно и то же значение из одной ячейки (норма, курс, процент скидки).</p>
+  </div>
+
+  <div class="card">
+    <h2>2. Математические функции</h2>
+    <p>Аргументы функции разделяются точкой с запятой <code>;</code>, диапазон записывается через двоеточие <code>A1:A5</code>.</p>
+    <div class="xl" id="thMath"></div>
+    <ul>
+      <li><code>=СУММ(A1:A5)</code> — сумма чисел диапазона → <b>20</b></li>
+      <li><code>=ABS(A2)</code> — модуль числа (без знака «минус») → <b>8</b></li>
+      <li><code>=КОРЕНЬ(A3)</code> — квадратный корень → <b>5</b>. Корень из отрицательного числа даёт ошибку <code>#ЧИСЛО!</code></li>
+      <li><code>=СТЕПЕНЬ(A4;3)</code> — число в степени: 2³ → <b>8</b></li>
+      <li><code>=СУММЕСЛИ(A1:A5;"&gt;0")</code> — сумма только тех чисел, что удовлетворяют условию → <b>28</b></li>
+    </ul>
+    <p><b>СУММЕСЛИ с двумя диапазонами:</b> <code>=СУММЕСЛИ(диапазон_условия; "условие"; диапазон_суммирования)</code></p>
+    <div class="xl" id="thSumif"></div>
+    <p><code>=СУММЕСЛИ(B2:B5;"да";C2:C5)</code> — сложить баллы только тех, кто сдал проект: 8 + 7 = <b>15</b>.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. Логическая функция ЕСЛИ</h2>
+    <p class="mono" style="font-size:17px">=ЕСЛИ(<span class="c-blue">лог_выражение</span>; <span class="c-green">значение_если_истина</span>; <span class="c-orange">значение_если_ложь</span>)</p>
+    <p>Excel проверяет <span class="c-blue">условие</span>. Если оно верно (ИСТИНА) — выводит <span class="c-green">второй аргумент</span>, если нет (ЛОЖЬ) — <span class="c-orange">третий</span>.</p>
+    <p><b>Операции сравнения:</b> <code>&gt;</code> больше, <code>&lt;</code> меньше, <code>=</code> равно, <code>&gt;=</code> больше или равно (не меньше), <code>&lt;=</code> меньше или равно (не больше), <code>&lt;&gt;</code> не равно.</p>
+    <div class="xl" id="thIf"></div>
+    <p>В B2: <code>=ЕСЛИ(A2&gt;0;"положительное";"отрицательное")</code>. Для 0 условие 0&gt;0 ложно, поэтому выведется «отрицательное» — будьте внимательны с границей!</p>
+    <p>Формулу с ЕСЛИ тоже копируют маркером заполнения: ссылки в ней сдвигаются по тем же правилам. Если условие сравнивает с одной ячейкой (порог, норма), ссылка на неё должна быть абсолютной: <code>=ЕСЛИ(A2&gt;=$D$1;"зачёт";"незачёт")</code>.</p>
+    <h3>Что может быть значением</h3>
+    <ul>
+      <li><b>текст</b> — обязательно в кавычках: <code>"зачёт"</code></li>
+      <li><b>число</b>: <code>5</code>, <code>0</code></li>
+      <li><b>ссылка или выражение</b>: <code>A2</code>, <code>A2*0,9</code></li>
+      <li><b>функция</b>: <code>КОРЕНЬ(A2)</code>, <code>ABS(B2-C2)</code></li>
+      <li><b>пусто</b>: <code>""</code></li>
+    </ul>
+    <div class="warn">Частые ошибки: текст без кавычек (<code>=ЕСЛИ(A1&gt;5;много;мало)</code>), запятая вместо точки с запятой, перепутаны истина и ложь, «не меньше 6» записано как <code>&gt;6</code> вместо <code>&gt;=6</code>.</div>
+  </div>
+
+  <div style="text-align:center"><button class="btn" id="goTest">Перейти к заданиям →</button></div>
+</section>
+
+<!-- ================= ЗАДАНИЯ ================= -->
+<section id="test" class="hidden">
+  <!-- вход -->
+  <div class="card" id="startCard">
+    <h2>Домашнее задание</h2>
+    <label class="fld" for="fio">Фамилия, имя</label>
+    <input type="text" id="fio" autocomplete="off" spellcheck="false">
+    <label class="fld" for="cls">Класс</label>
+    <select id="cls"><option value="">— выберите —</option><option>8А</option><option>8Б</option><option>8В</option></select>
+    <div class="note" style="margin-top:14px">
+      <b>Правила:</b>
+      <ul>
+        <li id="ruleCount">18 заданий: адресация, математические функции, функция ЕСЛИ.</li>
+        <li>Ответы можно менять. Проверка — в конце, по кнопке «Завершить».</li>
+        <li>Пока идёт работа, вкладка «Теория» закрыта. Повторите теорию <b>до</b> начала.</li>
+        <li>Не уходите со страницы: каждый выход и время вне страницы фиксируются и видны учителю.</li>
+        <li>Неотвеченные задания при завершении считаются неверными. Оценка — по 10-балльной шкале.</li>
+      </ul>
+    </div>
+    <div style="margin-top:12px"><button class="btn" id="startBtn">Начать</button></div>
+    <div id="startErr" class="warn hidden"></div>
+  </div>
+
+  <!-- работа -->
+  <div id="work" class="hidden protect">
+    <div class="card">
+      <div class="qhead"><span id="who"></span><span id="answeredInfo"></span></div>
+      <div class="dots" id="dots"></div>
+      <div class="progress"><div id="prog"></div></div>
+    </div>
+    <div class="card" id="qcard"></div>
+    <div style="text-align:center"><button class="btn ok" id="finishBtn">Завершить и проверить</button></div>
+  </div>
+
+  <!-- результат -->
+  <div id="result" class="hidden"></div>
+</section>
+</main>
+<div class="awaybar hidden" id="awaybar"></div>
+
+<script>
+"use strict";
+/* ---------- утилиты ---------- */
+const $ = id => document.getElementById(id);
+const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const shuffle = arr => { const a = arr.slice(); for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const num = v => (typeof v === "number") ? String(+v.toFixed(4)).replace(".", ",") : v;
+const colL = i => String.fromCharCode(65+i);
+const colI = L => L.charCodeAt(0)-65;
+function uniqOpts(correct, wrongs){
+  const out=[correct]; for(const w of wrongs){ if(!out.includes(w)) out.push(w); if(out.length>=4) break; }
+  return shuffle(out);
+}
+/* сдвиг ссылок при копировании */
+function shiftFormula(f, dc, dr){
+  return f.replace(/(\$?)([A-Z])(\$?)(\d+)/g, (m,d1,c,d2,r) => {
+    const nc = d1 ? c : colL(colI(c)+dc);
+    const nr = d2 ? r : String(+r+dr);
+    return d1+nc+d2+nr;
+  });
+}
+
+/* ---------- мини-таблица ----------
+ spec: {cols:n, c0:0, r0:1, data:[[...]], cls:{"C2":"src"}, fb:{cell:"C2", f:"=..."}} */
+function sheet(spec){
+  const c0 = spec.c0||0, r0 = spec.r0||1, ncols = spec.data[0].length;
+  let h = '<div class="xl">';
+  if (spec.fb) h += `<div class="fbar"><span class="nm">${esc(spec.fb.cell)}</span><span class="fx">fx</span><span class="fv">${esc(spec.fb.f)}</span></div>`;
+  h += '<table class="sh"><tr><th></th>';
+  for (let c=0;c<ncols;c++) h += `<th>${colL(c0+c)}</th>`;
+  h += '</tr>';
+  spec.data.forEach((row,ri)=>{
+    h += `<tr><th>${r0+ri}</th>`;
+    row.forEach((v,ci)=>{
+      const addr = colL(c0+ci)+(r0+ri);
+      let cl = (spec.cls && spec.cls[addr]) || "";
+      if (v === null || v === undefined) v = "";
+      if (typeof v === "string" && v.startsWith("=")) cl += " fm";
+      else if (typeof v === "string" && v !== "?" ) cl += (spec.head && ri===0 ? " h" : " t");
+      h += `<td class="${cl.trim()}">${esc(num(v))}</td>`;
+    });
+    h += '</tr>';
+  });
+  return h + '</table></div>';
+}
+
+/* ---------- генераторы заданий ----------
+ каждое: {topic, text(html), sheet(html|""), type:"choice"|"input", options, answer, explain} */
+const GEN = {A:[], M:[], L:[]};
+
+/* === АДРЕСАЦИЯ === */
+GEN.A.push(function copyRightAbs(){
+  const dc = rnd(1,3);
+  const X = colL(1+dc);
+  const f = "=B2*$B$5";
+  const correct = `=${X}2*$B$5`;
+  const wr = [`=${X}2*${X}5`, f, `=${X}2*$${X}$5`, `=B${2+dc}*$B$5`];
+  const d = [["","Пн","Вт","Ср","Чт"],["Шаги",rnd(20,60)*100,rnd(20,60)*100,rnd(20,60)*100,rnd(20,60)*100],["Метры",f,"","",""],["","","","",""],["Шаг, м",num(pick([0.5,0.6,0.7])),"","",""]];
+  d[2][1+dc] = "?";
+  return {topic:"Адресация", type:"choice",
+    text:`Формулу из ячейки <b>B3</b> скопировали вправо в ячейку <b>${X}3</b>. Какая формула окажется в ${X}3?`,
+    sheet: sheet({data:d, head:false, cls:{B3:"src",[X+"3"]:"q",B5:"sel"}, fb:{cell:"B3",f}}),
+    options: uniqOpts(correct, wr), answer: correct,
+    explain:`При копировании вправо меняются только буквы столбцов в относительных ссылках: B2 → ${X}2, а $B$5 не меняется.`};
+});
+GEN.A.push(function copyAnyRefs(){
+  const f = pick(["=$A2+B$1","=A$2*$B1","=$A$1+B2","=A2-$B1","=$A2*$B$1","=B$1-A2"]);
+  const [dc,dr] = pick([[1,0],[0,1],[1,1],[2,1],[1,2],[2,2],[0,2],[2,0]]);
+  const src = "C3", tgt = colL(2+dc)+(3+dr);
+  const correct = shiftFormula(f,dc,dr);
+  const plain = f.replace(/\$/g,"");
+  let wr = [shiftFormula(plain,dc,dr), f, shiftFormula(f,dr,dc), shiftFormula(f,dc+1,dr), shiftFormula(f,dc,dr+1)];
+  const d = [];
+  for (let r=1;r<=5;r++){ const row=[]; for(let c=0;c<5;c++) row.push((c<2||r<3) && !(c>=2 && r>=3) ? rnd(1,9) : ""); d.push(row); }
+  d[2][2] = f; d[2+dr][2+dc] = "?";
+  return {topic:"Адресация", type:"choice",
+    text:`Формулу из ячейки <b>${src}</b> скопировали в ячейку <b>${tgt}</b>. Какая формула окажется в ${tgt}?`,
+    sheet: sheet({data:d, cls:{[src]:"src",[tgt]:"q"}, fb:{cell:src,f}}),
+    options: uniqOpts(correct, wr), answer: correct,
+    explain:`Сдвиг: вправо на ${dc}, вниз на ${dr}. Буква без $ сдвигается на ${dc}, номер строки без $ — на ${dr}; всё, перед чем стоит $, не меняется → ${correct}.`};
+});
+GEN.A.push(function copyValueMixed(){
+  const top = [rnd(2,9),rnd(2,9),rnd(2,9)], left = [rnd(2,9),rnd(2,9),rnd(2,9)];
+  const d = [["", ...top]];
+  left.forEach((v,i)=>d.push([v, i===0?"=$A2*B$1":"", "", ""]));
+  const [dc,dr] = pick([[1,1],[2,1],[1,2],[2,2],[2,0],[0,2]]);
+  const tgt = colL(1+dc)+(2+dr);
+  d[1+dr][1+dc] = "?";
+  const ans = left[dr]*top[dc];
+  return {topic:"Адресация", type:"input",
+    text:`Формулу из <b>B2</b> скопировали в ячейку <b>${tgt}</b>. Какое <b>число</b> появится в ${tgt}?`,
+    sheet: sheet({data:d, cls:{B2:"src",[tgt]:"q"}, fb:{cell:"B2",f:"=$A2*B$1"}}),
+    answer: ans,
+    explain:`В ${tgt} будет формула ${shiftFormula("=$A2*B$1",dc,dr)} = ${left[dr]}·${top[dc]} = ${ans}.`};
+});
+GEN.A.push(function relCopy(){
+  const op = pick(["+","*","-"]);
+  const r = rnd(1,3), src = "C"+r;
+  const f = `=A${r}${op}B${r}`;
+  const [dc,dr] = pick([[0,1],[0,2],[1,0],[1,1],[0,3],[1,2]]);
+  const tgt = colL(2+dc)+(r+dr);
+  const correct = shiftFormula(f,dc,dr);
+  const wr = [f, `=A${r+dr}${op}B${r+dr}`, shiftFormula(f,dr,dc), `=B${r+dr}${op}C${r+dr}`];
+  const nrows = Math.max(r+dr,3);
+  const data = []; for(let i=1;i<=nrows;i++){ const row=[rnd(2,9),rnd(2,9),"",""]; data.push(row); }
+  data[r-1][2] = f; data[r+dr-1][2+dc] = "?";
+  return {topic:"Адресация", type:"choice",
+    text:`Формулу из ячейки <b>${src}</b> скопировали в ячейку <b>${tgt}</b>. Какая формула окажется в ${tgt}?`,
+    sheet: sheet({data, cls:{[src]:"src",[tgt]:"q"}, fb:{cell:src,f}}),
+    options: uniqOpts(correct, wr), answer: correct,
+    explain:`Формула сдвинулась вправо на ${dc} и вниз на ${dr}; относительные ссылки сдвигаются так же: ${correct}.`};
+});
+GEN.A.push(function absCopy(){
+  const k = rnd(1,4), op = pick(["*","+","-"]);
+  const f = `=B2${op}$E$1`;
+  const tgt = "C"+(2+k);
+  const correct = `=B${2+k}${op}$E$1`;
+  const wr = [`=B${2+k}${op}$E$${1+k}`, f, `=B${2+k}${op}E${1+k}`, `=B2${op}$E$${1+k}`];
+  const d = [["",  "Число", "Итог", "", rnd(2,5)]];
+  for(let i=2;i<=2+k;i++) d.push(["", rnd(10,90), i===2?f:(i===2+k?"?":""), "", ""]);
+  return {topic:"Адресация", type:"choice",
+    text:`В ячейке E1 записан коэффициент. Формулу из <b>C2</b> скопировали вниз до <b>${tgt}</b>. Какая формула в ${tgt}?`,
+    sheet: sheet({data:d, cls:{C2:"src",[tgt]:"q",E1:"sel"}, fb:{cell:"C2",f}}),
+    options: uniqOpts(correct, wr), answer: correct,
+    explain:`Относительная ссылка B2 сдвигается вниз на ${k} → B${2+k}, абсолютная $E$1 не меняется.`};
+});
+GEN.A.push(function mixedCopy(){
+  const f = "=$A2*B$1";
+  const [dc,dr] = pick([[1,1],[2,1],[1,2],[2,2],[0,2],[2,0]]);
+  const tgt = colL(1+dc)+(2+dr);
+  const correct = shiftFormula(f,dc,dr);
+  const wr = [shiftFormula("=A2*B1",dc,dr), f, shiftFormula("=A$2*$B1",dc,dr), `=$A${2+dr}*B${1+dr}`];
+  const d = [["", 1, 2, 3]];
+  for(let i=1;i<=3;i++) d.push([i, i===1?f:"", "", ""]);
+  // клетка-цель
+  const ri = 1+dr, ci = 1+dc; d[ri][ci] = "?";
+  return {topic:"Адресация", type:"choice",
+    text:`Таблица умножения: в <b>B2</b> формула со смешанными ссылками. Её скопировали в <b>${tgt}</b>. Какая формула получится?`,
+    sheet: sheet({data:d, cls:{B2:"src",[tgt]:"q"}, fb:{cell:"B2",f}}),
+    options: uniqOpts(correct, wr), answer: correct,
+    explain:`В $A2 закреплён столбец (меняется только строка), в B$1 закреплена строка (меняется только столбец): ${correct}.`};
+});
+GEN.A.push(function valueAfterCopy(){
+  const k = rnd(2,5), coef = rnd(2,5);
+  const vals = []; for(let i=0;i<=k;i++) vals.push(rnd(3,20));
+  const d = [["Значение","Результат","",coef]];
+  vals.forEach((v,i)=> d.push([v, i===0?"=A2*$D$1":(i===k?"?":""), "", ""]));
+  const tgt = "B"+(2+k);
+  const ans = vals[k]*coef;
+  return {topic:"Адресация", type:"input",
+    text:`В <b>B2</b> формула <code>=A2*$D$1</code>. Её скопировали вниз. Какое <b>число</b> появится в <b>${tgt}</b>?`,
+    sheet: sheet({data:d, head:true, cls:{B2:"src",[tgt]:"q",D1:"sel"}}),
+    answer: ans,
+    explain:`В ${tgt} формула =A${2+k}*$D$1 = ${vals[k]}·${coef} = ${ans}.`};
+});
+GEN.M.push(function sum(){
+  const n = rnd(4,6), vals=[]; for(let i=0;i<n;i++) vals.push(rnd(-15,40));
+  const a = rnd(1,2), b = rnd(a+2,n);
+  let s=0; for(let i=a;i<=b;i++) s+=vals[i-1];
+  const d = vals.map((v,i)=>[v, i===0?`=СУММ(A${a}:A${b})`:""]);
+  return {topic:"Мат. функции", type:"input",
+    text:`Какое число получится в <b>B1</b>?`, sheet: sheet({data:d, cls:{B1:"q"}, fb:{cell:"B1",f:`=СУММ(A${a}:A${b})`}}),
+    answer:s, explain:`Складываем A${a}…A${b}: ${vals.slice(a-1,b).join(" + ").replace(/\+ -/g,"− ")} = ${s}.`};
+});
+GEN.M.push(function abs(){
+  const x = rnd(3,40), y = x + rnd(3,30);
+  const v = pick([
+    {d:[[-x,""]], f:"=ABS(A1)", a:x, e:`модуль −${x} = ${x}`},
+    {d:[[x,y]], f:"=ABS(A1-B1)", a:y-x, e:`${x} − ${y} = −${y-x}, модуль = ${y-x}`}]);
+  const d = v.d.map(r=>r.concat([""]));
+  d[0][2] = v.f;
+  return {topic:"Мат. функции", type:"input",
+    text:`Какое число получится в <b>C1</b>?`, sheet: sheet({data:d, cls:{C1:"q"}, fb:{cell:"C1",f:v.f}}),
+    answer:v.a, explain:`ABS убирает знак «минус»: ${v.e}.`};
+});
+GEN.M.push(function sqrt(){
+  const r = rnd(3,15);
+  const v = pick([
+    {d:[[r*r,""]], f:"=КОРЕНЬ(A1)", a:r, e:`√${r*r} = ${r}`},
+    (()=>{const p=rnd(1,r*r-1);return {d:[[p,r*r-p]], f:"=КОРЕНЬ(A1+B1)", a:r, e:`${p} + ${r*r-p} = ${r*r}, √${r*r} = ${r}`};})()]);
+  const d = v.d.map(row=>row.concat([""])); d[0][2]=v.f;
+  return {topic:"Мат. функции", type:"input",
+    text:`Какое число получится в <b>C1</b>?`, sheet: sheet({data:d, cls:{C1:"q"}, fb:{cell:"C1",f:v.f}}),
+    answer:v.a, explain:v.e+"."};
+});
+GEN.M.push(function power(){
+  const [b,n] = pick([[2,3],[3,3],[4,3],[5,3],[2,4],[2,5],[3,4],[6,2],[7,2],[9,2],[11,2],[12,2]]);
+  return {topic:"Мат. функции", type:"input",
+    text:`Какое число получится в <b>B1</b>?`, sheet: sheet({data:[[b,`=СТЕПЕНЬ(A1;${n})`]], cls:{B1:"q"}, fb:{cell:"B1",f:`=СТЕПЕНЬ(A1;${n})`}}),
+    answer:Math.pow(b,n), explain:`${b} в степени ${n} = ${Math.pow(b,n)}.`};
+});
+GEN.M.push(function sumifNum(){
+  const vals=[]; for(let i=0;i<6;i++) vals.push(rnd(-20,30));
+  const cr = pick([">0","<0",">10",">=5","<10"]);
+  const test = {">0":v=>v>0,"<0":v=>v<0,">10":v=>v>10,">=5":v=>v>=5,"<10":v=>v<10}[cr];
+  const s = vals.filter(test).reduce((a,b)=>a+b,0);
+  const f = `=СУММЕСЛИ(A1:A6;"${cr}")`;
+  const d = vals.map((v,i)=>[v, i===0?f:""]);
+  return {topic:"Мат. функции", type:"input",
+    text:`Какое число получится в <b>B1</b>?`, sheet: sheet({data:d, cls:{B1:"q"}, fb:{cell:"B1",f}}),
+    answer:s, explain:`Складываем только числа, для которых верно «${cr}»: ${vals.filter(test).join(", ")||"таких нет"} → ${s}.`};
+});
+GEN.M.push(function sumifText(){
+  const yes = pick(["да","нет"]);
+  const rows=[]; let s=0;
+  for(let i=0;i<5;i++){ const c = Math.random()<0.5?"да":"нет"; const p=rnd(3,10); rows.push([ "Ученик "+(i+1), c, p]); if(c===yes) s+=p; }
+  if(!rows.some(r=>r[1]===yes)){ rows[0][1]=yes; s=rows[0][2]; }
+  const f = `=СУММЕСЛИ(B2:B6;"${yes}";C2:C6)`;
+  const d = [["Ученик","Сдал проект","Баллы"]].concat(rows);
+  return {topic:"Мат. функции", type:"input",
+    text:`В ячейку E1 записали формулу <code>${esc(f)}</code>. Какое число она вернёт?`,
+    sheet: sheet({data:d, head:true}),
+    answer:s, explain:`Складываем баллы из C только в тех строках, где в B стоит «${yes}» → ${s}.`};
+});
+GEN.M.push(function whichFunc(){
+  const v = pick([
+    {t:"возвести число из A1 в куб", c:"=СТЕПЕНЬ(A1;3)", w:["=КОРЕНЬ(A1;3)","=СТЕПЕНЬ(3;A1)","=СУММ(A1;3)"]},
+    {t:"найти квадратный корень числа из A1", c:"=КОРЕНЬ(A1)", w:["=СТЕПЕНЬ(A1;2)","=КОРЕНЬ(A1;2)","=ABS(A1)"]},
+    {t:"найти модуль разности A1 и B1", c:"=ABS(A1-B1)", w:["=ABS(A1)-B1","=СУММ(A1-B1)","=ABS(A1;B1)"]},
+    {t:"сложить все числа в диапазоне A1:A10", c:"=СУММ(A1:A10)", w:["=СУММ(A1;A10)","=СУММЕСЛИ(A1:A10)","=СУММ(A1-A10)"]},
+    {t:"возвести в квадрат сумму чисел A1:A5", c:"=СТЕПЕНЬ(СУММ(A1:A5);2)", w:["=СУММ(СТЕПЕНЬ(A1:A5))","=СТЕПЕНЬ(2;СУММ(A1:A5))","=КОРЕНЬ(СУММ(A1:A5))"]}]);
+  return {topic:"Мат. функции", type:"choice",
+    text:`Какая формула позволяет ${v.t}?`, sheet:"",
+    options: uniqOpts(v.c, v.w), answer:v.c, explain:`Верно: ${v.c}.`};
+});
+GEN.M.push(function sqrtNeg(){
+  const r = rnd(2,9);
+  const f = `=КОРЕНЬ(A1)`;
+  return {topic:"Мат. функции", type:"choice",
+    text:`Что появится в <b>B1</b>?`, sheet: sheet({data:[[-r*r, f]], cls:{B1:"q"}, fb:{cell:"B1",f}}),
+    options: shuffle(["#ЧИСЛО!", String(-r), String(r), "0"]), answer:"#ЧИСЛО!",
+    explain:`Квадратный корень из отрицательного числа не существует — Excel выдаёт ошибку #ЧИСЛО!.`};
+});
+GEN.M.push(function sumifFormula(){
+  const t = pick([10,20,50,0]); const sg = pick([">","<"]);
+  const word = sg===">"?"больше":"меньше";
+  const c = `=СУММЕСЛИ(A1:A8;"${sg}${t}")`;
+  return {topic:"Мат. функции", type:"choice",
+    text:`Какая формула найдёт сумму чисел диапазона A1:A8, которые ${word} ${t}?`, sheet:"",
+    options: uniqOpts(c, [`=СУММ(A1:A8;"${sg}${t}")`, `=СУММЕСЛИ("${sg}${t}";A1:A8)`, `=СУММЕСЛИ(A1:A8;${sg}${t})`]),
+    answer:c, explain:`Сначала диапазон, потом условие в кавычках: ${c}.`};
+});
+
+/* === ЛОГИЧЕСКИЕ ФУНКЦИИ === */
+GEN.L.push(function ifCopyValue(){
+  const t = rnd(5,7);
+  const vals = shuffle([t, t-1, t+2, rnd(2,9), rnd(2,9)]);
+  const k = rnd(1,4); // строка B3..B6
+  const tgt = "B"+(2+k), v = vals[k];
+  const numVar = Math.random() < 0.5;
+  const f = numVar ? `=ЕСЛИ(A2>$D$1;A2-$D$1;0)` : `=ЕСЛИ(A2>=$D$1;"зачёт";"незачёт")`;
+  const d = [[numVar?"Значение":"Балл","Результат","",t]];
+  vals.forEach((x,i)=>d.push([x, i===0?f:(i===k?"?":""), "", ""]));
+  const sh = sheet({data:d, cls:{B2:"src",[tgt]:"q",D1:"sel"}, fb:{cell:"B2",f}});
+  const fT = shiftFormula(f,0,k);
+  if (numVar){
+    const ans = v>t ? v-t : 0;
+    return {topic:"ЕСЛИ", type:"input",
+      text:`В D1 — порог. Формулу из <b>B2</b> скопировали вниз до B6. Какое <b>число</b> будет в <b>${tgt}</b>?`,
+      sheet: sh, answer: ans,
+      explain:`В ${tgt} формула ${fT}: ${v} > ${t} — ${v>t?`да → ${v} − ${t} = ${ans}`:"нет → 0"}.`};
+  }
+  const ok = v>=t;
+  return {topic:"ЕСЛИ", type:"choice",
+    text:`В D1 — проходной балл. Формулу из <b>B2</b> скопировали вниз до B6. Что будет в <b>${tgt}</b>?`,
+    sheet: sh, options: shuffle(["зачёт","незачёт","ИСТИНА","ЛОЖЬ"]), answer: ok?"зачёт":"незачёт",
+    explain:`В ${tgt} формула ${fT}: ${v} ≥ ${t} — ${ok?"да":"нет"} → «${ok?"зачёт":"незачёт"}».`};
+});
+GEN.L.push(function ifDiscount(){
+  const price = rnd(20,95)*100, lim = pick([5000,6000,4000]);
+  const pct = pick([10,20,5]);
+  const k = (100-pct)/100;
+  const f = `=ЕСЛИ(A2>=${lim};A2*${String(k).replace(".",",")};A2)`;
+  const ans = price>=lim ? Math.round(price*k*100)/100 : price;
+  return {topic:"ЕСЛИ", type:"input",
+    text:`При стоимости не меньше ${lim} тг даётся скидка ${pct}%. Какое число будет в <b>B2</b>?`,
+    sheet: sheet({data:[["Стоимость","Со скидкой"],[price,"?"]], head:true, cls:{B2:"q"}, fb:{cell:"B2",f}}),
+    answer:ans, explain:`${price} ${price>=lim?"≥":"<"} ${lim} → ${price>=lim?`${price}·${num(k)} = ${num(ans)}`:"скидки нет, остаётся "+price}.`};
+});
+GEN.L.push(function ifTextCond(){
+  const val = pick(["да","нет"]), b = rnd(5,15), bonus = pick([2,3,5]);
+  const f = `=ЕСЛИ(B2="да";C2+${bonus};C2)`;
+  const ans = val==="да" ? b+bonus : b;
+  return {topic:"ЕСЛИ", type:"input",
+    text:`За выполненное доп. задание добавляется ${bonus} балла. Какое число будет в <b>D2</b>?`,
+    sheet: sheet({data:[["Ученик","Доп. задание","Баллы","Итог"],["Ученик 1",val,b,"?"]], head:true, cls:{D2:"q"}, fb:{cell:"D2",f}}),
+    answer:ans, explain:`B2 = «${val}», условие ${val==="да"?"верно":"ложно"} → ${ans}.`};
+});
+GEN.L.push(function ifSyntax(){
+  const [w1,w2,t] = pick([["много","мало",10],["зачёт","незачёт",6],["тепло","холодно",15],["успел","опоздал",8]]);
+  const c = `=ЕСЛИ(A1>=${t};"${w1}";"${w2}")`;
+  return {topic:"ЕСЛИ", type:"choice",
+    text:`Какая формула записана <b>без ошибок</b>?`, sheet:"",
+    options: uniqOpts(c, [`=ЕСЛИ(A1>=${t};${w1};${w2})`, `=ЕСЛИ(A1>=${t},"${w1}","${w2}")`, `=ЕСЛИ A1>=${t};"${w1}";"${w2}"`]),
+    answer:c, explain:`Аргументы — через «;», текст — в кавычках, аргументы — в скобках: ${c}.`};
+});
+GEN.L.push(function ifParts(){
+  const [w1,w2,t] = pick([["зачёт","незачёт",6],["в норме","отклонение",3],["купить","не покупать",500]]);
+  const f = `=ЕСЛИ(B2>=${t};"${w1}";"${w2}")`;
+  const parts = {"лог_выражение":`B2>=${t}`, "значение_если_истина":`"${w1}"`, "значение_если_ложь":`"${w2}"`};
+  const ask = pick(Object.keys(parts));
+  return {topic:"ЕСЛИ", type:"choice",
+    text:`В формуле <code>${esc(f)}</code> что является аргументом <b>${ask}</b>?`, sheet:"",
+    options: shuffle([`B2>=${t}`,`"${w1}"`,`"${w2}"`,"B2"]), answer:parts[ask],
+    explain:`Порядок: условие; если истина; если ложь. ${ask} — ${parts[ask]}.`};
+});
+GEN.L.push(function ifSqrt(){
+  const r = rnd(2,12);
+  const v = pick([r*r, -r*r, 0]);
+  const f = `=ЕСЛИ(A2>=0;КОРЕНЬ(A2);"нет корня")`;
+  const ans = v>=0 ? String(Math.sqrt(v)) : "нет корня";
+  return {topic:"ЕСЛИ", type:"choice",
+    text:`Что выведет формула в <b>B2</b>?`,
+    sheet: sheet({data:[["Число","Результат"],[v,"?"]], head:true, cls:{B2:"q"}, fb:{cell:"B2",f}}),
+    options: uniqOpts(ans, ["нет корня", String(r), "#ЧИСЛО!", String(-r), "0"]), answer: ans,
+    explain:`${v} ≥ 0 — ${v>=0?"да, считаем корень":"нет, выводим текст"} → ${ans}.`};
+});
+GEN.L.push(function chooseIf(){
+  const t = rnd(5,8);
+  const v = pick([
+    {txt:`не меньше ${t}`, c:`=ЕСЛИ(B2>=${t};"зачёт";"незачёт")`, w:[`=ЕСЛИ(B2>${t};"зачёт";"незачёт")`,`=ЕСЛИ(B2>=${t};"незачёт";"зачёт")`,`=ЕСЛИ(B2<=${t};"зачёт";"незачёт")`]},
+    {txt:`больше ${t}`, c:`=ЕСЛИ(B2>${t};"зачёт";"незачёт")`, w:[`=ЕСЛИ(B2>=${t};"зачёт";"незачёт")`,`=ЕСЛИ(B2>${t};"незачёт";"зачёт")`,`=ЕСЛИ(B2<${t};"зачёт";"незачёт")`]}]);
+  return {topic:"ЕСЛИ", type:"choice",
+    text:`Если балл в B2 <b>${v.txt}</b>, нужно вывести «зачёт», иначе «незачёт». Какая формула верная?`, sheet:"",
+    options: uniqOpts(v.c, v.w), answer:v.c, explain:`«${v.txt}» записывается как ${v.txt.startsWith("не")?">=":">"}${t}: ${v.c}.`};
+});
+GEN.L.push(function ifAbs(){
+  const norm = rnd(5,8), h = norm + pick([-3,-2,-1,0,1,2,3]);
+  const ok = Math.abs(h-norm)<=1;
+  const f = `=ЕСЛИ(ABS(B2-$E$1)<=1;"в норме";"отклонение")`;
+  return {topic:"ЕСЛИ", type:"choice",
+    text:`В E1 — норма роста. Что выведет формула в <b>C2</b>?`,
+    sheet: sheet({data:[["Растение","Рост, см","Вывод","",norm],["Фасоль",h,"?","",""]], cls:{C2:"q",E1:"sel"}, fb:{cell:"C2",f}}),
+    options: shuffle(["в норме","отклонение","ИСТИНА",String(Math.abs(h-norm))]), answer: ok?"в норме":"отклонение",
+    explain:`|${h} − ${norm}| = ${Math.abs(h-norm)}, ${Math.abs(h-norm)} ≤ 1 — ${ok?"да":"нет"} → «${ok?"в норме":"отклонение"}».`};
+});
+GEN.L.push(function countAfterCopy(){
+  const n = 5, t = rnd(5,7);
+  const vals=[]; for(let i=0;i<n;i++) vals.push(rnd(3,9));
+  const cnt = vals.filter(v=>v>=t).length;
+  const f = `=ЕСЛИ(B2>=$E$1;"Хороший";"Медленный")`;
+  const d = [["Растение","Рост","Оценка","",t]];
+  ["Фасоль","Томат","Горох","Огурец","Кабачок"].forEach((nm,i)=>d.push([nm, vals[i], i===0?f:"", "", ""]));
+  return {topic:"ЕСЛИ", type:"input",
+    text:`Формулу из C2 скопировали вниз до C6. Сколько ячеек покажут «Хороший»?`,
+    sheet: sheet({data:d, cls:{C2:"src",E1:"sel"}}),
+    answer:cnt, explain:`«Хороший», если рост ≥ ${t}: ${vals.filter(v=>v>=t).join(", ")||"нет таких"} → ${cnt}.`};
+});
+GEN.L.push(function ifNotEqual(){
+  const a = pick([0, rnd(2,5)]), b = a===0 ? rnd(5,30) : a*rnd(2,6);
+  const f = `=ЕСЛИ(A2<>0;B2/A2;"деление на 0")`;
+  const ans = a!==0 ? String(b/a) : "деление на 0";
+  return {topic:"ЕСЛИ", type:"choice",
+    text:`Что выведет формула в <b>C2</b>? (Знак <code>&lt;&gt;</code> означает «не равно».)`,
+    sheet: sheet({data:[["A","B","Результат"],[a,b,"?"]], head:true, cls:{C2:"q"}, fb:{cell:"C2",f}}),
+    options: uniqOpts(ans, ["деление на 0", String(b), "0", "#ДЕЛ/0!"]), answer: ans,
+    explain:`${a} ≠ 0 — ${a!==0?"да, делим: "+b+"/"+a+" = "+ans:"нет, выводим текст «деление на 0»"}.`};
+});
+
+/* ---------- сбор набора ---------- */
+const PLAN = {A:5, M:5, L:8};
+function buildSet(){
+  const set = [];
+  for (const k of ["A","M","L"]) shuffle(GEN[k]).slice(0,PLAN[k]).forEach(g=>{ const q=g(); q.gen=g.name; set.push(q); });
+  return set;
+}
+
+/* ---------- состояние ---------- */
+let Q = [], ans = [], cur = 0, running = false, finished = false;
+let startTime = 0, exits = 0, awayMs = 0, awayStart = 0;
+let result = null;
+let suppress = false; // не считать выходом системное окно подтверждения
+
+/* ---------- вкладки ---------- */
+function show(tab){
+  $("theory").classList.toggle("hidden", tab!=="theory");
+  $("test").classList.toggle("hidden", tab!=="test");
+  $("tabTheory").classList.toggle("on", tab==="theory");
+  $("tabTest").classList.toggle("on", tab==="test");
+  window.scrollTo(0,0);
+}
+$("tabTheory").onclick = ()=>{ if(!running) show("theory"); };
+$("tabTest").onclick = ()=>show("test");
+$("goTest").onclick = ()=>show("test");
+
+/* ---------- старт ---------- */
+$("ruleCount").textContent = `${PLAN.A+PLAN.M+PLAN.L} заданий: адресация, математические функции, функция ЕСЛИ.`;
+$("fio").value = "";
+$("startBtn").onclick = ()=>{
+  const fio = $("fio").value.trim().replace(/\s+/g," "), cls = $("cls").value;
+  const err = $("startErr");
+  if (fio.split(" ").length < 2){ err.textContent="Введите фамилию и имя."; err.classList.remove("hidden"); return; }
+  if (!cls){ err.textContent="Выберите класс."; err.classList.remove("hidden"); return; }
+  err.classList.add("hidden");
+  Q = buildSet(); ans = Q.map(()=>null); cur = 0;
+  running = true; finished = false; startTime = Date.now(); exits = 0; awayMs = 0;
+  $("tabTheory").disabled = true;
+  $("startCard").classList.add("hidden"); $("work").classList.remove("hidden"); $("result").classList.add("hidden");
+  $("who").textContent = `${fio}, ${cls}`;
+  renderDots(); renderQ();
+};
+
+/* ---------- отображение задания ---------- */
+function renderDots(){
+  const box = $("dots"); box.innerHTML = "";
+  Q.forEach((q,i)=>{
+    const b = document.createElement("button");
+    b.className = "dot" + (ans[i]!==null && ans[i]!=="" ? " done":"") + (i===cur?" cur":"");
+    b.textContent = i+1; b.onclick = ()=>{ cur=i; renderDots(); renderQ(); };
+    box.appendChild(b);
+  });
+  const n = ans.filter(a=>a!==null && a!=="").length;
+  $("answeredInfo").textContent = `Отвечено: ${n} из ${Q.length}`;
+  $("prog").style.width = (n/Q.length*100)+"%";
+}
+function renderQ(){
+  const q = Q[cur], c = $("qcard");
+  let h = `<div class="qhead"><b>Задание ${cur+1} из ${Q.length}</b><span>${q.topic}</span></div>`;
+  h += `<div class="qtext">${q.text}</div>${q.sheet||""}`;
+  if (q.type==="choice"){
+    h += '<div class="opts">';
+    q.options.forEach((o,i)=>{
+      const on = ans[cur]===o;
+      h += `<label class="opt${on?" on":""}"><input type="radio" name="o" value="${i}"${on?" checked":""}><span class="mono">${esc(o)}</span></label>`;
+    });
+    h += '</div>';
+  } else {
+    h += `<div class="ans"><label class="fld" for="inp">Ответ (число):</label><input type="text" id="inp" inputmode="decimal" autocomplete="off" value="${ans[cur]!==null?esc(ans[cur]):""}"></div>`;
+  }
+  h += `<div class="navq"><button class="btn sec" id="prevB"${cur===0?" disabled":""}>← Назад</button><button class="btn" id="nextB">${cur===Q.length-1?"К первому":"Далее →"}</button></div>`;
+  c.innerHTML = h;
+  if (q.type==="choice"){
+    c.querySelectorAll('input[name=o]').forEach(r=>r.onchange = ()=>{ ans[cur] = q.options[+r.value]; c.querySelectorAll(".opt").forEach(l=>l.classList.toggle("on", l.querySelector("input").checked)); renderDots(); });
+  } else {
+    const inp = $("inp"); inp.oninput = ()=>{ ans[cur] = inp.value.trim(); renderDots(); };
+  }
+  $("prevB").onclick = ()=>{ if(cur>0){cur--; renderDots(); renderQ(); window.scrollTo(0,0);} };
+  $("nextB").onclick = ()=>{ cur = (cur+1)%Q.length; renderDots(); renderQ(); window.scrollTo(0,0); };
+}
+
+/* ---------- проверка ---------- */
+function isRight(q,a){
+  if (a===null || a==="") return false;
+  if (q.type==="choice") return a===q.answer;
+  const x = parseFloat(String(a).replace(/\s/g,"").replace(",","."));
+  return !isNaN(x) && Math.abs(x - Number(q.answer)) < 1e-6;
+}
+$("finishBtn").onclick = ()=>{
+  const left = ans.filter(a=>a===null||a==="").length;
+  suppress = true;
+  const go = left===0 || confirm(`Не отвечено заданий: ${left}. Они будут засчитаны как неверные. Завершить?`);
+  setTimeout(()=>{ suppress = false; }, 300);
+  if (!go) return;
+  finish();
+};
+function fmtSec(s){ s=Math.round(s); const m=Math.floor(s/60); return m? `${m} мин ${s%60} с` : `${s} с`; }
+function finish(){
+  if (awayStart){ awayMs += Date.now()-awayStart; awayStart=0; }
+  running = false; finished = true;
+  $("tabTheory").disabled = false; $("awaybar").classList.add("hidden");
+  const right = Q.map((q,i)=>isRight(q,ans[i]));
+  const n = right.filter(Boolean).length, total = Q.length;
+  const g10 = Math.round(n/total*10);
+  const dur = (Date.now()-startTime)/1000;
+  const fio = $("fio").value.trim().replace(/\s+/g," "), cls = $("cls").value;
+  const byTopic = {};
+  Q.forEach((q,i)=>{ const t=q.topic; byTopic[t]=byTopic[t]||[0,0]; byTopic[t][1]++; if(right[i]) byTopic[t][0]++; });
+  result = {fio, cls, n, total, g10, pct: Math.round(n/total*100), exits, away: Math.round(awayMs/1000), dur: Math.round(dur),
+            date: new Date().toLocaleString("ru-RU"),
+            topics: Object.entries(byTopic).map(([t,[a,b]])=>`${t}: ${a}/${b}`).join("; "),
+            wrong: Q.map((q,i)=>right[i]?null:(i+1)).filter(Boolean).join(", ")};
+  $("work").classList.add("hidden");
+  const r = $("result"); r.classList.remove("hidden");
+  let h = `<div class="card"><h2>Результат</h2>
+    <div class="res-big">${g10} / 10</div>
+    <div class="res-sub">Верно ${n} из ${total} (${result.pct}%) · время ${fmtSec(dur)}</div>
+    <p style="margin-top:10px"><b>По темам:</b> ${esc(result.topics)}</p>
+    ${exits?`<div class="warn">Выходов со страницы: ${exits}, вне страницы: ${fmtSec(result.away)}.</div>`:""}
+    <div class="status" id="sendStatus"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn sec" id="txtBtn">Скачать результат (.txt)</button>
+      <button class="btn sec hidden" id="resendBtn">Отправить ещё раз</button>
+    </div></div>
+    <div class="card"><h2>Разбор заданий</h2>`;
+  Q.forEach((q,i)=>{
+    const ok = right[i], a = ans[i];
+    h += `<div class="rev ${ok?"ok":"bad"}"><div class="qhead"><b>${i+1}. ${q.topic}</b><span class="tag ${ok?"ok":"bad"}">${ok?"верно":"неверно"}</span></div>
+      <div>${q.text}</div>${q.sheet||""}
+      <p>Ваш ответ: <b class="mono">${a===null||a===""?"— нет ответа —":esc(a)}</b></p>
+      ${ok?"":`<p>Правильный ответ: <b class="mono">${esc(num(q.answer))}</b></p>`}
+      <p style="color:var(--muted)">${esc(q.explain)}</p></div>`;
+  });
+  h += `</div><div style="text-align:center"><button class="btn" id="againBtn">Пройти ещё раз (новые задания)</button></div>`;
+  r.innerHTML = h; window.scrollTo(0,0);
+  $("txtBtn").onclick = downloadTxt;
+  $("resendBtn").onclick = ()=>{ sendTries = 0; send(); };
+  $("againBtn").onclick = ()=>{ $("result").classList.add("hidden"); $("startCard").classList.remove("hidden"); window.scrollTo(0,0); };
+  send();
+}
+
+/* ---------- экспорт .txt ---------- */
+function downloadTxt(){
+  if (!result) return;
+  const lines = [
+    "Функции и адресация в Excel — домашнее задание",
+    `Ученик: ${result.fio}`, `Класс: ${result.cls}`, `Дата: ${result.date}`,
+    `Верно: ${result.n} из ${result.total} (${result.pct}%)`, `Оценка: ${result.g10} из 10`,
+    `По темам: ${result.topics}`, `Ошибки в заданиях: ${result.wrong||"нет"}`,
+    `Выходов со страницы: ${result.exits}; вне страницы: ${result.away} с`, `Время работы: ${result.dur} с`, "",
+  ];
+  Q.forEach((q,i)=>lines.push(`${i+1}. [${q.topic}] ${isRight(q,ans[i])?"верно":"неверно"} | ответ: ${ans[i]??"—"} | правильно: ${num(q.answer)}`));
+  const blob = new Blob(["﻿"+lines.join("\r\n")], {type:"text/plain;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `ДЗ_функции_${result.fio.replace(/\s+/g,"_")}_${result.cls}.txt`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------- надёжная отправка в Google-таблицу ---------- */
+let sendTries = 0, sendTimer = null, sent = false;
+const DELAYS = [2000, 5000, 10000, 20000, 40000];
+function setStatus(text, cls){ const s=$("sendStatus"); if(!s) return; s.textContent=text; s.className="status "+(cls||""); }
+async function send(){
+  if (!result || sent) return;
+  if (!GOOGLE_SHEET_URL){ setStatus("Отправка учителю не настроена — скачайте файл с результатом (.txt) и отправьте его учителю.", ""); return; }
+  clearTimeout(sendTimer);
+  sendTries++;
+  setStatus(`Отправка результата учителю… (попытка ${sendTries})`);
+  const payload = {fio:result.fio, cls:result.cls, date:result.date, n:result.n, total:result.total, pct:result.pct,
+                   g10:result.g10, topics:result.topics, wrong:result.wrong, exits:result.exits, away:result.away, dur:result.dur};
+  try{
+    const resp = await fetch(GOOGLE_SHEET_URL, {method:"POST", body: JSON.stringify(payload)});
+    const data = await resp.json();
+    if (data && data.ok === true){ sent = true; setStatus("✓ Результат сохранён у учителя.", "ok"); $("resendBtn").classList.add("hidden"); return; }
+    throw new Error(data && data.busy ? "busy" : "bad");
+  }catch(e){
+    if (sendTries < 5){
+      setStatus(`Сервер занят или нет связи. Повтор через ${DELAYS[sendTries-1]/1000} с…`);
+      sendTimer = setTimeout(send, DELAYS[sendTries-1]);
+    } else {
+      setStatus("Не удалось отправить. Нажмите «Отправить ещё раз» или скачайте файл (.txt) и отправьте учителю.", "bad");
+      $("resendBtn").classList.remove("hidden");
+    }
+  }
+}
+window.addEventListener("online", ()=>{ if(result && !sent){ sendTries = 0; send(); } });
+
+/* ---------- защита ---------- */
+function leave(){
+  if (!running || awayStart || suppress) return;
+  exits++; awayStart = Date.now();
+}
+function back(){
+  if (!running || !awayStart) return;
+  awayMs += Date.now()-awayStart; awayStart = 0;
+  const bar = $("awaybar");
+  bar.textContent = `⚠ Вы покидали страницу: ${exits} раз(а), всего ${fmtSec(awayMs/1000)}. Это увидит учитель.`;
+  bar.classList.remove("hidden");
+}
+document.addEventListener("visibilitychange", ()=>{ document.hidden ? leave() : back(); });
+window.addEventListener("blur", leave);
+window.addEventListener("focus", back);
+["copy","cut","contextmenu"].forEach(ev=>document.addEventListener(ev, e=>{ if(running) e.preventDefault(); }));
+window.addEventListener("beforeunload", e=>{ if(running){ e.preventDefault(); e.returnValue=""; } });
+
+/* ---------- таблицы в теории ---------- */
+$("thAddr").innerHTML = sheet({data:[["","Число","Итог","",3],["",12,"=B2*$E$1","",""],["",7,"=B3*$E$1","",""]], cls:{C2:"src",C3:"q",E1:"sel"}, fb:{cell:"C3",f:"=B3*$E$1"}});
+$("thMath").innerHTML = sheet({data:[[4],[-8],[25],[2],[-3]]});
+$("thSumif").innerHTML = sheet({data:[["Ученик","Сдал проект","Баллы"],["Ученик 1","да",8],["Ученик 2","нет",5],["Ученик 3","да",7],["Ученик 4","нет",6]], head:true});
+$("thIf").innerHTML = sheet({data:[["Число","Результат"],[15,"положительное"],[0,"отрицательное"],[-6,"отрицательное"]], head:true, cls:{B2:"act"}, fb:{cell:"B2",f:'=ЕСЛИ(A2>0;"положительное";"отрицательное")'}});
+</script>
+</body>
+</html>
