@@ -262,7 +262,7 @@ function t4Theory(){const d=pick(T4Q);return {t:'t4',type:'mc',q:d.q,opts:d.o,c:
 /* ---------- t5: строки в рекурсивных функциях ---------- */
 const q_=s=>"`'"+s+"'`";
 function t5Slice(){
-  const kind=pick(['rev','rev','calls','pal']),N=NM();
+  const kind=pick(['rev','calls']),N=NM();
   if(kind==='rev'){
     const w=pick(['кот','мир','Python','код','лето','лист']),r=[...w].reverse().join('');
     const wrong=new Set([w,w.slice(1)+w[0],w[w.length-1]+w.slice(0,-1),r.slice(1)+r[0],[...w.slice(1)].reverse().join('')]);wrong.delete(r);
@@ -275,11 +275,6 @@ function t5Slice(){
     return {t:'t5',type:'num',q:`Сколько раз будет вызвана функция \`${N}\` при вызове \`${N}('${w}')\` (считая и первый вызов)?`,code:code(MK.reverse(N)),ans:w.length,
       e:`Каждый вызов укорачивает строку на один символ (\`s[1:]\`), пока не останется 1 символ: ${w.length} вызовов для строки из ${w.length} символов.`};
   }
-  const pal=Math.random()<.5,w=pal?pick(['казак','шалаш','потоп','радар','топот']):pick(['кошка','школа','мама','пират']);
-  const L=[`def ${N}(s):`,'    if len(s) <= 1:','        return True','    if s[0] != s[-1]:','        return False',`    return ${N}(s[1:-1])`];
-  const ok=w===[...w].reverse().join('');
-  return {t:'t5',type:'mc',q:`Что вернёт вызов \`${N}('${w}')\`?`,code:code(L),opts:['`True`','`False`'],c:ok?0:1,keep:true,
-    e:ok?'Крайние символы совпадают, функция проверяет середину `s[1:-1]`, пока не останется 1 символ → `True`.':'На каком-то шаге `s[0]` и `s[-1]` не совпали → `False`.'};
 }
 function t5Method(){
   const kind=pick(['lower','digit','upper']),N=NM();
