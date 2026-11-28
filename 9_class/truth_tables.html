@@ -78,7 +78,7 @@ table.tt td.res,table.tt th.res{background:#f5f3ff}
 table.tt td.sep,table.tt th.sep{border-left:4px solid #7c9cc9}
 .small{font-size:17px;color:var(--muted)}
 .b2{color:#1d4ed8;font-weight:bold}
-.pn{color:#ea580c;font-weight:bold}
+.pn{color:#dc2626;font-weight:bold}
 .rowsbox{border:3px solid #93c5fd;border-radius:16px;background:#f8fbff;padding:12px 16px;margin:10px 0}
 .formula{font-size:40px;text-align:center;margin:4px 0 10px;font-family:"Times New Roman",serif}
 .formula .b2{font-size:56px}
@@ -86,14 +86,49 @@ table.tt td.sep,table.tt th.sep{border-left:4px solid #7c9cc9}
 .legend2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .legend2 div{border-radius:12px;padding:8px 12px;font-size:19px}
 .legend2 .lb{background:#dbeafe;border:2px solid #1d4ed8}
-.legend2 .ln{background:#ffedd5;border:2px solid #ea580c}
+.legend2 .ln{background:#fee2e2;border:2px solid #dc2626}
 .rowsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;align-items:start}
 .rowsgrid .hcard{font-size:19px}
 .rowsgrid table.tt{font-size:18px;margin:6px auto}
 .rowsgrid table.tt th,.rowsgrid table.tt td{padding:1px 6px;min-width:30px}
-.rowsgrid table.tt th{color:#ea580c;font-weight:bold}
+.rowsgrid table.tt th{color:#dc2626;font-weight:bold}
 .rowsgrid table.tt td{color:#1d4ed8}
 @media (max-width:600px){.legend2{grid-template-columns:1fr}}
+/* схема-пример как на слайде */
+.viz{border:3px solid #93c5fd;border-radius:16px;background:#fff;padding:14px 10px 18px;margin:10px 0}
+.vizf{font-size:32px;text-align:center;margin:34px 0 16px;font-family:"Cambria Math","Times New Roman",serif}
+.vizf .t{color:#1e3a8a;font-weight:bold;font-family:"Times New Roman",serif}
+.vizf .fx{white-space:nowrap}
+@media (max-width:600px){.vizf{font-size:26px;margin-top:10px}.vizf .t0{display:block;margin-bottom:34px}td.lt,td.lb{width:150px;min-width:150px}.rlbl{font-size:18px}.rlbl .big{font-size:26px}}
+.cn{color:#dc2626;font-weight:bold}
+.cm{color:#16a34a;font-weight:bold}
+.badge{display:inline-block;width:28px;height:28px;border-radius:50%;background:#f97316;border:2px solid #c2410c;color:#fff;font:bold 16px/24px Arial,sans-serif;text-align:center;vertical-align:middle}
+.ob{position:relative;display:inline-block}
+.ob .badge{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:4px}
+table.vt{border-collapse:collapse;margin:0 auto;font-size:22px}
+table.vt td{padding:0;text-align:center;vertical-align:bottom}
+table.vt .c{border:2px solid #9fb3cc;padding:3px 12px;min-width:50px;vertical-align:middle}
+table.vt th.c{background:#eef4ff;font-family:"Cambria Math","Times New Roman",serif;font-weight:normal;white-space:nowrap}
+table.vt th.c.var{font-weight:bold}
+table.vt .res{background:#f5f3ff}
+table.vt .sep{border-left:4px solid #7c9cc9}
+.blbl{font-size:21px;white-space:nowrap;line-height:28px;padding:0 6px 8px}
+.br{height:12px;border:2px solid;border-bottom:none;border-radius:12px 12px 0 0;margin:0 4px 6px;position:relative}
+.br::after{content:'';position:absolute;left:50%;top:-9px;width:2px;height:8px;background:currentColor;transform:translateX(-50%)}
+.br.blue{color:#2563eb}.br.red{color:#dc2626}.br.green{color:#16a34a}
+td.lt,td.lb{position:relative;width:200px;min-width:200px}
+.ln-v,.ln-h{position:absolute;border-color:#dc2626;border-style:solid;border-width:0}
+.ln-tip{position:absolute;right:0;top:7px;border-left:10px solid #dc2626;border-top:7px solid transparent;border-bottom:7px solid transparent}
+.lbr{position:absolute;right:4px;top:6px;bottom:6px;width:14px;border:2px solid #2563eb;border-right:none;border-radius:14px 0 0 14px}
+.lbr::before{content:'';position:absolute;top:50%;left:-12px;width:10px;height:2px;background:#2563eb}
+.rlbl{position:absolute;right:38px;top:50%;transform:translateY(-50%);text-align:right;white-space:nowrap;font-size:22px;font-weight:bold;line-height:1.25}
+.rlbl .big{font-size:32px;color:#1d4ed8}
+.rlbl small{display:block;font-size:19px;font-weight:normal;color:var(--muted)}
+.mist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:10px 0 0}
+.mist div{border-radius:12px;padding:8px 12px;font-size:20px;text-align:center}
+.mist .no{background:#fef2f2;border:2px solid #fca5a5}
+.mist .yes{background:#f0fdf4;border:2px solid #86efac}
+.mist .big{font-size:26px;font-family:"Cambria Math","Times New Roman",serif}
 .qtitle{font-size:20px;margin-bottom:6px}
 .eqpair{font-size:28px;display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
 .eqpair .and{font-size:20px;color:var(--muted)}
@@ -635,17 +670,40 @@ function rowsBox(){
   return '<table class="tt"><tr>'+vs.map(v=>`<th>${v}</th>`).join('')+'</tr>'+E.map(en=>'<tr>'+vs.map(v=>`<td>${en[v]}</td>`).join('')+'</tr>').join('')+'</table>';};
  const card=(n,mult)=>`<div class="hcard"><b>${n} ${n===1?'переменная':(n<5?'переменные':'переменных')}</b><br><span class="b2">2</span><sup class="pn">${n}</sup> = ${mult} = <b>${1<<n}</b> ${(1<<n)<5?'строки':'строк'}${n<=3?mini(n):'<div class="small" style="margin-top:8px">таблица из 16 строк: каждая новая переменная <b>удваивает</b> число строк</div>'}</div>`;
  return '<div class="rowsbox">'+
-  '<div class="formula">Количество строк = <span class="b2">2</span><sup class="pn">n</sup></div>'+
-  '<div class="legend2"><div class="lb"><span class="b2">2</span> — <b>основание</b>. Оно всегда равно 2, потому что у каждой переменной только <b>два значения: <span class="b2">0</span> и <span class="b2">1</span></b>.</div>'+
-  '<div class="ln"><span class="pn">n</span> — <b>показатель степени</b>. Это <b>количество разных переменных</b> в выражении (<span class="pn">A</span>, <span class="pn">B</span>, <span class="pn">C</span>…). Каждую переменную считаем <b>один раз</b>, даже если она встречается в выражении несколько раз.</div></div>'+
+  '<div class="formula">Строк = <span class="b2">2</span><sup class="pn">n</sup></div>'+
+  '<div class="legend2"><div class="lb"><span class="b2">2</span> — у каждой переменной <b>два значения: 0 и 1</b></div>'+
+  '<div class="ln"><span class="pn">n</span> — количество <b>разных</b> переменных</div></div>'+
   '<div class="rowsgrid">'+card(1,'<span class="b2">2</span>')+card(2,'<span class="b2">2</span> · <span class="b2">2</span>')+card(3,'<span class="b2">2</span> · <span class="b2">2</span> · <span class="b2">2</span>')+card(4,'<span class="b2">2</span> · <span class="b2">2</span> · <span class="b2">2</span> · <span class="b2">2</span>')+'</div>'+
-  '<p style="margin:10px 0 0">Пример: в выражении <span class="f">(<span class="pn">A</span> ∨ <span class="pn">B</span>) ∧ ¬<span class="pn">A</span></span> разных переменных <span class="pn">2</span> (A встречается дважды, но считается один раз), значит строк <span class="b2">2</span><sup class="pn">2</sup> = 4.</p>'+
-  '</div>';
+  '<div class="mist">'+
+   '<div class="no">n = 3<br><span class="big">2 · 3 = 6</span><br>✗ не умножаем на n</div>'+
+   '<div class="no">n = 3<br><span class="big">3<sup>2</sup> = 9</span><br>✗ не путаем местами</div>'+
+   '<div class="yes">n = 3<br><span class="big"><span class="b2">2</span><sup class="pn">3</sup> = 2 · 2 · 2 = 8</span><br>✓ верно</div>'+
+   '<div class="yes"><span class="f big">(<span class="pn">A</span> ∨ <span class="pn">B</span>) ∧ ¬<span class="pn">A</span></span><br>n = <span class="pn">2</span>, а не 3<br>✓ A считаем один раз</div>'+
+  '</div></div>';
+}
+/* схема-пример как на слайде: скобки n, m, столбцы, строки = 2^n */
+function vizExample(src){
+ const ex=parse(src);assignIds(ex,0);const nt={s:NOTA_STD};const cols=analyze(ex,nt);
+ const vars=[...usedVars(ex)].sort(),E=envs(vars),n=vars.length,m=cols.length;
+ const ord={};cols.forEach((c,i)=>ord[c.id]=i+1);
+ const tk=tok(ex);
+ const f=tk.map(t=>t.k==='v'?`<span class="cn">${t.s}</span>`:t.k==='op'?`${t.op==='not'?'':' '}<span class="ob cm"><span class="badge">${ord[t.id]}</span>${NOTA_STD[t.op]}</span>${t.op==='not'?'':' '}`:t.k).join('');
+ const opsList=tk.filter(t=>t.k==='op').map(t=>NOTA_STD[t.op]).join(', ');
+ const cls=i=>'c'+(i===0?' sep':'')+(i===m-1?' res':'');
+ let s='<div class="viz"><div class="vizf"><span class="t t0">Пример:</span> <span class="fx"><span class="t">F =</span> '+f+'</span></div><div class="twrap"><table class="vt">';
+ s+=`<tr><td></td><td colspan="${n+m}"><div class="blbl"><b>Всего столбцов = <span class="cn">n</span> + <span class="cm">m</span> = <span class="cn">${n}</span> + <span class="cm">${m}</span> = ${n+m}</b></div><div class="br blue"></div></td></tr>`;
+ s+='<tr><td class="lt" rowspan="3"><div class="ln-h" style="top:13px;right:6px;width:24px;border-top-width:2px"></div><div class="ln-tip"></div><div class="ln-v" style="top:13px;bottom:0;right:28px;border-right-width:2px"></div></td>'+
+  `<td colspan="${n}"><div class="blbl"><b class="cn">n = ${n}</b> (<span class="cn">${vars.join(', ')}</span>)</div><div class="br red"></div></td>`+
+  `<td colspan="${m}"><div class="blbl"><b class="cm">m = ${m}</b> (<span class="cm">${opsList}</span>)</div><div class="br green"></div></td></tr>`;
+ s+=`<tr><td colspan="${n}"></td>`+cols.map(c=>`<td style="padding-bottom:6px"><span class="badge">${ord[c.id]}</span></td>`).join('')+'</tr>';
+ s+='<tr>'+vars.map(v=>`<th class="c var">${v}</th>`).join('')+cols.map((c,i)=>`<th class="${cls(i)}">${c.html}</th>`).join('')+'</tr>';
+ E.forEach((en,r)=>{
+  s+='<tr>'+(r===0?`<td class="lb" rowspan="${E.length}"><div class="ln-v" style="top:0;height:50%;right:28px;border-right-width:2px"></div><div class="lbr"></div><div class="rlbl">Всего строк =<br><span class="big">2<sup class="cn">n</sup></span><small>2<sup>${n}</sup> = ${E.length}</small></div></td>`:'')+
+   vars.map(v=>`<td class="c">${en[v]}</td>`).join('')+cols.map((c,i)=>`<td class="${cls(i)}">${ev(c.node,en)}</td>`).join('')+'</tr>';
+ });
+ return s+'</table></div></div>';
 }
 function buildHelp(){
- const ex=parse('¬A∧(B∨C)');assignIds(ex,0);const nt={s:NOTA_STD};const cols=analyze(ex,nt);const vars=['A','B','C'],E=envs(vars);
- const exTable='<table class="tt"><tr>'+vars.map(v=>`<th class="var">${v}</th>`).join('')+cols.map((c,i)=>`<th class="${i===0?'sep ':''}${i===cols.length-1?'res':''}">${c.html}</th>`).join('')+'</tr>'+
-  E.map(en=>'<tr>'+vars.map(v=>`<td>${en[v]}</td>`).join('')+cols.map((c,i)=>`<td class="${i===0?'sep ':''}${i===cols.length-1?'res':''}">${ev(c.node,en)}</td>`).join('')+'</tr>').join('')+'</table>';
  const opTables=['not',...BIN].map(op=>{
   if(op==='not')return '<div class="hcard"><b>Инверсия ¬A</b><table class="tt"><tr><th>A</th><th>¬A</th></tr><tr><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td></tr></table></div>';
   return `<div class="hcard"><b>${OPS[op].name[0].toUpperCase()+OPS[op].name.slice(1)}</b><table class="tt"><tr><th>A</th><th>B</th><th>A ${NOTA_STD[op]} B</th></tr>`+[[0,0],[0,1],[1,0],[1,1]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${OPS[op].f(r[0],r[1])}</td></tr>`).join('')+'</table></div>';
@@ -653,17 +711,15 @@ function buildHelp(){
  $('#hbox').innerHTML='<button class="btn sec hclose" onclick="closeHelp()">Закрыть ✕</button><h2>Справка: построение таблиц истинности</h2>'+
  '<p><b>Таблица истинности</b> — это таблица, в левой части которой записываются все наборы значений переменных, а в правой — соответствующие значения логического выражения (и промежуточных операций).</p>'+
  '<h3>Алгоритм построения</h3><ol>'+
- '<li>Определить количество переменных <span class="pn"><i>n</i></span>.</li>'+
- '<li>Определить количество логических операций и порядок их выполнения.</li>'+
- '<li>Количество столбцов = количество переменных + количество операций.</li>'+
- '<li>Количество строк = <span class="b2">2</span><sup class="pn"><i>n</i></sup> — это количество наборов значений переменных (строку заголовка в это число не включаем). Подробнее — ниже, в рамке.</li>'+
- '<li>Заполнить наборы значений переменных в порядке двоичного счёта.</li>'+
- '<li>Заполнить столбцы операций в порядке их выполнения, пользуясь таблицами истинности основных операций.</li></ol>'+
- '<h3>Сколько строк (наборов) в таблице</h3>'+rowsBox()+'<h3>Как не пропустить ни одного набора</h3><p>Наборы — это числа 0, 1, 2, 3, … записанные в двоичной системе счисления. Для двух переменных: 00, 01, 10, 11 (числа 0–3). Для трёх переменных: 000, 001, 010, 011, 100, 101, 110, 111 (числа 0–7).</p>'+
- '<p>Подсказка: в последнем столбце переменных значения чередуются через одно (0, 1, 0, 1…), в предпоследнем — через два (0, 0, 1, 1…), в первом из трёх — через четыре.</p>'+
- '<p>Наборы можно записать и в другом порядке — главное, чтобы были все наборы и ни один не повторялся. Но двоичный счёт помогает не ошибиться.</p>'+
- '<h3>Пример: F = <span class="f">¬A ∧ (B ∨ C)</span></h3>'+
- '<p>Переменные: A, B, C — всего 3. Операции: ¬A, B ∨ C, ¬A ∧ (B ∨ C) — всего 3. Столбцов: 3 + 3 = 6. Строк (наборов): <span class="b2">2</span><sup class="pn">3</sup> = 8.</p><div class="twrap">'+exTable+'</div>'+
+ '<li><b class="cn">n</b> — количество переменных.</li>'+
+ '<li><b class="cm">m</b> — количество операций; номера <span class="badge">1</span> <span class="badge">2</span> <span class="badge">3</span> — порядок их выполнения.</li>'+
+ '<li>Столбцов = <b class="cn">n</b> + <b class="cm">m</b>.</li>'+
+ '<li>Строк = <span class="b2">2</span><sup class="cn">n</sup> (строку заголовка не считаем).</li>'+
+ '<li>Заполнить наборы в порядке двоичного счёта.</li>'+
+ '<li>Заполнить столбцы операций по порядку.</li></ol>'+
+ vizExample('¬A∧(B∨C)')+
+ '<h3>Сколько строк (наборов) в таблице</h3>'+rowsBox()+'<h3>Как не пропустить ни одного набора</h3><p>Наборы — это числа 0, 1, 2, … в двоичной записи: 00, 01, 10, 11 (2 переменные) или 000, 001, …, 111 (3 переменные).</p>'+
+ '<p>В последнем столбце значения чередуются через одно (0, 1, 0, 1…), в предпоследнем — через два (0, 0, 1, 1…), в первом из трёх — через четыре.</p>'+
  '<h3>Порядок выполнения операций</h3><ol><li>действия в скобках;</li><li>инверсия <span class="f">¬</span>;</li><li>конъюнкция <span class="f">∧</span>;</li><li>дизъюнкция <span class="f">∨</span> и исключающее ИЛИ <span class="f">⊕</span>;</li><li>импликация <span class="f">→</span>;</li><li>эквивалентность <span class="f">↔</span>.</li></ol>'+
  '<h3>Обозначения операций</h3><p>В заданиях чаще всего используется основная запись, но иногда встречаются и другие — их тоже надо узнавать.</p>'+
  '<table class="nota f"><tr><th>Операция</th><th>Основная запись</th><th>Другие записи</th></tr>'+
